@@ -20,8 +20,6 @@ const FeaturedRow = ({id,title, description}) => {
             }).catch(console.error);
 
     }, [])
-
-    console.log(restaurants);
   return (
     <View>
         <View className="flex-row items-center justify-between mt-4 px-4">
