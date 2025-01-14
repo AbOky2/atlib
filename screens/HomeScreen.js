@@ -18,17 +18,15 @@ const HomeScreen = () => {
     useEffect(() => {
             sanityClient.fetch(`*[_type=="featured"]{
                 ...,
-                restaurant[] ->{
+                restaurants[] ->{
                     ...,
-                    dish[] ->
+                    dishes[] ->
                 }
                 }`).then((data) => {
                 setFeaturedCategories(data);
             }).catch(console.error);    
     }
     , []); 
-
-    console.log(featuredCategories);
 
   return (
     <SafeAreaView className="bg-white pt-5">
@@ -69,23 +67,16 @@ const HomeScreen = () => {
             <Categories />
 
             {/* Featured Rows */}
-            <FeaturedRow
-            id = "222"
-            title = "Featured"
-            description = "Paid placement from our partners"
-            />
 
-            <FeaturedRow
-            id="111"
-            title = "Tasty Discounts"
-            description = "Everyone is enjoying these discounts"
-            />
-
-            <FeaturedRow
-            id="123"
-            title = "Offers near you"
-            description = "Why not support your local restaurants tonight ?" 
-            />
+            {featuredCategories?.map(category => (
+                <FeaturedRow
+                key={category._id}
+                id={category._id}
+                title={category.name}
+                description={category.short_description}
+                />
+            ))}
+           
         </ScrollView>
     </SafeAreaView>
   )
