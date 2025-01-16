@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { urlFor } from '../sanity';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import { ChevronRightIcon, MagnifyingGlassIcon, MapPinIcon, QuestionMarkCircleIcon, StarIcon } from 'react-native-heroicons/outline';
+import DishRow from '../components/DishRow';
 
 const RestaurantScreen = () => {
     const navigation = useNavigation();
@@ -76,6 +77,23 @@ const RestaurantScreen = () => {
                     <Text className="pl-2 flex-1 text-md font-bold">Have a food allergy ?</Text>
                     <ChevronRightIcon color="#00CCBB" />
                 </TouchableOpacity>
+        </View>
+
+        <View>
+            <Text className='px-4 font-bold text-xl pt-6 mb-3'>
+                Menu
+            </Text>
+            {/**Dishes */}
+            {dishes?.map((dish) =>(
+                <DishRow
+                key={dish._id}
+                id={dish._id}
+                name={dish.name}
+                description={dish.description}
+                price={dish.price}
+                image = {dish.image}
+                />
+            ))}
         </View>
     </ScrollView>
   )
