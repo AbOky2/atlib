@@ -10,7 +10,7 @@ const PreparingOrderScreen = () => {
     useEffect(() =>{
         setTimeout(() =>{
             navigation.navigate("Delivery");
-        },400)
+        },800)
     },[]);
   return (
     <SafeAreaView className='bg-[#00CCBB] justify-center items-center flex-1'>

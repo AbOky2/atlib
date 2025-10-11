@@ -1,14 +1,17 @@
-import { View, Text, SafeAreaView, Image, TextInput, ScrollView } from 'react-native'
+import { View, Text, SafeAreaView, Image, TextInput, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import '../global.css'
 import { useNavigation } from '@react-navigation/native'
-import { AdjustmentsVerticalIcon, ChevronDownIcon, UserIcon, MagnifyingGlassIcon } from 'react-native-heroicons/outline'
+import { AdjustmentsVerticalIcon, ChevronDownIcon, UserIcon, MagnifyingGlassIcon, MapPinIcon } from 'react-native-heroicons/outline'
 import Categories from '../components/Categories'
 import FeaturedRow from '../components/FeaturedRow'
 import sanityClient from '../sanity'
+import { useSelector } from 'react-redux'
+import { selectCurrentAddress } from '../features/addressSlice'
 const HomeScreen = () => {
     const navigation = useNavigation();
     const [featuredCategories, setFeaturedCategories] = useState([]);
+    const currentAddress = useSelector(selectCurrentAddress);
     useLayoutEffect(() => { 
         navigation.setOptions({ 
             headerShown: false,
@@ -40,10 +43,22 @@ const HomeScreen = () => {
             />
 
         <View className="flex-1">
-            <Text className="text-xs font-bold text-gray-400">Deliver now !</Text>
-            <Text className="text-xl font-bold">Current location
-                <ChevronDownIcon size={20} color="#00CCBB" />
-            </Text>
+            <Text className="text-xs font-bold text-gray-400">Livraison vers</Text>
+            <TouchableOpacity 
+                onPress={() => navigation.navigate('Address')}
+                className="flex-row items-center"
+            >
+                <MapPinIcon size={16} color="#00CCBB" />
+                <Text className="text-base font-bold ml-1 mr-1">
+                    {currentAddress.zone || 'Sélectionner votre zone'}
+                </Text>
+                <ChevronDownIcon size={16} color="#00CCBB" />
+            </TouchableOpacity>
+            {currentAddress.landmark && (
+                <Text className="text-xs text-gray-500 mt-1">
+                    {currentAddress.landmark}
+                </Text>
+            )}
         </View>
 
         <UserIcon size={35} color="#00CCBB" />

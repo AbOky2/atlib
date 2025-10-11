@@ -1,6 +1,6 @@
 import { View, Text, Touchable, TouchableOpacity, Image } from 'react-native'
 import React, { useState } from 'react'
-import Currency from 'react-currency-formatter'
+import Currency from '../utils/formatCurrency'
 import { urlFor } from '../sanity'
 import { MinusCircleIcon, PlusCircleIcon } from 'react-native-heroicons/solid'
 import { useDispatch, useSelector } from 'react-redux'
