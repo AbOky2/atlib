@@ -1,5 +1,6 @@
+import './global.css';
 import { NavigationContainer } from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './screens/HomeScreen';
 import RestaurantScreen from './screens/RestaurantScreen';
 import { Provider } from 'react-redux';
@@ -19,26 +20,26 @@ export default function App() {
         <Stack.Navigator>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Restaurant" component={RestaurantScreen} />
-          <Stack.Screen name="Address" component={AddressScreen} 
-          options={{presentation:'modal', headerShown:false}}/>
+          <Stack.Screen name="Address" component={AddressScreen}
+            options={{ presentation: 'modal', headerShown: false }} />
           <Stack.Screen name="Basket" component={BasketScreen}
-          options={{presentation:'modal', headerShown:false}}/>
+            options={{ presentation: 'modal', headerShown: false }} />
 
           <Stack.Screen name="OrderTracking" component={OrderTrackingScreen}
-          options={{presentation:'fullScreenModal', headerShown : false}}
-           />
+            options={{ presentation: 'fullScreenModal', headerShown: false }}
+          />
 
           <Stack.Screen name="PreparingOrderScreen" component={PreparingOrderScreen}
-          options={{presentation:'fullScreenModal', headerShown : false}}
-           />
+            options={{ presentation: 'fullScreenModal', headerShown: false }}
+          />
 
           <Stack.Screen name="Delivery" component={DeliveryScreen}
-          options={{presentation:'fullScreenModal', headerShown : false}}
-           />
+            options={{ presentation: 'fullScreenModal', headerShown: false }}
+          />
 
 
-        </Stack.Navigator>  
-       </Provider>
+        </Stack.Navigator>
+      </Provider>
     </NavigationContainer>
 
   );

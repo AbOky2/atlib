@@ -7,34 +7,31 @@ import * as Progress from "react-native-progress";
 const PreparingOrderScreen = () => {
     const navigation = useNavigation();
 
-    useEffect(() =>{
-        setTimeout(() =>{
+    useEffect(() => {
+        setTimeout(() => {
             navigation.navigate("Delivery");
-        },800)
-    },[]);
-  return (
-    <SafeAreaView className='bg-[#00CCBB] justify-center items-center flex-1'>
-        <Animatable.Image
-        source={require("../assets/deliveroo.gif")}
-        animation="slideInUp"
-        iterationCount={1}
-        className='h-96 w-96'
-        />
+        }, 4000) // Increased time to enjoy the animation
+    }, []);
+    return (
+        <SafeAreaView className='bg-[#00CCBB] justify-center items-center flex-1'>
+            <Animatable.Image
+                source={require("../assets/deliveroo.gif")}
+                animation="slideInUp"
+                iterationCount={1}
+                className='h-80 w-80'
+            />
 
-        <Animatable.Text
-        animation="slideInUp"
-        iterationCount={1}
-        className='text-lg my-10 text-white font-bold text-center'
-        >
-            En attente d'acceptation de votre commande par le Restaurant!
+            <Animatable.Text
+                animation="slideInUp"
+                iterationCount={1}
+                className='text-lg my-10 text-white font-bold text-center px-4'
+            >
+                Waiting for Restaurant to accept your order!
+            </Animatable.Text>
 
-        </Animatable.Text>
-    
-        <Progress.Circle size={60} indeterminate={true} color='white'/>
-
-
-    </SafeAreaView>
-  )
+            <Progress.Circle size={60} indeterminate={true} color='white' borderWidth={2} />
+        </SafeAreaView>
+    )
 }
 
 export default PreparingOrderScreen

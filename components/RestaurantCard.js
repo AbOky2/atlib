@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
-import { MapPinIcon, StarIcon } from 'react-native-heroicons/outline'
+import { MapPinIcon, StarIcon } from 'react-native-heroicons/solid'
 import { urlFor } from '../sanity'
 import { useNavigation } from '@react-navigation/native'
 
@@ -20,6 +20,7 @@ const RestaurantCard = ({
     const navigation = useNavigation();
   return (
     <TouchableOpacity 
+    activeOpacity={0.8}
     onPress={() => {
         navigation.navigate('Restaurant', {
             id,
@@ -33,30 +34,25 @@ const RestaurantCard = ({
             long,
             lat,
         });}}
-    className="bg-white mr-3 shadow">
-        {/* On modifie l'uri de l'imgUrl pour qu'il accepte Sanity */}
+    className="bg-white mr-4 shadow-md rounded-2xl overflow-hidden border border-gray-100">
         <Image source={{
-                uri :urlFor(imgUrl).url(),}} className='h-36 w-64 rounded-sm' />
+                uri :urlFor(imgUrl).url(),}} className='h-40 w-72 object-cover' />
 
-        <View className="px-3 pb-4">
-            <Text className="text-lg font-bold pt-2">{title}</Text>
-            <View className="flex-row items-center space-x-1">
-                <StarIcon color="green" size={22} opacity={0.5} />
+        <View className="px-4 pb-4 pt-3">
+            <Text className="text-lg font-bold text-gray-900">{title}</Text>
+            <View className="flex-row items-center space-x-1 my-1">
+                <StarIcon color="#22c55e" size={20} />
                 <Text className="text-xs text-gray-500">
-                    <Text className="text-green-500">{rating}</Text> • {genre}
-                    </Text>
+                    <Text className="text-green-600 font-semibold">{rating}</Text> • {genre}
+                </Text>
             </View>
 
             <View className="flex-row items-center space-x-1">
-                <MapPinIcon color="gray" opacity={0.4} size={22}/>
-                <Text className="text-xs text-gray-500">Nearby • {address}</Text>
+                <MapPinIcon color="gray" opacity={0.6} size={20}/>
+                <Text className="text-xs text-gray-500 w-60" numberOfLines={1}>Nearby • {address}</Text>
             </View>
         </View>
-       
-
-
     </TouchableOpacity>
-
   )
 }
 
