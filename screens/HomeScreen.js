@@ -1,4 +1,5 @@
-import { View, Text, SafeAreaView, Image, TextInput, ScrollView, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TextInput, ScrollView, TouchableOpacity } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import '../global.css'
 import { useNavigation } from '@react-navigation/native'
@@ -11,7 +12,9 @@ import { selectCurrentAddress } from '../features/addressSlice'
 const HomeScreen = () => {
     const navigation = useNavigation();
     const [featuredCategories, setFeaturedCategories] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
     const currentAddress = useSelector(selectCurrentAddress);
+
     useLayoutEffect(() => {
         navigation.setOptions({
             headerShown: false,
@@ -23,13 +26,24 @@ const HomeScreen = () => {
                 ...,
                 restaurants[] ->{
                     ...,
-                    dishes[] ->
+                    dishes[] ->,
+                    type->{
+                        name
+                    }
                 }
                 }`).then((data) => {
             setFeaturedCategories(data);
         }).catch(console.error);
     }
         , []);
+
+    const filteredFeaturedCategories = featuredCategories?.map(category => ({
+        ...category,
+        restaurants: category.restaurants?.filter(restaurant =>
+            restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            restaurant.type?.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    })).filter(category => category.restaurants?.length > 0);
 
     return (
         <SafeAreaView className="bg-white pt-5 flex-1">
@@ -69,6 +83,8 @@ const HomeScreen = () => {
                         placeholder="Restaurants et cuisines"
                         keyboardType='default'
                         className="flex-1 text-base text-gray-800"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
                     />
                 </View>
                 <TouchableOpacity activeOpacity={0.7} className="p-2 rounded-full bg-gray-100">
@@ -88,12 +104,13 @@ const HomeScreen = () => {
                 <Categories />
 
                 {/* Featured Rows */}
-                {featuredCategories?.map(category => (
+                {filteredFeaturedCategories?.map(category => (
                     <FeaturedRow
                         key={category._id}
                         id={category._id}
                         title={category.name}
                         description={category.short_description}
+                        restaurants={category.restaurants}
                     />
                 ))}
             </ScrollView>
