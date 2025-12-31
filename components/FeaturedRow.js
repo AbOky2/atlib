@@ -25,7 +25,7 @@ const FeaturedRow = ({ id, title, description }) => {
             <View className="flex-row items-center justify-between mt-4 px-4">
                 <Text className="text-xl font-bold text-gray-900">{title}</Text>
                 <TouchableOpacity>
-                    <ArrowRightIcon color="#00CCBB" size={24} />
+                    <ArrowRightIcon color="#F59E0B" size={24} />
                 </TouchableOpacity>
             </View>
             <Text className="text-sm text-gray-500 px-4 mt-1 mb-3">{description}</Text>

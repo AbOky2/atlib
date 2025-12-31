@@ -54,24 +54,23 @@ const PaymentOptions = ({ selectedPayment, onPaymentSelect }) => {
   return (
     <View className="bg-white rounded-lg shadow-md p-4 mb-4">
       <Text className="text-lg font-bold mb-4">Mode de paiement</Text>
-      
+
       {paymentMethods.map((method) => (
         <TouchableOpacity
           key={method.id}
           onPress={() => method.available && onPaymentSelect(method.id)}
-          className={`flex-row items-center p-3 rounded-lg mb-2 border ${
-            selectedPayment === method.id
-              ? 'border-[#00CCBB] bg-[#00CCBB] bg-opacity-10'
+          className={`flex-row items-center p-3 rounded-lg mb-2 border ${selectedPayment === method.id
+              ? 'border-[#F59E0B] bg-[#F59E0B] bg-opacity-10'
               : method.available
-              ? 'border-gray-200 bg-gray-50'
-              : 'border-gray-200 bg-gray-100'
-          }`}
+                ? 'border-gray-200 bg-gray-50'
+                : 'border-gray-200 bg-gray-100'
+            }`}
           disabled={!method.available}
         >
           <View className="mr-3">
             {getPaymentIcon(method.icon)}
           </View>
-          
+
           <View className="flex-1">
             <View className="flex-row items-center">
               <Text className={`font-semibold ${method.available ? 'text-gray-800' : 'text-gray-400'}`}>
@@ -92,15 +91,15 @@ const PaymentOptions = ({ selectedPayment, onPaymentSelect }) => {
               {method.description}
             </Text>
           </View>
-          
+
           {selectedPayment === method.id && (
-            <View className="w-6 h-6 rounded-full bg-[#00CCBB] flex items-center justify-center">
+            <View className="w-6 h-6 rounded-full bg-[#F59E0B] flex items-center justify-center">
               <Text className="text-white text-xs">✓</Text>
             </View>
           )}
         </TouchableOpacity>
       ))}
-      
+
       <View className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
         <Text className="text-blue-800 font-semibold text-sm mb-1">
           💡 Conseil

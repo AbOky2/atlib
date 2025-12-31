@@ -10,7 +10,7 @@ const AddressScreen = () => {
   const dispatch = useDispatch()
   const availableZones = useSelector(selectAvailableZones)
   const currentAddress = useSelector(selectCurrentAddress)
-  
+
   const [selectedZone, setSelectedZone] = useState(currentAddress.zone || '')
   const [landmark, setLandmark] = useState(currentAddress.landmark || '')
   const [description, setDescription] = useState(currentAddress.description || '')
@@ -90,7 +90,7 @@ const AddressScreen = () => {
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-row items-center justify-between p-4 border-b border-gray-200">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <ArrowLeftIcon size={24} color="#00CCBB" />
+          <ArrowLeftIcon size={24} color="#F59E0B" />
         </TouchableOpacity>
         <Text className="text-lg font-bold">Adresse de livraison</Text>
         <View className="w-6" />
@@ -107,9 +107,9 @@ const AddressScreen = () => {
             <Text className={selectedZone ? "text-black" : "text-gray-400"}>
               {selectedZone || "Sélectionner votre zone"}
             </Text>
-            <MapPinIcon size={20} color="#00CCBB" />
+            <MapPinIcon size={20} color="#F59E0B" />
           </TouchableOpacity>
-          
+
           {showZoneSelector && (
             <View className="mt-2 border border-gray-200 rounded-lg bg-gray-50 max-h-48">
               <ScrollView>
@@ -165,7 +165,7 @@ const AddressScreen = () => {
         <View className="mb-6">
           <Text className="text-base font-semibold mb-2 text-gray-700">Numéro de téléphone *</Text>
           <View className="flex-row items-center border border-gray-300 rounded-lg">
-            <PhoneIcon size={20} color="#00CCBB" className="ml-3" />
+            <PhoneIcon size={20} color="#F59E0B" className="ml-3" />
             <TextInput
               value={phoneNumber}
               onChangeText={setPhoneNumber}
@@ -181,8 +181,8 @@ const AddressScreen = () => {
 
         {/* Aperçu estimation */}
         {selectedZone && (
-          <View className="bg-[#00CCBB] bg-opacity-10 p-4 rounded-lg mb-6">
-            <Text className="text-base font-semibold text-[#00CCBB] mb-2">
+          <View className="bg-[#F59E0B] bg-opacity-10 p-4 rounded-lg mb-6">
+            <Text className="text-base font-semibold text-[#F59E0B] mb-2">
               Estimation de livraison
             </Text>
             <Text className="text-sm text-gray-600">
@@ -209,7 +209,7 @@ const AddressScreen = () => {
       <View className="p-4 border-t border-gray-200">
         <TouchableOpacity
           onPress={handleSaveAddress}
-          className="bg-[#00CCBB] rounded-lg p-4"
+          className="bg-[#F59E0B] rounded-lg p-4"
         >
           <Text className="text-white text-center font-bold text-lg">
             Confirmer l'adresse

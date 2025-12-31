@@ -6,7 +6,7 @@ const initialState = {
   orderStatuses: {
     PENDING: 'En attente',
     ACCEPTED: 'Acceptée',
-    PREPARING: 'En préparation', 
+    PREPARING: 'En préparation',
     READY: 'Prêt',
     OUT_FOR_DELIVERY: 'En cours de livraison',
     DELIVERED: 'Livré',
@@ -54,10 +54,10 @@ export const orderSlice = createSlice({
   },
 })
 
-export const { 
-  createOrder, 
-  updateOrderStatus, 
-  addOrderToHistory, 
+export const {
+  createOrder,
+  updateOrderStatus,
+  addOrderToHistory,
   setDeliveryInstructions,
   updateDeliveryTime
 } = orderSlice.actions

@@ -48,11 +48,11 @@ const OrderTrackingScreen = () => {
   const handleCallRestaurant = () => {
     const phoneNumber = restaurant.phone || '66123456' // Numéro par défaut
     Alert.alert(
-      'Call Restaurant',
-      `Call ${restaurant.title}?`,
+      'Appeler le restaurant',
+      `Appeler ${restaurant.title}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Call', onPress: () => Linking.openURL(`tel:${phoneNumber}`) }
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Appeler', onPress: () => Linking.openURL(`tel:${phoneNumber}`) }
       ]
     )
   }
@@ -60,25 +60,25 @@ const OrderTrackingScreen = () => {
   const handleCallDelivery = () => {
     const phoneNumber = deliveryAddress.phoneNumber
     Alert.alert(
-      'Delivery Contact',
-      `Your number: ${phoneNumber}\nThe driver will contact you on this number.`,
+      'Contact Livraison',
+      `Votre numéro: ${phoneNumber}\nLe livreur vous contactera sur ce numéro.`,
       [{ text: 'OK' }]
     )
   }
 
   const formatTime = (timeString) => {
     const date = new Date(timeString)
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
   }
 
   const getDeliverySteps = () => {
     const steps = [
-      { key: 'PENDING', label: 'Order Received', icon: '📝' },
-      { key: 'ACCEPTED', label: 'Accepted by Restaurant', icon: '✅' },
-      { key: 'PREPARING', label: 'Preparing', icon: '👨‍🍳' },
-      { key: 'READY', label: 'Ready for Pickup', icon: '📦' },
-      { key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: '🏍️' },
-      { key: 'DELIVERED', label: 'Delivered', icon: '🎉' }
+      { key: 'PENDING', label: 'Commande reçue', icon: '📝' },
+      { key: 'ACCEPTED', label: 'Acceptée par le restaurant', icon: '✅' },
+      { key: 'PREPARING', label: 'En préparation', icon: '👨‍🍳' },
+      { key: 'READY', label: 'Prête à récupérer', icon: '📦' },
+      { key: 'OUT_FOR_DELIVERY', label: 'En cours de livraison', icon: '🏍️' },
+      { key: 'DELIVERED', label: 'Livrée', icon: '🎉' }
     ]
 
     return steps.map((step, index) => {
@@ -87,7 +87,7 @@ const OrderTrackingScreen = () => {
 
       return (
         <View key={step.key} className="flex-row items-center mb-6">
-          <View className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 shadow-sm ${isActive ? 'bg-[#00CCBB]' : isCompleted ? 'bg-green-100' : 'bg-gray-100'
+          <View className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 shadow-sm ${isActive ? 'bg-[#F59E0B]' : isCompleted ? 'bg-green-100' : 'bg-gray-100'
             }`}>
             {isCompleted ? (
               <CheckCircleIcon size={24} color="#10B981" />
@@ -96,12 +96,12 @@ const OrderTrackingScreen = () => {
             )}
           </View>
           <View className="flex-1">
-            <Text className={`font-bold text-base ${isActive ? 'text-[#00CCBB]' : isCompleted ? 'text-gray-800' : 'text-gray-400'}`}>
+            <Text className={`font-bold text-base ${isActive ? 'text-[#F59E0B]' : isCompleted ? 'text-gray-800' : 'text-gray-400'}`}>
               {step.label}
             </Text>
             {isActive && (
-              <Text className="text-xs text-gray-500 mt-1 font-medium">
-                In progress... {formatTime(currentOrder?.updatedAt || currentOrder?.createdAt)}
+              <Text className="text-xs text-gray-500 mt-1 font-medium italic">
+                En cours... {formatTime(currentOrder?.updatedAt || currentOrder?.createdAt)}
               </Text>
             )}
           </View>
@@ -113,13 +113,13 @@ const OrderTrackingScreen = () => {
   if (!currentOrder) {
     return (
       <SafeAreaView className="flex-1 bg-white justify-center items-center">
-        <Text className="text-lg text-gray-600 font-medium">No active order</Text>
+        <Text className="text-lg text-gray-600 font-medium">Aucune commande active</Text>
         <TouchableOpacity
           onPress={() => navigation.navigate('Home')}
-          className="mt-6 bg-[#00CCBB] px-8 py-3 rounded-2xl shadow-md"
+          className="mt-6 bg-[#F59E0B] px-8 py-3 rounded-2xl shadow-md"
           activeOpacity={0.8}
         >
-          <Text className="text-white font-bold text-lg">Return to Home</Text>
+          <Text className="text-white font-bold text-lg">Retour à l'accueil</Text>
         </TouchableOpacity>
       </SafeAreaView>
     )
@@ -128,33 +128,33 @@ const OrderTrackingScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex-row items-center justify-between p-4 border-b border-gray-100">
+      <View className="flex-row items-center justify-between p-4 border-b border-gray-100 bg-white">
         <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-gray-50 rounded-full">
-          <XMarkIcon size={24} color="#00CCBB" />
+          <XMarkIcon size={24} color="#F59E0B" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900">Order Tracking</Text>
+        <Text className="text-lg font-bold text-gray-900">Suivi de commande</Text>
         <TouchableOpacity onPress={handleCallRestaurant} className="p-2 bg-gray-50 rounded-full">
-          <PhoneIcon size={24} color="#00CCBB" />
+          <PhoneIcon size={24} color="#F59E0B" />
         </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1 bg-gray-50" showsVerticalScrollIndicator={false}>
         {/* Order Status Card */}
-        <View className="mx-4 mt-4 bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-          <View className="flex-row items-center mb-4">
+        <View className="mx-4 mt-6 bg-white rounded-3xl shadow-sm p-6 border border-gray-100">
+          <View className="flex-row items-center mb-6">
             <View className="flex-1">
-              <Text className="text-xl font-bold text-[#00CCBB]">
+              <Text className="text-sm text-gray-500 font-medium mb-1">
+                Commande #{currentOrder.id.slice(-6)}
+              </Text>
+              <Text className="text-2xl font-extrabold text-[#F59E0B]">
                 {orderStatuses[currentOrder.status]}
               </Text>
-              <Text className="text-sm text-gray-500 font-medium">
-                Order #{currentOrder.id.slice(-6)}
-              </Text>
             </View>
-            <View className="items-end">
-              <Text className="text-base font-bold text-gray-900">
+            <View className="items-end bg-gray-50 px-3 py-2 rounded-xl">
+              <Text className="text-lg font-bold text-gray-900">
                 {currentOrder.estimatedDeliveryTime}
               </Text>
-              <Text className="text-xs text-gray-500">Est. Time</Text>
+              <Text className="text-xs text-gray-500">Temps estimé</Text>
             </View>
           </View>
 
@@ -182,10 +182,10 @@ const OrderTrackingScreen = () => {
             </View>
             <TouchableOpacity
               onPress={handleCallRestaurant}
-              className="bg-[#00CCBB] px-4 py-2 rounded-xl shadow-sm"
-              activeOpacity={0.8}
+              className="bg-[#F59E0B]/10 px-4 py-2 rounded-xl"
+              activeOpacity={0.7}
             >
-              <Text className="text-white font-bold">Call</Text>
+              <Text className="text-[#F59E0B] font-bold">Appeler</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -193,16 +193,16 @@ const OrderTrackingScreen = () => {
         {/* Delivery Address */}
         <View className="mx-4 mt-4 bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
           <View className="flex-row items-start">
-            <MapPinIcon size={24} color="#00CCBB" className="mr-3 mt-1" />
+            <MapPinIcon size={24} color="#F59E0B" className="mr-3 mt-1" />
             <View className="flex-1">
-              <Text className="font-bold text-base mb-1 text-gray-900">Delivery Address</Text>
+              <Text className="font-bold text-base mb-1 text-gray-900">Adresse de livraison</Text>
               <Text className="text-sm text-gray-600 mb-1 font-medium">
                 {deliveryAddress.zone} - {deliveryAddress.landmark}
               </Text>
               <Text className="text-sm text-gray-500 leading-5">
                 {deliveryAddress.description}
               </Text>
-              <Text className="text-sm text-[#00CCBB] mt-2 font-bold">
+              <Text className="text-sm text-[#F59E0B] mt-2 font-bold">
                 📞 {deliveryAddress.phoneNumber}
               </Text>
             </View>
@@ -211,17 +211,17 @@ const OrderTrackingScreen = () => {
 
         {/* Delivery Steps */}
         <View className="mx-4 mt-4 bg-white rounded-2xl shadow-sm p-5 border border-gray-100 mb-6">
-          <Text className="font-bold text-lg mb-6 text-gray-900">Order Status</Text>
+          <Text className="font-bold text-lg mb-6 text-gray-900">État de la commande</Text>
           {getDeliverySteps()}
         </View>
 
         {/* Contact Section */}
-        <View className="mx-4 mb-8 bg-yellow-50 rounded-2xl p-5 border border-yellow-100">
+        <View className="mx-4 mb-24 bg-yellow-50 rounded-2xl p-5 border border-yellow-100">
           <Text className="font-bold text-yellow-800 mb-2">
-            📞 Important Contact
+            📞 Contact Livraison
           </Text>
           <Text className="text-sm text-yellow-700 mb-4 leading-5">
-            The driver will contact you on {deliveryAddress.phoneNumber} before delivery.
+            Le livreur vous contactera au {deliveryAddress.phoneNumber} avant la livraison.
           </Text>
           <TouchableOpacity
             onPress={handleCallDelivery}
@@ -229,7 +229,7 @@ const OrderTrackingScreen = () => {
             activeOpacity={0.8}
           >
             <Text className="text-yellow-900 font-bold text-center">
-              Verify My Number
+              Vérifier mon numéro
             </Text>
           </TouchableOpacity>
         </View>

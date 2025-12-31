@@ -46,13 +46,13 @@ const DishRow = ({ id, name, description, price, image }) => {
                             disabled={!items.length}
                             onPress={removeItemFromBasket}
                             activeOpacity={0.7}>
-                            <MinusCircleIcon size={35} color={items.length > 0 ? "#00CCBB" : "#E5E7EB"} />
+                            <MinusCircleIcon size={35} color={items.length > 0 ? "#F59E0B" : "#E5E7EB"} />
                         </TouchableOpacity>
 
                         <Text className="text-gray-700 font-bold text-lg w-6 text-center">{items.length}</Text>
 
                         <TouchableOpacity onPress={addItemsToBasket} activeOpacity={0.7}>
-                            <PlusCircleIcon size={35} color="#00CCBB" />
+                            <PlusCircleIcon size={35} color="#F59E0B" />
                         </TouchableOpacity>
                     </View>
                 </View>)}

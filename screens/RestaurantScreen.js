@@ -67,7 +67,7 @@ const RestaurantScreen = () => {
                             navigation.goBack();
                         }}
                         className="absolute top-14 left-5 p-2 bg-white rounded-full shadow-md">
-                        <ArrowLeftIcon size={20} color="#00CCBB" />
+                        <ArrowLeftIcon size={20} color="#F59E0B" />
                     </TouchableOpacity>
                 </View>
 
@@ -84,7 +84,7 @@ const RestaurantScreen = () => {
                         <View className='flex-row items-center space-x-1'>
                             <MapPinIcon color="gray" size={22} opacity={0.6} />
                             <Text className="text-xs text-gray-500 w-64" numberOfLines={1}>
-                                Nearby • {address}
+                                À proximité • {address}
                             </Text>
                         </View>
                     </View>
@@ -94,8 +94,8 @@ const RestaurantScreen = () => {
                 <View className="bg-white mt-2 px-4 py-4">
                     <TouchableOpacity className='flex-row items-center space-x-2 p-4 border border-gray-100 rounded-xl bg-gray-50 shadow-sm'>
                         <QuestionMarkCircleIcon size={20} color="gray" opacity={0.6} />
-                        <Text className="pl-2 flex-1 text-md font-bold text-gray-800">Have a food allergy?</Text>
-                        <ChevronRightIcon color="#00CCBB" />
+                        <Text className="pl-2 flex-1 text-md font-bold text-gray-800">Allergique à quelque chose ?</Text>
+                        <ChevronRightIcon color="#F59E0B" />
                     </TouchableOpacity>
                 </View>
 

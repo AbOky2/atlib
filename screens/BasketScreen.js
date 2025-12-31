@@ -67,14 +67,14 @@ const BasketScreen = () => {
       {/* Header fixe */}
       <View className='p-5 border-b border-gray-100 bg-white shadow-sm z-10'>
         <View>
-          <Text className='text-lg font-bold text-center text-gray-900'>Basket</Text>
+          <Text className='text-lg font-bold text-center text-gray-900'>Panier</Text>
           <Text className='text-center text-gray-400 text-xs'>{restaurant.title}</Text>
         </View>
 
         <TouchableOpacity onPress={() => navigation.goBack()}
           className='rounded-full bg-gray-50 absolute top-3 right-5'
         >
-          <XCircleIcon color="#00CCBB" height={50} width={50} />
+          <XCircleIcon color="#F59E0B" height={50} width={50} />
         </TouchableOpacity>
       </View>
 
@@ -84,8 +84,8 @@ const BasketScreen = () => {
         {currentAddress?.zone ? (
           <View className='bg-white mx-4 my-4 p-4 rounded-2xl shadow-sm border border-gray-100'>
             <View className='flex-row items-center mb-2'>
-              <MapPinIcon size={20} color="#00CCBB" />
-              <Text className='font-bold ml-2 text-gray-800'>Deliver to</Text>
+              <MapPinIcon size={20} color="#F59E0B" />
+              <Text className='font-bold ml-2 text-gray-800'>Livrer à</Text>
             </View>
             <Text className='text-base font-medium text-gray-900'>{currentAddress?.zone}</Text>
             <Text className='text-sm text-gray-500'>{currentAddress?.landmark}</Text>
@@ -93,27 +93,27 @@ const BasketScreen = () => {
             <View className='flex-row items-center justify-between mt-3 pt-3 border-t border-gray-50'>
               <Text className='text-sm text-gray-600'>📞 {currentAddress?.phoneNumber}</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Address')}>
-                <Text className='text-[#00CCBB] font-bold'>Change</Text>
+                <Text className='text-[#F59E0B] font-bold'>Modifier</Text>
               </TouchableOpacity>
             </View>
-            <View className='mt-3 bg-[#00CCBB]/10 p-2 rounded-lg'>
-              <Text className='text-sm text-[#00CCBB] font-bold text-center'>
-                Estimated time: {currentAddress?.deliveryTime}
+            <View className='mt-3 bg-[#F59E0B]/10 p-2 rounded-lg'>
+              <Text className='text-sm text-[#F59E0B] font-bold text-center'>
+                Temps estimé: {currentAddress?.deliveryTime}
               </Text>
             </View>
           </View>
         ) : (
           <View className='bg-yellow-50 mx-4 my-4 p-4 rounded-2xl border border-yellow-100'>
-            <Text className='text-yellow-800 font-bold mb-2'>⚠️ Address Required</Text>
+            <Text className='text-yellow-800 font-bold mb-2'>⚠️ Adresse requise</Text>
             <Text className='text-yellow-700 text-sm mb-3'>
-              Please select your delivery address to continue
+              Veuillez sélectionner une adresse de livraison
             </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Address')}
               className='bg-yellow-200 py-2 px-4 rounded-xl'
             >
               <Text className='text-yellow-900 font-bold text-center'>
-                Add Address
+                Ajouter une adresse
               </Text>
             </TouchableOpacity>
           </View>
@@ -126,19 +126,19 @@ const BasketScreen = () => {
           }}
             className="h-7 w-7 bg-gray-300 p-4 rounded-full"
           />
-          <Text className="flex-1 font-medium text-gray-800">Delivery in 30-45 min</Text>
+          <Text className="flex-1 font-medium text-gray-800">Livraison en 30-45 min</Text>
           <TouchableOpacity>
-            <Text className='text-[#00CCBB] font-bold'>Change</Text>
+            <Text className='text-[#F59E0B] font-bold'>Modifier</Text>
           </TouchableOpacity>
         </View>
 
         {/* Articles du panier */}
         <View className='mx-4 mb-4'>
-          <Text className='text-lg font-bold mb-3 text-gray-800'>Your Items</Text>
+          <Text className='text-lg font-bold mb-3 text-gray-800'>Vos articles</Text>
           <View className='bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden'>
             {Object.entries(groupedItemsInBasket).map(([key, items]) => (
               <View key={key} className='flex-row items-center space-x-3 gap-3 py-4 px-4 border-b border-gray-50 last:border-b-0'>
-                <Text className='text-[#00CCBB] font-bold'>{items.length} x</Text>
+                <Text className='text-[#F59E0B] font-bold'>{items.length} x</Text>
                 <Image
                   source={{ uri: urlFor(items[0]?.image).url() }}
                   className='h-12 w-12 rounded-full bg-gray-200'
@@ -146,12 +146,12 @@ const BasketScreen = () => {
                 <Text className='flex-1 font-semibold text-gray-800'>{items[0]?.name}</Text>
 
                 <Text className='text-gray-500 font-medium'>
-                  <Currency quantity={items[0]?.price} currency="USD" />
+                  <Currency quantity={items[0]?.price} currency="XAF" />
                 </Text>
 
                 <TouchableOpacity onPress={() => dispatch(removeFromBasket({ id: key }))}>
                   <Text className='text-red-500 text-xs font-bold uppercase'>
-                    Remove
+                    Supprimer
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -169,28 +169,28 @@ const BasketScreen = () => {
 
         {/* Résumé des coûts */}
         <View className='mx-4 mb-24 bg-white rounded-2xl shadow-sm p-5 border border-gray-100'>
-          <Text className='text-lg font-bold mb-4 text-gray-800'>Order Summary</Text>
+          <Text className='text-lg font-bold mb-4 text-gray-800'>Résumé de la commande</Text>
 
           <View className='space-y-3'>
             <View className='flex-row justify-between'>
-              <Text className='text-gray-500'>Subtotal</Text>
+              <Text className='text-gray-500'>Sous-total</Text>
               <Text className='text-gray-800 font-semibold'>
-                <Currency quantity={basketTotal} currency="USD" />
+                <Currency quantity={basketTotal} currency="XAF" />
               </Text>
             </View>
 
             <View className='flex-row justify-between'>
-              <Text className='text-gray-500'>Delivery Fee</Text>
+              <Text className='text-gray-500'>Frais de livraison</Text>
               <Text className='text-gray-800 font-semibold'>
-                <Currency quantity={5.99} currency="USD" />
+                <Currency quantity={500} currency="XAF" />
               </Text>
             </View>
 
             <View className='border-t border-gray-100 pt-3 mt-2'>
               <View className='flex-row justify-between items-center'>
                 <Text className='text-xl font-bold text-gray-900'>Total</Text>
-                <Text className='text-xl font-extrabold text-[#00CCBB]'>
-                  <Currency quantity={basketTotal + 5.99} currency="USD" />
+                <Text className='text-xl font-extrabold text-[#F59E0B]'>
+                  <Currency quantity={basketTotal + 500} currency="XAF" />
                 </Text>
               </View>
             </View>
@@ -202,12 +202,12 @@ const BasketScreen = () => {
       <View className='absolute bottom-0 w-full bg-white border-t border-gray-100 p-5 shadow-lg'>
         <TouchableOpacity
           onPress={() => handlePlaceOrder()}
-          className={`rounded-2xl p-4 shadow-md ${!currentAddress?.zone ? 'bg-gray-300' : 'bg-[#00CCBB]'}`}
+          className={`rounded-2xl p-4 shadow-md ${!currentAddress?.zone ? 'bg-gray-300' : 'bg-[#F59E0B]'}`}
           disabled={!currentAddress?.zone}
           activeOpacity={0.8}
         >
           <Text className='text-center text-white text-lg font-bold'>
-            {!currentAddress?.zone ? 'Add Address to Order' : 'Place Order'}
+            {!currentAddress?.zone ? 'Ajouter une adresse' : 'Commander'}
           </Text>
         </TouchableOpacity>
       </View>

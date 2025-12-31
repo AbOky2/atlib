@@ -43,21 +43,21 @@ const HomeScreen = () => {
                 />
 
                 <View className="flex-1">
-                    <Text className="font-bold text-gray-400 text-xs">Deliver to</Text>
+                    <Text className="font-bold text-gray-400 text-xs">Livrer à</Text>
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Address')}
                         className="flex-row items-center"
                         activeOpacity={0.7}
                     >
                         <Text className="text-xl font-bold text-gray-900 ml-1 mr-1">
-                            {currentAddress.zone || 'Select Location'}
+                            {currentAddress.zone || 'Choisir un lieu'}
                         </Text>
-                        <ChevronDownIcon size={20} color="#00CCBB" />
+                        <ChevronDownIcon size={20} color="#F59E0B" />
                     </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity activeOpacity={0.7}>
-                    <UserIcon size={35} color="#00CCBB" />
+                    <UserIcon size={35} color="#F59E0B" />
                 </TouchableOpacity>
             </View>
 
@@ -66,13 +66,13 @@ const HomeScreen = () => {
                 <View className="flex-row flex-1 space-x-2 bg-gray-100 p-3 rounded-xl items-center shadow-sm border border-gray-100">
                     <MagnifyingGlassIcon color="gray" size={20} />
                     <TextInput
-                        placeholder="Restaurants and cuisines"
+                        placeholder="Restaurants et cuisines"
                         keyboardType='default'
                         className="flex-1 text-base text-gray-800"
                     />
                 </View>
                 <TouchableOpacity activeOpacity={0.7} className="p-2 rounded-full bg-gray-100">
-                    <AdjustmentsVerticalIcon color="#00CCBB" />
+                    <AdjustmentsVerticalIcon color="#F59E0B" />
                 </TouchableOpacity>
             </View>
 
