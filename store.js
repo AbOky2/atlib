@@ -4,6 +4,7 @@ import restaurantReducer from "./features/restaurantSlice";
 import addressReducer from "./features/addressSlice";
 import orderReducer from "./features/orderSlice";
 import favoritesReducer from "./features/favoritesSlice";
+import filtersReducer from "./features/filtersSlice";
 
 export const store = configureStore({
     reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
         restaurant: restaurantReducer,
         address: addressReducer,
         order: orderReducer,
-        favorites: favoritesReducer
+        favorites: favoritesReducer,
+        filters: filtersReducer,
     }
 });

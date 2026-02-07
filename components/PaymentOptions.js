@@ -1,6 +1,8 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, TouchableOpacity } from 'react-native'
+import React from 'react'
 import { BanknotesIcon, CreditCardIcon, DevicePhoneMobileIcon } from 'react-native-heroicons/outline'
+import { CheckCircleIcon } from 'react-native-heroicons/solid'
+import Badge from '../src/ui/Badge'
 
 const PaymentOptions = ({ selectedPayment, onPaymentSelect }) => {
   const paymentMethods = [
@@ -38,78 +40,83 @@ const PaymentOptions = ({ selectedPayment, onPaymentSelect }) => {
     }
   ]
 
-  const getPaymentIcon = (type) => {
+  const getPaymentIcon = (type, isSelected) => {
+    const color = isSelected ? '#7A1E3A' : '#6B7280';
     switch (type) {
       case 'cash':
-        return <BanknotesIcon size={24} color="#00CCBB" />
+        return <BanknotesIcon size={22} color={color} />
       case 'mobile':
-        return <DevicePhoneMobileIcon size={24} color="#00CCBB" />
+        return <DevicePhoneMobileIcon size={22} color={color} />
       case 'card':
-        return <CreditCardIcon size={24} color="#00CCBB" />
+        return <CreditCardIcon size={22} color={color} />
       default:
-        return <BanknotesIcon size={24} color="#00CCBB" />
+        return <BanknotesIcon size={22} color={color} />
     }
   }
 
   return (
-    <View className="bg-white rounded-lg shadow-md p-4 mb-4">
-      <Text className="text-lg font-bold mb-4">Mode de paiement</Text>
+    <View>
+      <Text className="text-lg font-bold text-text mb-3">Mode de paiement</Text>
 
-      {paymentMethods.map((method) => (
-        <TouchableOpacity
-          key={method.id}
-          onPress={() => method.available && onPaymentSelect(method.id)}
-          className={`flex-row items-center p-3 rounded-lg mb-2 border ${selectedPayment === method.id
-              ? 'border-[#F59E0B] bg-[#F59E0B] bg-opacity-10'
-              : method.available
-                ? 'border-gray-200 bg-gray-50'
-                : 'border-gray-200 bg-gray-100'
+      {paymentMethods.map((method) => {
+        const isSelected = selectedPayment === method.id;
+        return (
+          <TouchableOpacity
+            key={method.id}
+            onPress={() => method.available && onPaymentSelect(method.id)}
+            disabled={!method.available}
+            activeOpacity={0.7}
+            className={`flex-row items-center p-4 rounded-md mb-2 border ${
+              isSelected
+                ? 'border-primary bg-primarySoft'
+                : method.available
+                  ? 'border-border bg-surface'
+                  : 'border-border bg-bg'
             }`}
-          disabled={!method.available}
-        >
-          <View className="mr-3">
-            {getPaymentIcon(method.icon)}
-          </View>
+          >
+            <View className="mr-3">
+              {getPaymentIcon(method.icon, isSelected)}
+            </View>
 
-          <View className="flex-1">
-            <View className="flex-row items-center">
-              <Text className={`font-semibold ${method.available ? 'text-gray-800' : 'text-gray-400'}`}>
-                {method.name}
+            <View className="flex-1">
+              <View className="flex-row items-center">
+                <Text className={`font-semibold ${method.available ? 'text-text' : 'text-muted'}`}>
+                  {method.name}
+                </Text>
+                {method.popular && (
+                  <View className="ml-2">
+                    <Badge variant="popular" label="Populaire" />
+                  </View>
+                )}
+                {!method.available && (
+                  <View className="ml-2">
+                    <Badge variant="eta" label="Bientôt" />
+                  </View>
+                )}
+              </View>
+              <Text className={`text-sm mt-0.5 ${method.available ? 'text-muted' : 'text-muted/50'}`}>
+                {method.description}
               </Text>
-              {method.popular && (
-                <View className="ml-2 bg-green-100 px-2 py-1 rounded-full">
-                  <Text className="text-xs text-green-800 font-medium">Populaire</Text>
-                </View>
-              )}
-              {!method.available && (
-                <View className="ml-2 bg-gray-100 px-2 py-1 rounded-full">
-                  <Text className="text-xs text-gray-600">Bientôt</Text>
-                </View>
-              )}
             </View>
-            <Text className={`text-sm ${method.available ? 'text-gray-600' : 'text-gray-400'}`}>
-              {method.description}
-            </Text>
-          </View>
 
-          {selectedPayment === method.id && (
-            <View className="w-6 h-6 rounded-full bg-[#F59E0B] flex items-center justify-center">
-              <Text className="text-white text-xs">✓</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      ))}
+            {isSelected && (
+              <CheckCircleIcon size={24} color="#7A1E3A" />
+            )}
+          </TouchableOpacity>
+        );
+      })}
 
-      <View className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-        <Text className="text-blue-800 font-semibold text-sm mb-1">
+      {/* Tip Card */}
+      <View className="mt-3 p-3 bg-primarySoft rounded-md border border-primary/10">
+        <Text className="text-primary font-semibold text-sm mb-0.5">
           💡 Conseil
         </Text>
-        <Text className="text-blue-700 text-sm">
-          Le paiement en espèces est recommandé pour éviter les frais supplémentaires et les problèmes de connexion.
+        <Text className="text-primary/80 text-sm leading-5">
+          Le paiement en espèces est recommandé pour éviter les frais supplémentaires.
         </Text>
       </View>
     </View>
   )
 }
 
-export default PaymentOptions 
+export default PaymentOptions

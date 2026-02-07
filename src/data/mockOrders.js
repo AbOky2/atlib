@@ -1,0 +1,100 @@
+/**
+ * Mock order history — Chad (N'Djamena) context
+ */
+
+export const mockOrders = [
+  {
+    id: 'ord_001',
+    restaurantId: 'r1',
+    restaurantName: "Afrik'N'Fusion",
+    restaurantImage: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=60',
+    items: [
+      { name: 'Kisra avec sauce gombo', qty: 2, price: 1500 },
+      { name: 'Brochettes de bœuf', qty: 1, price: 2500 },
+    ],
+    subtotalXaf: 5500,
+    deliveryFeeXaf: 500,
+    totalXaf: 6000,
+    status: 'DELIVERED',
+    createdAt: '2026-02-05T12:30:00Z',
+    paymentMethod: 'cash',
+    deliveryAddress: 'Chagoua, près du marché central',
+  },
+  {
+    id: 'ord_002',
+    restaurantId: 'r4',
+    restaurantName: 'Pizza Roma',
+    restaurantImage: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=60',
+    items: [
+      { name: 'Pizza Margherita', qty: 1, price: 3500 },
+      { name: 'Pizza Viande', qty: 1, price: 4500 },
+    ],
+    subtotalXaf: 8000,
+    deliveryFeeXaf: 0,
+    totalXaf: 8000,
+    status: 'DELIVERED',
+    createdAt: '2026-02-03T19:15:00Z',
+    paymentMethod: 'airtel_money',
+    deliveryAddress: 'Gassi, avenue Felix Eboué',
+  },
+  {
+    id: 'ord_003',
+    restaurantId: 'r5',
+    restaurantName: 'Burger King Express',
+    restaurantImage: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=60',
+    items: [
+      { name: 'Double Cheese', qty: 2, price: 3500 },
+    ],
+    subtotalXaf: 7000,
+    deliveryFeeXaf: 200,
+    totalXaf: 7200,
+    status: 'CANCELLED',
+    createdAt: '2026-02-01T14:00:00Z',
+    paymentMethod: 'cash',
+    deliveryAddress: 'Sabangali, rue 1040',
+  },
+  {
+    id: 'ord_004',
+    restaurantId: 'r3',
+    restaurantName: 'Istanbul Grill',
+    restaurantImage: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=600&q=60',
+    items: [
+      { name: 'Shawarma poulet', qty: 3, price: 2000 },
+      { name: 'Assiette mixte grill', qty: 1, price: 4500 },
+    ],
+    subtotalXaf: 10500,
+    deliveryFeeXaf: 500,
+    totalXaf: 11000,
+    status: 'DELIVERED',
+    createdAt: '2026-01-28T20:45:00Z',
+    paymentMethod: 'tigo_cash',
+    deliveryAddress: 'Kabalaye, rond-point de la Paix',
+  },
+  {
+    id: 'ord_005',
+    restaurantId: 'r8',
+    restaurantName: 'Marché Frais Express',
+    restaurantImage: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=60',
+    items: [
+      { name: 'Panier légumes', qty: 1, price: 2000 },
+      { name: 'Panier fruits', qty: 1, price: 2500 },
+    ],
+    subtotalXaf: 4500,
+    deliveryFeeXaf: 300,
+    totalXaf: 4800,
+    status: 'DELIVERED',
+    createdAt: '2026-01-25T09:30:00Z',
+    paymentMethod: 'cash',
+    deliveryAddress: 'Moursal, avenue Charles de Gaulle',
+  },
+];
+
+export const ORDER_STATUS_CONFIG = {
+  PENDING: { label: 'En attente', color: '#F59E0B', bgColor: '#FFF3D6' },
+  ACCEPTED: { label: 'Acceptée', color: '#2563EB', bgColor: '#DBEAFE' },
+  PREPARING: { label: 'En préparation', color: '#7A1E3A', bgColor: '#F8E9EF' },
+  READY: { label: 'Prêt', color: '#16A34A', bgColor: '#DCFCE7' },
+  OUT_FOR_DELIVERY: { label: 'En livraison', color: '#7A1E3A', bgColor: '#F8E9EF' },
+  DELIVERED: { label: 'Livré', color: '#16A34A', bgColor: '#DCFCE7' },
+  CANCELLED: { label: 'Annulé', color: '#EF4444', bgColor: '#FEE2E2' },
+};

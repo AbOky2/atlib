@@ -1,8 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { mockOrders } from '../src/data/mockOrders'
 
 const initialState = {
   currentOrder: null,
-  orderHistory: [],
+  orderHistory: mockOrders, // seed with mock data
   orderStatuses: {
     PENDING: 'En attente',
     ACCEPTED: 'Acceptée',
@@ -20,13 +21,15 @@ export const orderSlice = createSlice({
   reducers: {
     createOrder: (state, action) => {
       const newOrder = {
-        id: Date.now().toString(),
+        id: 'ord_' + Date.now().toString(),
         ...action.payload,
         status: 'PENDING',
         createdAt: new Date().toISOString(),
         estimatedDeliveryTime: '45-60 min'
       }
       state.currentOrder = newOrder
+      // also add to history immediately
+      state.orderHistory.unshift(newOrder)
     },
     updateOrderStatus: (state, action) => {
       if (state.currentOrder) {
@@ -35,6 +38,13 @@ export const orderSlice = createSlice({
         if (action.payload.estimatedTime) {
           state.currentOrder.estimatedDeliveryTime = action.payload.estimatedTime
         }
+      }
+      // also update in history
+      const idx = state.orderHistory.findIndex(
+        (o) => o.id === state.currentOrder?.id
+      );
+      if (idx >= 0) {
+        state.orderHistory[idx].status = action.payload.status;
       }
     },
     addOrderToHistory: (state, action) => {
@@ -66,4 +76,4 @@ export const selectCurrentOrder = (state) => state.order.currentOrder
 export const selectOrderHistory = (state) => state.order.orderHistory
 export const selectOrderStatuses = (state) => state.order.orderStatuses
 
-export default orderSlice.reducer 
+export default orderSlice.reducer

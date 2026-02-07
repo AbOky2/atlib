@@ -24,38 +24,47 @@ const DishRow = ({ id, name, description, price, image }) => {
             <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={() => setIsPressed(!isPressed)}
-                className={`bg-white border p-4 border-gray-100 ${isPressed && 'border-b-0'}`}>
-                <View className='flex-row items-center'>
-                    <View className='flex-1 pr-2'>
-                        <Text className='text-lg mb-1 font-semibold text-gray-800'>{name}</Text>
-                        <Text className='text-gray-500 text-sm leading-5'>{description}</Text>
-                        <Text className='text-gray-900 mt-2 font-bold'>
+                className={`bg-surface border border-border p-4 rounded-md mb-2 ${isPressed && 'border-primary/30 bg-primarySoft/20'}`}
+            >
+                <View className="flex-row items-center">
+                    <View className="flex-1 pr-3">
+                        <Text className="text-base font-bold text-text mb-1">{name}</Text>
+                        <Text className="text-muted text-sm leading-5" numberOfLines={2}>{description}</Text>
+                        <Text className="text-primary mt-2 font-bold text-base">
                             <Currency quantity={price} currency="USD" />
                         </Text>
                     </View>
-                    <View>
-                        <Image source={{ uri: urlFor(image).url() }}
-                            className='h-24 w-24 rounded-xl bg-gray-200 object-cover' />
-                    </View>
+                    <Image
+                        source={{ uri: urlFor(image).url() }}
+                        className="h-20 w-20 rounded-sm bg-bg object-cover"
+                    />
                 </View>
             </TouchableOpacity>
+
             {isPressed && (
-                <View className='bg-white px-4 pt-2 pb-4'>
-                    <View className='flex-row items-center space-x-3 pb-2'>
+                <View className="bg-primarySoft/30 px-4 py-3 rounded-b-md -mt-2 mb-2 border border-t-0 border-primary/20">
+                    <View className="flex-row items-center justify-center">
                         <TouchableOpacity
                             disabled={!items.length}
                             onPress={removeItemFromBasket}
-                            activeOpacity={0.7}>
-                            <MinusCircleIcon size={35} color={items.length > 0 ? "#F59E0B" : "#E5E7EB"} />
+                            activeOpacity={0.7}
+                        >
+                            <MinusCircleIcon
+                                size={32}
+                                color={items.length > 0 ? '#7A1E3A' : '#E5E7EB'}
+                            />
                         </TouchableOpacity>
 
-                        <Text className="text-gray-700 font-bold text-lg w-6 text-center">{items.length}</Text>
+                        <Text className="text-text font-bold text-lg mx-4 w-6 text-center">
+                            {items.length}
+                        </Text>
 
                         <TouchableOpacity onPress={addItemsToBasket} activeOpacity={0.7}>
-                            <PlusCircleIcon size={35} color="#F59E0B" />
+                            <PlusCircleIcon size={32} color="#7A1E3A" />
                         </TouchableOpacity>
                     </View>
-                </View>)}
+                </View>
+            )}
         </>
     )
 }

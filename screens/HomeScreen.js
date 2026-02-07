@@ -1,121 +1,302 @@
-import { View, Text, Image, TextInput, ScrollView, TouchableOpacity } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import React, { useEffect, useLayoutEffect, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import '../global.css'
 import { useNavigation } from '@react-navigation/native'
-import { AdjustmentsVerticalIcon, ChevronDownIcon, UserIcon, MagnifyingGlassIcon, MapPinIcon } from 'react-native-heroicons/outline'
+import { ChevronDownIcon, BellIcon, XMarkIcon } from 'react-native-heroicons/outline'
 import Categories from '../components/Categories'
 import FeaturedRow from '../components/FeaturedRow'
+import FilterPill from '../components/FilterPill'
+import FilterModal from '../components/FilterModal'
+import RestaurantListCard from '../components/RestaurantListCard'
+import CustomNavBar from '../components/CustomNavBar'
 import sanityClient from '../sanity'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentAddress } from '../features/addressSlice'
+import { selectCurrentOrder } from '../features/orderSlice'
+import {
+  setTopTab, setCategory, togglePickup, toggleOffers,
+  setPriceLevel, setMaxDeliveryFee, resetFilters,
+  selectActiveTopTab, selectActiveCategory,
+  selectPickupOnly, selectOffersOnly,
+  selectPriceLevel, selectMaxDeliveryFee,
+  selectHasActiveFilters,
+} from '../features/filtersSlice'
+import { loadFavorites } from '../features/favoritesSlice'
+import {
+  mockRestaurants, CATEGORIES, TOP_TABS,
+  PRICE_LEVELS, DELIVERY_FEE_PRESETS,
+} from '../src/data/mockRestaurants'
+
 const HomeScreen = () => {
-    const navigation = useNavigation();
-    const [featuredCategories, setFeaturedCategories] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const currentAddress = useSelector(selectCurrentAddress);
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const [featuredCategories, setFeaturedCategories] = useState([]);
+  const [priceModalVisible, setPriceModalVisible] = useState(false);
+  const [deliveryFeeModalVisible, setDeliveryFeeModalVisible] = useState(false);
 
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerShown: false,
-        })
-    }, [])
+  const activeTopTab = useSelector(selectActiveTopTab);
+  const activeCategory = useSelector(selectActiveCategory);
+  const pickupOnly = useSelector(selectPickupOnly);
+  const offersOnly = useSelector(selectOffersOnly);
+  const priceLevel = useSelector(selectPriceLevel);
+  const maxDeliveryFee = useSelector(selectMaxDeliveryFee);
+  const hasActiveFilters = useSelector(selectHasActiveFilters);
+  const currentAddress = useSelector(selectCurrentAddress);
+  const currentOrder = useSelector(selectCurrentOrder);
 
-    useEffect(() => {
-        sanityClient.fetch(`*[_type=="featured"]{
-                ...,
-                restaurants[] ->{
-                    ...,
-                    dishes[] ->,
-                    type->{
-                        name
-                    }
-                }
-                }`).then((data) => {
-            setFeaturedCategories(data);
-        }).catch(console.error);
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, []);
+
+  useEffect(() => { dispatch(loadFavorites()); }, []);
+
+  useEffect(() => {
+    sanityClient.fetch(`*[_type=="featured"]{
+      ...,
+      restaurants[] ->{ ..., dishes[] ->, type->{ name } }
+    }`).then(setFeaturedCategories).catch(console.error);
+  }, []);
+
+  const filteredRestaurants = useMemo(() => {
+    let results = [...mockRestaurants];
+    if (activeTopTab === 'groceries') {
+      results = results.filter((r) => r.topTab === 'groceries' || r.categories.includes('courses'));
+    } else if (activeTopTab === 'alcohol') {
+      results = results.filter((r) => r.topTab === 'alcohol' || r.categories.includes('alcohol'));
     }
-        , []);
+    if (activeCategory) results = results.filter((r) => r.categories.includes(activeCategory));
+    if (pickupOnly) results = results.filter((r) => r.services.pickup);
+    if (offersOnly) results = results.filter((r) => r.activeOffers);
+    if (priceLevel) results = results.filter((r) => r.priceLevel <= priceLevel);
+    if (maxDeliveryFee !== null) results = results.filter((r) => r.deliveryFeeXaf <= maxDeliveryFee);
+    return results;
+  }, [activeTopTab, activeCategory, pickupOnly, offersOnly, priceLevel, maxDeliveryFee]);
 
-    const filteredFeaturedCategories = featuredCategories?.map(category => ({
-        ...category,
-        restaurants: category.restaurants?.filter(restaurant =>
-            restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            restaurant.type?.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    })).filter(category => category.restaurants?.length > 0);
+  const showFilteredList = activeTopTab !== 'all' || hasActiveFilters;
+  const isRidesTab = activeTopTab === 'rides';
 
-    return (
-        <SafeAreaView className="bg-white pt-5 flex-1">
-            {/* Header */}
-            <View className="flex-row pb-3 items-center mx-4 space-x-2">
-                <Image
-                    source={{
-                        uri: "https://links.papareact.com/wru",
-                    }}
-                    className="h-10 w-10 bg-gray-300 p-4 rounded-full"
-                />
+  const handleTopTab = useCallback((tabId) => dispatch(setTopTab(tabId)), [dispatch]);
+  const handleCategory = useCallback((catId) => dispatch(setCategory(catId)), [dispatch]);
 
-                <View className="flex-1">
-                    <Text className="font-bold text-gray-400 text-xs">Livrer à</Text>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('Address')}
-                        className="flex-row items-center"
-                        activeOpacity={0.7}
-                    >
-                        <Text className="text-xl font-bold text-gray-900 ml-1 mr-1">
-                            {currentAddress.zone || 'Choisir un lieu'}
-                        </Text>
-                        <ChevronDownIcon size={20} color="#F59E0B" />
-                    </TouchableOpacity>
-                </View>
+  const visibleCategories = useMemo(() => {
+    if (['groceries', 'alcohol', 'rides'].includes(activeTopTab)) return [];
+    return CATEGORIES.filter((c) => c.id !== 'courses' && c.id !== 'alcohol');
+  }, [activeTopTab]);
 
-                <TouchableOpacity activeOpacity={0.7}>
-                    <UserIcon size={35} color="#F59E0B" />
-                </TouchableOpacity>
-            </View>
-
-            {/* Search bar */}
-            <View className="flex-row items-center space-x-2 pb-4 mx-4">
-                <View className="flex-row flex-1 space-x-2 bg-gray-100 p-3 rounded-xl items-center shadow-sm border border-gray-100">
-                    <MagnifyingGlassIcon color="gray" size={20} />
-                    <TextInput
-                        placeholder="Restaurants et cuisines"
-                        keyboardType='default'
-                        className="flex-1 text-base text-gray-800"
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                </View>
-                <TouchableOpacity activeOpacity={0.7} className="p-2 rounded-full bg-gray-100">
-                    <AdjustmentsVerticalIcon color="#F59E0B" />
-                </TouchableOpacity>
-            </View>
-
-            {/*Body */}
-            <ScrollView
-                className="bg-gray-50"
-                contentContainerStyle={{
-                    paddingBottom: 100,
-                }}
-                showsVerticalScrollIndicator={false}
+  return (
+    <SafeAreaView className="bg-surface flex-1">
+      {/* ═══ Header ═══ */}
+      <View className="px-4 pt-1 pb-2">
+        <View className="flex-row items-center justify-between">
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Address')}
+            className="flex-row items-center flex-1"
+            activeOpacity={0.7}
+          >
+            <Text className="text-base font-bold text-text" numberOfLines={1}>
+              {currentAddress.zone || 'Lieu actuel'}
+            </Text>
+            <ChevronDownIcon size={16} color="#111827" style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
+          <View className="relative">
+            <TouchableOpacity
+              className="p-2 rounded-full"
+              activeOpacity={0.7}
             >
-                {/* Categories */}
-                <Categories />
+              <BellIcon size={24} color="#111827" />
+            </TouchableOpacity>
+            {currentOrder && currentOrder.status !== 'DELIVERED' && (
+              <View className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-danger rounded-full border border-surface" />
+            )}
+          </View>
+        </View>
+      </View>
 
-                {/* Featured Rows */}
-                {filteredFeaturedCategories?.map(category => (
-                    <FeaturedRow
-                        key={category._id}
-                        id={category._id}
-                        title={category.name}
-                        description={category.short_description}
-                        restaurants={category.restaurants}
-                    />
-                ))}
-            </ScrollView>
-        </SafeAreaView>
-    )
-}
+      {/* ═══ Filter Rows ═══ */}
+      <View className="pb-2">
+        {/* Row 1: Top Tabs (with emoji icons like UberEats) */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
+        >
+          {TOP_TABS.map((tab) => {
+            const isActive = activeTopTab === tab.id;
+            return (
+              <TouchableOpacity
+                key={tab.id}
+                onPress={() => handleTopTab(tab.id)}
+                activeOpacity={0.7}
+                className={`flex-row items-center px-4 py-2 rounded-full mr-2 border ${isActive ? 'bg-text border-text' : 'bg-surface border-border'
+                  }`}
+              >
+                <Text className={`text-sm font-bold ${isActive ? 'text-white' : 'text-text'}`}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Row 2: Category icons — transparent/white like UberEats */}
+        {visibleCategories.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+          >
+            {visibleCategories.map((cat) => {
+              const isActive = activeCategory === cat.id;
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  onPress={() => handleCategory(cat.id)}
+                  className="items-center mr-4"
+                  activeOpacity={0.7}
+                  style={{ width: 72 }}
+                >
+                  <View className={`h-16 w-16 rounded-2xl items-center justify-center mb-1.5 ${isActive ? 'bg-primarySoft' : 'bg-transparent'
+                    }`}>
+                    <Text className="text-2xl">{cat.emoji}</Text>
+                  </View>
+                  <Text className={`text-xs font-semibold text-center ${isActive ? 'text-primary' : 'text-text'
+                    }`} numberOfLines={1}>
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+
+        {/* Row 3: Filter pills */}
+        {!isRidesTab && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
+          >
+            <FilterPill
+              label="À emporter"
+              isSelected={pickupOnly}
+              onPress={() => dispatch(togglePickup())}
+            />
+            <FilterPill
+              label="Offres"
+              isSelected={offersOnly}
+              onPress={() => dispatch(toggleOffers())}
+            />
+            <FilterPill
+              label={priceLevel ? `Prix ${'$'.repeat(priceLevel)}` : 'Prix'}
+              isDropdown
+              isSelected={priceLevel !== null}
+              onPress={() => setPriceModalVisible(true)}
+            />
+            <FilterPill
+              label={
+                maxDeliveryFee !== null
+                  ? maxDeliveryFee === 0 ? 'Gratuit' : `≤${maxDeliveryFee} XAF`
+                  : 'Frais de livraison'
+              }
+              isDropdown
+              isSelected={maxDeliveryFee !== null}
+              onPress={() => setDeliveryFeeModalVisible(true)}
+            />
+            {hasActiveFilters && (
+              <TouchableOpacity
+                onPress={() => dispatch(resetFilters())}
+                activeOpacity={0.7}
+                className="flex-row items-center bg-danger/10 border border-danger/20 rounded-full px-3 py-2.5 mr-2"
+              >
+                <XMarkIcon size={14} color="#EF4444" />
+                <Text className="text-danger font-semibold text-sm ml-1">Reset</Text>
+              </TouchableOpacity>
+            )}
+          </ScrollView>
+        )}
+      </View>
+
+      {/* Info line like Uber Eats */}
+      <View className="px-4 pb-2">
+        <Text className="text-xs text-muted">
+          Découvrez comment les résultats sont classés.{' '}
+          <Text className="underline text-text">En savoir plus.</Text>
+        </Text>
+      </View>
+
+      {/* Divider */}
+      <View className="h-px bg-border" />
+
+      {/* ═══ Body ═══ */}
+      <ScrollView
+        className="flex-1 bg-bg"
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {isRidesTab ? (
+          <View className="items-center justify-center py-24 px-8">
+            <Text className="text-5xl mb-4">🚗</Text>
+            <Text className="text-xl font-bold text-text mb-2">Trajets</Text>
+            <Text className="text-muted text-center text-base leading-6">
+              Bientôt disponible à N'Djamena.{'\n'}Restez à l'écoute !
+            </Text>
+          </View>
+        ) : showFilteredList ? (
+          <View className="pt-4">
+            <Text className="text-sm font-medium text-muted px-4 mb-3">
+              {filteredRestaurants.length} résultat{filteredRestaurants.length !== 1 ? 's' : ''}
+            </Text>
+            {filteredRestaurants.length === 0 ? (
+              <View className="items-center py-20 px-8">
+                <Text className="text-4xl mb-4">🔍</Text>
+                <Text className="text-muted text-center text-base">
+                  Aucun restaurant ne correspond à vos filtres.
+                </Text>
+              </View>
+            ) : (
+              filteredRestaurants.map((r) => (
+                <RestaurantListCard key={r.id} restaurant={r} />
+              ))
+            )}
+          </View>
+        ) : (
+          <>
+            <Categories />
+            {featuredCategories?.map((category) => (
+              <FeaturedRow
+                key={category._id}
+                id={category._id}
+                title={category.name}
+                description={category.short_description}
+                restaurants={category.restaurants}
+              />
+            ))}
+          </>
+        )}
+      </ScrollView>
+
+      <CustomNavBar />
+
+      {/* ═══ Modals ═══ */}
+      <FilterModal
+        visible={priceModalVisible}
+        onClose={() => setPriceModalVisible(false)}
+        title="Filtrer par prix"
+        selected={priceLevel}
+        onSelect={(val) => dispatch(setPriceLevel(val))}
+        options={PRICE_LEVELS.map((p) => ({ value: p.level, label: p.label, sublabel: p.description }))}
+      />
+      <FilterModal
+        visible={deliveryFeeModalVisible}
+        onClose={() => setDeliveryFeeModalVisible(false)}
+        title="Frais de livraison max"
+        selected={maxDeliveryFee}
+        onSelect={(val) => dispatch(setMaxDeliveryFee(val))}
+        options={DELIVERY_FEE_PRESETS.map((d) => ({ value: d.max, label: d.label }))}
+      />
+    </SafeAreaView>
+  );
+};
 
 export default HomeScreen

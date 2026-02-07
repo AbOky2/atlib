@@ -1,11 +1,12 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
-import { MapPinIcon, StarIcon, HeartIcon } from 'react-native-heroicons/solid'
+import { StarIcon, HeartIcon } from 'react-native-heroicons/solid'
 import { HeartIcon as HeartIconOutline } from 'react-native-heroicons/outline'
 import { urlFor } from '../sanity'
 import { useNavigation } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
-import { toggleFavorite, selectIsFavorite } from '../features/favoritesSlice'
+import { toggleFavoriteAndPersist, selectIsFavorite } from '../features/favoritesSlice'
+import Badge from '../src/ui/Badge'
 
 const RestaurantCard = ({
     id,
@@ -18,7 +19,6 @@ const RestaurantCard = ({
     dishes,
     long,
     lat,
-
 }) => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
@@ -26,58 +26,78 @@ const RestaurantCard = ({
 
     const handlePress = () => {
         navigation.navigate('Restaurant', {
-            id,
-            imgUrl,
-            title,
-            rating,
-            genre,
-            address,
-            short_description,
-            dishes,
-            long,
-            lat,
+            id, imgUrl, title, rating, genre, address,
+            short_description, dishes, long, lat,
         });
     }
 
     const handleFavorite = () => {
-        dispatch(toggleFavorite(id));
+        dispatch(toggleFavoriteAndPersist(id));
+    }
+
+    // Build image URI — handle both Sanity image refs and plain URLs
+    let imageUri = null;
+    try {
+        imageUri = imgUrl ? urlFor(imgUrl).url() : null;
+    } catch {
+        imageUri = typeof imgUrl === 'string' ? imgUrl : null;
     }
 
     return (
         <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             onPress={handlePress}
-            className="bg-white mr-4 shadow-md rounded-2xl overflow-hidden border border-gray-100 mb-2">
+            className="bg-surface mr-4 rounded-md border border-border overflow-hidden mb-2"
+            style={{ width: 280 }}
+        >
+            {/* Image */}
             <View>
-                <Image source={{
-                    uri: urlFor(imgUrl).url(),
-                }} className='h-40 w-72 object-cover' />
+                {imageUri ? (
+                    <Image
+                        source={{ uri: imageUri }}
+                        className="h-40 w-full object-cover"
+                    />
+                ) : (
+                    <View className="h-40 w-full bg-primarySoft items-center justify-center">
+                        <Text className="text-3xl">🍽️</Text>
+                    </View>
+                )}
+                {/* Favorite Button */}
                 <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={handleFavorite}
-                    className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-sm"
+                    className="absolute top-3 right-3 bg-surface/90 rounded-full p-2 border border-border/50"
                 >
                     {isFavorite ? (
-                        <HeartIcon size={20} color="#EF4444" />
+                        <HeartIcon size={18} color="#EF4444" />
                     ) : (
-                        <HeartIconOutline size={20} color="#F59E0B" />
+                        <HeartIconOutline size={18} color="#6B7280" />
                     )}
                 </TouchableOpacity>
+                {/* ETA Badge */}
+                <View className="absolute top-3 left-3">
+                    <Badge variant="eta" label="20-30 min" />
+                </View>
             </View>
 
-            <View className="px-4 pb-4 pt-3">
-                <Text className="text-lg font-bold text-gray-900">{title}</Text>
-                <View className="flex-row items-center space-x-1 my-1">
-                    <StarIcon color="#22c55e" size={20} />
-                    <Text className="text-xs text-gray-500">
-                        <Text className="text-green-600 font-semibold">{rating}</Text> • {genre}
+            {/* Info */}
+            <View className="px-3 pb-3 pt-3">
+                <View className="flex-row justify-between items-center mb-1">
+                    <Text className="text-base font-bold text-text flex-1 mr-2" numberOfLines={1}>
+                        {title}
                     </Text>
+                    <View className="flex-row items-center bg-accentSoft px-2 py-0.5 rounded-full">
+                        <StarIcon size={12} color="#C8A24A" />
+                        <Text className="text-xs font-bold text-accent ml-1">{rating}</Text>
+                    </View>
                 </View>
 
-                <View className="flex-row items-center space-x-1">
-                    <MapPinIcon color="gray" opacity={0.6} size={20} />
-                    <Text className="text-xs text-gray-500 w-60" numberOfLines={1}>À proximité • {address}</Text>
-                </View>
+                <Text className="text-sm text-muted font-medium" numberOfLines={1}>
+                    {genre} • Livraison 500 XAF
+                </Text>
+                <Text className="text-xs text-muted/70 mt-0.5" numberOfLines={1}>
+                    {address}
+                </Text>
             </View>
         </TouchableOpacity>
     )

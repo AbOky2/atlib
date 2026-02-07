@@ -3,8 +3,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
-import { ArrowLeftIcon, MapPinIcon, PhoneIcon } from 'react-native-heroicons/outline'
+import { ArrowLeftIcon, MapPinIcon, PhoneIcon, ChevronDownIcon } from 'react-native-heroicons/outline'
 import { setCurrentAddress, selectAvailableZones, selectCurrentAddress } from '../features/addressSlice'
+import Card from '../src/ui/Card'
+import Button from '../src/ui/Button'
 
 const AddressScreen = () => {
   const navigation = useNavigation()
@@ -88,31 +90,33 @@ const AddressScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-row items-center justify-between p-4 border-b border-gray-200">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <ArrowLeftIcon size={24} color="#F59E0B" />
+    <SafeAreaView className="flex-1 bg-bg">
+      {/* Header */}
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-border bg-surface">
+        <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7} className="p-1">
+          <ArrowLeftIcon size={22} color="#111827" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold">Adresse de livraison</Text>
+        <Text className="text-base font-bold text-text">Adresse de livraison</Text>
         <View className="w-6" />
       </View>
 
-      <ScrollView className="flex-1 p-4">
-        {/* Sélection de zone */}
-        <View className="mb-6">
-          <Text className="text-base font-semibold mb-2 text-gray-700">Zone / Quartier *</Text>
+      <ScrollView className="flex-1 px-4 pt-4" showsVerticalScrollIndicator={false}>
+        {/* Zone selector */}
+        <Card className="mb-4">
+          <Text className="text-sm font-semibold text-text mb-2">Zone / Quartier *</Text>
           <TouchableOpacity
             onPress={() => setShowZoneSelector(!showZoneSelector)}
-            className="border border-gray-300 rounded-lg p-3 flex-row items-center justify-between"
+            className="border border-border rounded-md px-4 py-3 flex-row items-center justify-between bg-surface"
+            activeOpacity={0.7}
           >
-            <Text className={selectedZone ? "text-black" : "text-gray-400"}>
+            <Text className={selectedZone ? "text-text" : "text-muted"}>
               {selectedZone || "Sélectionner votre zone"}
             </Text>
-            <MapPinIcon size={20} color="#F59E0B" />
+            <ChevronDownIcon size={18} color="#6B7280" />
           </TouchableOpacity>
 
           {showZoneSelector && (
-            <View className="mt-2 border border-gray-200 rounded-lg bg-gray-50 max-h-48">
+            <View className="mt-3 border border-border rounded-md bg-surface max-h-52">
               <ScrollView>
                 {availableZones.map((zone, index) => (
                   <TouchableOpacity
@@ -121,101 +125,100 @@ const AddressScreen = () => {
                       setSelectedZone(zone)
                       setShowZoneSelector(false)
                     }}
-                    className="p-3 border-b border-gray-200"
+                    className="px-4 py-3 border-b border-border"
                   >
-                    <Text className="text-base">{zone}</Text>
+                    <Text className="text-sm text-text">{zone}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
             </View>
           )}
-        </View>
+        </Card>
 
-        {/* Point de repère */}
-        <View className="mb-6">
-          <Text className="text-base font-semibold mb-2 text-gray-700">Point de repère principal *</Text>
+        {/* Landmark */}
+        <Card className="mb-4">
+          <Text className="text-sm font-semibold text-text mb-2">Point de repère principal *</Text>
           <TextInput
             value={landmark}
             onChangeText={setLandmark}
             placeholder="Ex: Mosquée Centrale, Marché, École..."
-            className="border border-gray-300 rounded-lg p-3 text-base"
+            className="border border-border rounded-md px-4 py-3 text-sm text-text bg-surface"
             multiline
+            placeholderTextColor="#6B7280"
           />
-          <Text className="text-xs text-gray-500 mt-1">
-            Suggestions : {commonLandmarks.slice(0, 3).join(', ')}
-          </Text>
-        </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+            {commonLandmarks.map((item) => (
+              <TouchableOpacity
+                key={item}
+                onPress={() => setLandmark(item)}
+                activeOpacity={0.7}
+                className="bg-primarySoft border border-primary/10 rounded-full px-3 py-1.5 mr-2"
+              >
+                <Text className="text-xs text-primary font-semibold">{item}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </Card>
 
-        {/* Description détaillée */}
-        <View className="mb-6">
-          <Text className="text-base font-semibold mb-2 text-gray-700">Description du chemin *</Text>
+        {/* Description */}
+        <Card className="mb-4">
+          <Text className="text-sm font-semibold text-text mb-2">Description du chemin *</Text>
           <TextInput
             value={description}
             onChangeText={setDescription}
-            placeholder="Ex: Derrière la mosquée, maison bleue avec portail blanc, 3ème maison à droite..."
-            className="border border-gray-300 rounded-lg p-3 text-base h-20"
+            placeholder="Ex: Derrière la mosquée, maison bleue avec portail blanc..."
+            className="border border-border rounded-md px-4 py-3 text-sm text-text bg-surface h-28"
             multiline
             textAlignVertical="top"
+            placeholderTextColor="#6B7280"
           />
-          <Text className="text-xs text-gray-500 mt-1">
+          <Text className="text-xs text-muted mt-2">
             Soyez précis pour faciliter la livraison
           </Text>
-        </View>
+        </Card>
 
-        {/* Numéro de téléphone */}
-        <View className="mb-6">
-          <Text className="text-base font-semibold mb-2 text-gray-700">Numéro de téléphone *</Text>
-          <View className="flex-row items-center border border-gray-300 rounded-lg">
-            <PhoneIcon size={20} color="#F59E0B" className="ml-3" />
+        {/* Phone */}
+        <Card className="mb-4">
+          <Text className="text-sm font-semibold text-text mb-2">Numéro de téléphone *</Text>
+          <View className="flex-row items-center border border-border rounded-md bg-surface">
+            <View className="pl-3">
+              <PhoneIcon size={18} color="#6B7280" />
+            </View>
             <TextInput
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               placeholder="Ex: 66 12 34 56"
-              className="flex-1 p-3 text-base"
+              className="flex-1 px-3 py-3 text-sm text-text"
               keyboardType="phone-pad"
+              placeholderTextColor="#6B7280"
             />
           </View>
-          <Text className="text-xs text-gray-500 mt-1">
+          <Text className="text-xs text-muted mt-2">
             Obligatoire pour contact direct du livreur
           </Text>
-        </View>
+        </Card>
 
-        {/* Aperçu estimation */}
+        {/* Estimate */}
         {selectedZone && (
-          <View className="bg-[#F59E0B] bg-opacity-10 p-4 rounded-lg mb-6">
-            <Text className="text-base font-semibold text-[#F59E0B] mb-2">
-              Estimation de livraison
-            </Text>
-            <Text className="text-sm text-gray-600">
-              Distance: {calculateDistance(selectedZone)}
-            </Text>
-            <Text className="text-sm text-gray-600">
-              Temps estimé: {calculateDeliveryTime(selectedZone)}
-            </Text>
-          </View>
+          <Card className="mb-4 bg-primarySoft border-primary/10">
+            <Text className="text-sm font-semibold text-primary mb-2">Estimation de livraison</Text>
+            <Text className="text-sm text-muted">Distance: {calculateDistance(selectedZone)}</Text>
+            <Text className="text-sm text-muted">Temps estimé: {calculateDeliveryTime(selectedZone)}</Text>
+          </Card>
         )}
 
-        {/* Note importante */}
-        <View className="bg-yellow-50 p-4 rounded-lg mb-6">
-          <Text className="text-sm text-yellow-800 font-semibold mb-1">
-            📍 Important
-          </Text>
-          <Text className="text-sm text-yellow-700">
+        {/* Important */}
+        <Card className="mb-6 bg-accentSoft border-accent/20">
+          <Text className="text-sm text-accent font-semibold mb-1">📌 Important</Text>
+          <Text className="text-sm text-accent/80">
             Assurez-vous que votre téléphone soit allumé et accessible. Le livreur vous contactera avant la livraison.
           </Text>
-        </View>
+        </Card>
       </ScrollView>
 
-      {/* Bouton sauvegarder */}
-      <View className="p-4 border-t border-gray-200">
-        <TouchableOpacity
-          onPress={handleSaveAddress}
-          className="bg-[#F59E0B] rounded-lg p-4"
-        >
-          <Text className="text-white text-center font-bold text-lg">
-            Confirmer l'adresse
-          </Text>
-        </TouchableOpacity>
+      {/* CTA */}
+      <View className="px-4 pb-6 pt-2 border-t border-border bg-surface">
+        <Button label="Confirmer l'adresse" onPress={handleSaveAddress} />
       </View>
     </SafeAreaView>
   )

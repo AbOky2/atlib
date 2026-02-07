@@ -1,29 +1,32 @@
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { ArrowRightIcon } from 'react-native-heroicons/outline'
 import RestaurantCard from './RestaurantCard'
-import sanityClient from '../sanity'
 
 const FeaturedRow = ({ id, title, description, restaurants }) => {
-
     return (
         <View className="mb-6">
-            <View className="flex-row items-center justify-between mt-4 px-4">
-                <Text className="text-xl font-bold text-gray-900">{title}</Text>
-                <TouchableOpacity>
-                    <ArrowRightIcon color="#F59E0B" size={24} />
+            {/* Section Header */}
+            <View className="flex-row items-center justify-between px-4 mt-4 mb-1">
+                <Text className="text-xl font-bold text-text tracking-tight">{title}</Text>
+                <TouchableOpacity
+                    activeOpacity={0.7}
+                    className="flex-row items-center"
+                >
+                    <Text className="text-sm font-semibold text-primary mr-1">Voir tout</Text>
+                    <ArrowRightIcon color="#7A1E3A" size={16} />
                 </TouchableOpacity>
             </View>
-            <Text className="text-sm text-gray-500 px-4 mt-1 mb-3">{description}</Text>
+            <Text className="text-sm text-muted px-4 mb-3">{description}</Text>
 
+            {/* Horizontal Restaurant Cards */}
             <ScrollView
                 horizontal
                 contentContainerStyle={{
-                    paddingHorizontal: 15,
-                    paddingBottom: 20, // Add padding for shadows
+                    paddingHorizontal: 16,
+                    paddingBottom: 8,
                 }}
                 showsHorizontalScrollIndicator={false}
-                className="pt-2"
             >
                 {restaurants?.map((restaurant) => (
                     <RestaurantCard
