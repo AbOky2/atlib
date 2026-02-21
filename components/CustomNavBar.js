@@ -2,43 +2,55 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { BlurView } from 'expo-blur'
 import {
-  HomeIcon, MapPinIcon, ShoppingCartIcon, UserIcon, MagnifyingGlassIcon,
+  HomeIcon, ShoppingBagIcon, UserIcon, MagnifyingGlassIcon,
 } from 'react-native-heroicons/outline'
 import {
   HomeIcon as HomeIconSolid,
   UserIcon as UserIconSolid,
+  ShoppingBagIcon as ShoppingBagIconSolid,
 } from 'react-native-heroicons/solid'
-import { useNavigation, useRoute } from '@react-navigation/native'
+import { useNavigation } from '@react-navigation/native'
 import { useSelector } from 'react-redux'
-import { selectBasketItems } from '../features/basketSlice'
+import { selectBasketRestaurantCount } from '../features/basketSlice'
 
-const NavItem = ({ icon, activeIcon, label, route, currentRoute, onPress, badge }) => {
-  const isActive = currentRoute === route;
-  const Icon = isActive && activeIcon ? activeIcon : icon;
-  return (
-    <TouchableOpacity onPress={onPress} className="items-center justify-center w-12 relative">
-      <Icon size={24} color={isActive ? '#7A1E3A' : '#6B7280'} />
-      {badge > 0 && (
-        <View className="absolute -top-1 -right-0.5 bg-primary h-4 min-w-[16px] rounded-full items-center justify-center px-1">
-          <Text className="text-white text-[9px] font-bold">{badge}</Text>
-        </View>
-      )}
-      <Text className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-primary' : 'text-muted'}`}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-};
+/**
+ * CustomNavBar — works in two modes:
+ *   1. As a Bottom Tab bar: receives `state` and `navigation` props from Tab.Navigator
+ *   2. Standalone: rendered directly inside a screen (e.g. PaniersScreen)
+ *
+ * In standalone mode, "active" state is derived from the current route name.
+ */
+const CustomNavBar = ({ state: tabState, navigation: tabNavigation }) => {
+  const rootNavigation = useNavigation()
+  const restaurantCount = useSelector(selectBasketRestaurantCount)
 
-const CustomNavBar = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const currentRoute = route.name;
-  const basketItems = useSelector(selectBasketItems);
+  // Determine which tab is active
+  const activeTabName = tabState
+    ? tabState.routes[tabState.index]?.name
+    : null
+
+  const isTabActive = (name) => activeTabName === name
+
+  const goToTab = (name) => {
+    if (tabNavigation) {
+      tabNavigation.navigate(name)
+    } else {
+      rootNavigation.navigate('MainTabs', { screen: name })
+    }
+  }
+
+  const goToPaniers = () => {
+    if (tabNavigation) {
+      rootNavigation.navigate('Paniers')
+    } else {
+      rootNavigation.navigate('Paniers')
+    }
+  }
+
+  const goToSearch = () => rootNavigation.navigate('Search')
 
   return (
     <View className="absolute bottom-0 w-full z-50">
-      {/* Floating blur container — iOS style */}
       <BlurView
         intensity={55}
         tint="light"
@@ -57,26 +69,18 @@ const CustomNavBar = () => {
         }}
       >
         <View className="px-5 py-3 flex-row items-center justify-between">
+          {/* Accueil */}
           <NavItem
             icon={HomeIcon}
             activeIcon={HomeIconSolid}
             label="Accueil"
-            route="Home"
-            currentRoute={currentRoute}
-            onPress={() => navigation.navigate('Home')}
+            isActive={isTabActive('Home')}
+            onPress={() => goToTab('Home')}
           />
 
-          <NavItem
-            icon={MapPinIcon}
-            label="Lieux"
-            route="Map"
-            currentRoute={currentRoute}
-            onPress={() => { }}
-          />
-
-          {/* Center Search */}
+          {/* Search — centre pill */}
           <TouchableOpacity
-            onPress={() => navigation.navigate('Search')}
+            onPress={goToSearch}
             activeOpacity={0.7}
             className="bg-bg rounded-full flex-row items-center h-10 px-4 border border-border"
             style={{ minWidth: 110 }}
@@ -85,27 +89,51 @@ const CustomNavBar = () => {
             <Text className="text-muted font-medium text-sm ml-2">Rechercher</Text>
           </TouchableOpacity>
 
+          {/* Panier */}
           <NavItem
-            icon={ShoppingCartIcon}
+            icon={ShoppingBagIcon}
+            activeIcon={ShoppingBagIconSolid}
             label="Panier"
-            route="Basket"
-            currentRoute={currentRoute}
-            onPress={() => navigation.navigate('Basket')}
-            badge={basketItems.length}
+            isActive={false}
+            onPress={goToPaniers}
+            badge={restaurantCount}
           />
 
+          {/* Compte */}
           <NavItem
             icon={UserIcon}
             activeIcon={UserIconSolid}
             label="Compte"
-            route="Account"
-            currentRoute={currentRoute}
-            onPress={() => navigation.navigate('Account')}
+            isActive={isTabActive('Account')}
+            onPress={() => goToTab('Account')}
           />
         </View>
       </BlurView>
     </View>
-  );
-};
+  )
+}
+
+const NavItem = ({ icon: Icon, activeIcon, label, isActive, onPress, badge }) => {
+  const ActiveIcon = isActive && activeIcon ? activeIcon : Icon
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      className="items-center justify-center w-12 relative"
+    >
+      <ActiveIcon size={24} color={isActive ? '#7A1E3A' : '#6B7280'} />
+      {badge > 0 && (
+        <View className="absolute -top-1 -right-0.5 bg-primary h-4 min-w-[16px] rounded-full items-center justify-center px-1">
+          <Text className="text-white text-[9px] font-bold">{badge}</Text>
+        </View>
+      )}
+      <Text
+        className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-primary' : 'text-muted'}`}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  )
+}
 
 export default CustomNavBar

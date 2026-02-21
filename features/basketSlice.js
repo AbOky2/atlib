@@ -9,36 +9,95 @@ export const basketSlice = createSlice({
   initialState,
   reducers: {
     addToBasket: (state, action) => {
-
       state.items = [...state.items, action.payload]
     },
     removeFromBasket: (state, action) => {
-      const index = state.items.findIndex((item) => item.id === action.payload.id);
-      let newBasket = [...state.items];
-
+      // Remove exactly one item matching both dish id AND restaurantId
+      const index = state.items.findIndex(
+        (item) =>
+          item.id === action.payload.id &&
+          item.restaurantId === action.payload.restaurantId,
+      )
       if (index >= 0) {
-        newBasket.splice(index, 1);
+        const next = [...state.items]
+        next.splice(index, 1)
+        state.items = next
       }
-      else {
-        console.warn(
-          `On ne peut pas enlever le produit(id : ${action.payload.id}) car il n est pas dans le panier`
-        );
-      }
-
-      state.items = newBasket;
     },
-
+    clearRestaurantBasket: (state, action) => {
+      state.items = state.items.filter((item) => item.restaurantId !== action.payload)
+    },
+    clearBasket: (state) => {
+      state.items = []
+    },
+    // Set exact quantity for a dish in a restaurant (replaces add/remove loop)
+    setItemQuantity: (state, action) => {
+      const { id, restaurantId, qty, ...rest } = action.payload
+      state.items = state.items.filter(
+        (item) => !(item.id === id && item.restaurantId === restaurantId),
+      )
+      for (let i = 0; i < qty; i++) {
+        state.items.push({ id, restaurantId, ...rest })
+      }
+    },
   },
 })
 
-// Action creators are generated for each case reducer function
-export const { addToBasket, removeFromBasket } = basketSlice.actions
+export const {
+  addToBasket,
+  removeFromBasket,
+  clearRestaurantBasket,
+  clearBasket,
+  setItemQuantity,
+} = basketSlice.actions
 
-export const selectBasketItems = (state) => state.basket.items;
+// ─── Base selectors ────────────────────────────────────────────────────────
+
+export const selectBasketItems = (state) => state.basket.items
+
 export const selectBasketItemsWithId = createSelector(
-  [selectBasketItems, (state, id) => id],
-  (items, id) => items.filter((item) => item.id === id)
-);
-export const selectBasketTotal = (state) => state.basket.items.reduce((total, item) => (total += item.price), 0);
+  [selectBasketItems, (_, id) => id],
+  (items, id) => items.filter((item) => item.id === id),
+)
+
+export const selectBasketTotal = (state) =>
+  state.basket.items.reduce((sum, item) => sum + (item.price || 0), 0)
+
+// ─── Per-restaurant selectors ──────────────────────────────────────────────
+
+export const selectBasketItemsByRestaurant = createSelector(
+  [selectBasketItems],
+  (items) => {
+    const grouped = {}
+    items.forEach((item) => {
+      const rid = item.restaurantId
+      if (!grouped[rid]) {
+        grouped[rid] = {
+          restaurantId: rid,
+          restaurantTitle: item.restaurantTitle || 'Restaurant',
+          restaurantImgUrl: item.restaurantImgUrl || null,
+          items: [],
+          total: 0,
+        }
+      }
+      grouped[rid].items.push(item)
+      grouped[rid].total += item.price || 0
+    })
+    return Object.values(grouped)
+  },
+)
+
+export const selectBasketRestaurantCount = createSelector(
+  [selectBasketItems],
+  (items) => new Set(items.map((i) => i.restaurantId)).size,
+)
+
+export const selectBasketTotalForRestaurant = createSelector(
+  [selectBasketItems, (_, restaurantId) => restaurantId],
+  (items, restaurantId) =>
+    items
+      .filter((i) => i.restaurantId === restaurantId)
+      .reduce((sum, i) => sum + (i.price || 0), 0),
+)
 
 export default basketSlice.reducer

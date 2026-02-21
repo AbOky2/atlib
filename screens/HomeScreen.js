@@ -9,22 +9,21 @@ import FeaturedRow from '../components/FeaturedRow'
 import FilterPill from '../components/FilterPill'
 import FilterModal from '../components/FilterModal'
 import RestaurantListCard from '../components/RestaurantListCard'
-import CustomNavBar from '../components/CustomNavBar'
 import sanityClient from '../sanity'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentAddress } from '../features/addressSlice'
 import { selectCurrentOrder } from '../features/orderSlice'
 import {
-  setTopTab, setCategory, togglePickup, toggleOffers,
+  setCategory, togglePickup, toggleOffers,
   setPriceLevel, setMaxDeliveryFee, resetFilters,
-  selectActiveTopTab, selectActiveCategory,
+  selectActiveCategory,
   selectPickupOnly, selectOffersOnly,
   selectPriceLevel, selectMaxDeliveryFee,
   selectHasActiveFilters,
 } from '../features/filtersSlice'
 import { loadFavorites } from '../features/favoritesSlice'
 import {
-  mockRestaurants, CATEGORIES, TOP_TABS,
+  mockRestaurants, CATEGORIES,
   PRICE_LEVELS, DELIVERY_FEE_PRESETS,
 } from '../src/data/mockRestaurants'
 
@@ -35,7 +34,6 @@ const HomeScreen = () => {
   const [priceModalVisible, setPriceModalVisible] = useState(false);
   const [deliveryFeeModalVisible, setDeliveryFeeModalVisible] = useState(false);
 
-  const activeTopTab = useSelector(selectActiveTopTab);
   const activeCategory = useSelector(selectActiveCategory);
   const pickupOnly = useSelector(selectPickupOnly);
   const offersOnly = useSelector(selectOffersOnly);
@@ -59,30 +57,25 @@ const HomeScreen = () => {
   }, []);
 
   const filteredRestaurants = useMemo(() => {
-    let results = [...mockRestaurants];
-    if (activeTopTab === 'groceries') {
-      results = results.filter((r) => r.topTab === 'groceries' || r.categories.includes('courses'));
-    } else if (activeTopTab === 'alcohol') {
-      results = results.filter((r) => r.topTab === 'alcohol' || r.categories.includes('alcohol'));
-    }
+    let results = mockRestaurants.filter(
+      (r) => r.topTab === 'all' || !r.topTab,
+    );
     if (activeCategory) results = results.filter((r) => r.categories.includes(activeCategory));
     if (pickupOnly) results = results.filter((r) => r.services.pickup);
     if (offersOnly) results = results.filter((r) => r.activeOffers);
     if (priceLevel) results = results.filter((r) => r.priceLevel <= priceLevel);
     if (maxDeliveryFee !== null) results = results.filter((r) => r.deliveryFeeXaf <= maxDeliveryFee);
     return results;
-  }, [activeTopTab, activeCategory, pickupOnly, offersOnly, priceLevel, maxDeliveryFee]);
+  }, [activeCategory, pickupOnly, offersOnly, priceLevel, maxDeliveryFee]);
 
-  const showFilteredList = activeTopTab !== 'all' || hasActiveFilters;
-  const isRidesTab = activeTopTab === 'rides';
+  const showFilteredList = hasActiveFilters;
 
-  const handleTopTab = useCallback((tabId) => dispatch(setTopTab(tabId)), [dispatch]);
   const handleCategory = useCallback((catId) => dispatch(setCategory(catId)), [dispatch]);
 
-  const visibleCategories = useMemo(() => {
-    if (['groceries', 'alcohol', 'rides'].includes(activeTopTab)) return [];
-    return CATEGORIES.filter((c) => c.id !== 'courses' && c.id !== 'alcohol');
-  }, [activeTopTab]);
+  const visibleCategories = useMemo(
+    () => CATEGORIES.filter((c) => c.id !== 'courses' && c.id !== 'alcohol'),
+    [],
+  );
 
   return (
     <SafeAreaView className="bg-surface flex-1">
@@ -115,36 +108,12 @@ const HomeScreen = () => {
 
       {/* ═══ Filter Rows ═══ */}
       <View className="pb-2">
-        {/* Row 1: Top Tabs (with emoji icons like UberEats) */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
-        >
-          {TOP_TABS.map((tab) => {
-            const isActive = activeTopTab === tab.id;
-            return (
-              <TouchableOpacity
-                key={tab.id}
-                onPress={() => handleTopTab(tab.id)}
-                activeOpacity={0.7}
-                className={`flex-row items-center px-4 py-2 rounded-full mr-2 border ${isActive ? 'bg-text border-text' : 'bg-surface border-border'
-                  }`}
-              >
-                <Text className={`text-sm font-bold ${isActive ? 'text-white' : 'text-text'}`}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        {/* Row 2: Category icons — transparent/white like UberEats */}
+        {/* Row 1: Category icons */}
         {visibleCategories.length > 0 && (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }}
           >
             {visibleCategories.map((cat) => {
               const isActive = activeCategory === cat.id;
@@ -152,16 +121,18 @@ const HomeScreen = () => {
                 <TouchableOpacity
                   key={cat.id}
                   onPress={() => handleCategory(cat.id)}
-                  className="items-center mr-4"
+                  className="items-center mr-5"
                   activeOpacity={0.7}
-                  style={{ width: 72 }}
+                  style={{ width: 80 }}
                 >
-                  <View className={`h-16 w-16 rounded-2xl items-center justify-center mb-1.5 ${isActive ? 'bg-primarySoft' : 'bg-transparent'
-                    }`}>
-                    <Text className="text-2xl">{cat.emoji}</Text>
+                  <View className={`h-20 w-20 rounded-2xl items-center justify-center mb-1.5 ${
+                    isActive ? 'bg-primarySoft border border-primary/30' : 'bg-bg border border-border'
+                  }`}>
+                    <Text style={{ fontSize: 32 }}>{cat.emoji}</Text>
                   </View>
-                  <Text className={`text-xs font-semibold text-center ${isActive ? 'text-primary' : 'text-text'
-                    }`} numberOfLines={1}>
+                  <Text className={`text-xs font-semibold text-center ${
+                    isActive ? 'text-primary' : 'text-text'
+                  }`} numberOfLines={1}>
                     {cat.label}
                   </Text>
                 </TouchableOpacity>
@@ -170,51 +141,49 @@ const HomeScreen = () => {
           </ScrollView>
         )}
 
-        {/* Row 3: Filter pills */}
-        {!isRidesTab && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
-          >
-            <FilterPill
-              label="À emporter"
-              isSelected={pickupOnly}
-              onPress={() => dispatch(togglePickup())}
-            />
-            <FilterPill
-              label="Offres"
-              isSelected={offersOnly}
-              onPress={() => dispatch(toggleOffers())}
-            />
-            <FilterPill
-              label={priceLevel ? `Prix ${'$'.repeat(priceLevel)}` : 'Prix'}
-              isDropdown
-              isSelected={priceLevel !== null}
-              onPress={() => setPriceModalVisible(true)}
-            />
-            <FilterPill
-              label={
-                maxDeliveryFee !== null
-                  ? maxDeliveryFee === 0 ? 'Gratuit' : `≤${maxDeliveryFee} XAF`
-                  : 'Frais de livraison'
-              }
-              isDropdown
-              isSelected={maxDeliveryFee !== null}
-              onPress={() => setDeliveryFeeModalVisible(true)}
-            />
-            {hasActiveFilters && (
-              <TouchableOpacity
-                onPress={() => dispatch(resetFilters())}
-                activeOpacity={0.7}
-                className="flex-row items-center bg-danger/10 border border-danger/20 rounded-full px-3 py-2.5 mr-2"
-              >
-                <XMarkIcon size={14} color="#EF4444" />
-                <Text className="text-danger font-semibold text-sm ml-1">Reset</Text>
-              </TouchableOpacity>
-            )}
-          </ScrollView>
-        )}
+        {/* Row 2: Filter pills */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
+        >
+          <FilterPill
+            label="À emporter"
+            isSelected={pickupOnly}
+            onPress={() => dispatch(togglePickup())}
+          />
+          <FilterPill
+            label="Offres"
+            isSelected={offersOnly}
+            onPress={() => dispatch(toggleOffers())}
+          />
+          <FilterPill
+            label={priceLevel ? `Prix ${'$'.repeat(priceLevel)}` : 'Prix'}
+            isDropdown
+            isSelected={priceLevel !== null}
+            onPress={() => setPriceModalVisible(true)}
+          />
+          <FilterPill
+            label={
+              maxDeliveryFee !== null
+                ? maxDeliveryFee === 0 ? 'Gratuit' : `≤${maxDeliveryFee} XAF`
+                : 'Frais de livraison'
+            }
+            isDropdown
+            isSelected={maxDeliveryFee !== null}
+            onPress={() => setDeliveryFeeModalVisible(true)}
+          />
+          {hasActiveFilters && (
+            <TouchableOpacity
+              onPress={() => dispatch(resetFilters())}
+              activeOpacity={0.7}
+              className="flex-row items-center bg-danger/10 border border-danger/20 rounded-full px-3 py-2.5 mr-2"
+            >
+              <XMarkIcon size={14} color="#EF4444" />
+              <Text className="text-danger font-semibold text-sm ml-1">Reset</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
       </View>
 
       {/* Info line like Uber Eats */}
@@ -234,15 +203,7 @@ const HomeScreen = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
-        {isRidesTab ? (
-          <View className="items-center justify-center py-24 px-8">
-            <Text className="text-5xl mb-4">🚗</Text>
-            <Text className="text-xl font-bold text-text mb-2">Trajets</Text>
-            <Text className="text-muted text-center text-base leading-6">
-              Bientôt disponible à N'Djamena.{'\n'}Restez à l'écoute !
-            </Text>
-          </View>
-        ) : showFilteredList ? (
+        {showFilteredList ? (
           <View className="pt-4">
             <Text className="text-sm font-medium text-muted px-4 mb-3">
               {filteredRestaurants.length} résultat{filteredRestaurants.length !== 1 ? 's' : ''}
@@ -275,8 +236,6 @@ const HomeScreen = () => {
           </>
         )}
       </ScrollView>
-
-      <CustomNavBar />
 
       {/* ═══ Modals ═══ */}
       <FilterModal

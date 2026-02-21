@@ -1,11 +1,12 @@
 import { View, Text, TouchableOpacity, Image, ScrollView, Alert, Linking } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import React, { useEffect } from 'react'
-import { useNavigation } from '@react-navigation/native'
-import { useSelector } from 'react-redux'
-import { selectCurrentOrder, selectOrderStatuses } from '../features/orderSlice'
+import React, { useEffect, useRef } from 'react'
+import { useNavigation, CommonActions } from '@react-navigation/native'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectCurrentOrder, selectOrderStatuses, fetchOrderByIdRemote } from '../features/orderSlice'
 import { selectRestaurant } from '../features/restaurantSlice'
 import { selectCurrentAddress } from '../features/addressSlice'
+import { scheduleOrderStatusNotification } from '../utils/notifications'
 import {
   XMarkIcon, PhoneIcon, MapPinIcon, ChatBubbleLeftRightIcon,
   ClockIcon,
@@ -28,15 +29,34 @@ const STATUS_ORDER = STEPS.map((s) => s.key);
 const OrderTrackingScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const dispatch = useDispatch();
   const currentOrder = useSelector(selectCurrentOrder);
   const orderStatuses = useSelector(selectOrderStatuses);
   const restaurant = useSelector(selectRestaurant);
   const deliveryAddress = useSelector(selectCurrentAddress);
+  const lastNotifiedStatus = useRef(null);
+
+  // Poll order status every 12s; fire a local notification when status changes
   useEffect(() => {
-    // Keep alive for real-time updates
-    const t = setInterval(() => {}, 60000);
-    return () => clearInterval(t);
-  }, []);
+    if (!currentOrder?.id) return;
+
+    const poll = () => dispatch(fetchOrderByIdRemote(currentOrder.id));
+    poll();
+    const timer = setInterval(poll, 12000);
+    return () => clearInterval(timer);
+  }, [dispatch, currentOrder?.id]);
+
+  // Schedule a local notification when status changes (while app is open / backgrounded)
+  useEffect(() => {
+    const status = currentOrder?.status;
+    if (!status) return;
+    if (status === lastNotifiedStatus.current) return;
+    // Don't notify on the initial PENDING state (user just placed the order)
+    if (status !== 'PENDING' && lastNotifiedStatus.current !== null) {
+      scheduleOrderStatusNotification(status, restaurant?.title, currentOrder?.id);
+    }
+    lastNotifiedStatus.current = status;
+  }, [currentOrder?.status]);
 
   const getProgress = (status) => {
     const idx = STATUS_ORDER.indexOf(status);
@@ -60,7 +80,11 @@ const OrderTrackingScreen = () => {
         <Text className="text-xl font-bold text-text mb-2">Aucune commande active</Text>
         <Text className="text-muted text-center mb-6">Passez votre première commande !</Text>
         <TouchableOpacity
-          onPress={() => navigation.navigate('Home')}
+          onPress={() =>
+            navigation.dispatch(
+              CommonActions.reset({ index: 0, routes: [{ name: 'MainTabs' }] }),
+            )
+          }
           activeOpacity={0.85}
           className="bg-primary px-8 py-3.5 rounded-md"
         >
@@ -92,14 +116,18 @@ const OrderTrackingScreen = () => {
           <Text className="text-base font-bold text-text">Suivi de commande</Text>
           <View className="ml-2 h-2 w-2 rounded-full bg-danger" />
         </View>
-        <TouchableOpacity
-          onPress={() => handleCall(restaurant.phone || '66123456', restaurant.title)}
-          activeOpacity={0.7}
-          className="p-1.5 bg-bg rounded-full border border-border"
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <PhoneIcon size={20} color="#7A1E3A" />
-        </TouchableOpacity>
+        {restaurant.phone ? (
+          <TouchableOpacity
+            onPress={() => handleCall(restaurant.phone, restaurant.title)}
+            activeOpacity={0.7}
+            className="p-1.5 bg-bg rounded-full border border-border"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <PhoneIcon size={20} color="#7A1E3A" />
+          </TouchableOpacity>
+        ) : (
+          <View className="w-8" />
+        )}
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
@@ -202,13 +230,15 @@ const OrderTrackingScreen = () => {
               <Text className="font-bold text-text">{restaurant.title}</Text>
               <Text className="text-sm text-muted" numberOfLines={1}>{restaurant.address}</Text>
             </View>
-            <TouchableOpacity
-              onPress={() => handleCall(restaurant.phone || '66123456', restaurant.title)}
-              activeOpacity={0.7}
-              className="bg-primarySoft px-3 py-2 rounded-md"
-            >
-              <Text className="text-primary font-bold text-sm">Appeler</Text>
-            </TouchableOpacity>
+            {restaurant.phone ? (
+              <TouchableOpacity
+                onPress={() => handleCall(restaurant.phone, restaurant.title)}
+                activeOpacity={0.7}
+                className="bg-primarySoft px-3 py-2 rounded-md"
+              >
+                <Text className="text-primary font-bold text-sm">Appeler</Text>
+              </TouchableOpacity>
+            ) : null}
           </Card>
         </View>
 

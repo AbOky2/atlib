@@ -7,7 +7,6 @@ import {
   UserIcon, CreditCardIcon, GiftIcon, TagIcon,
   LifebuoyIcon, UserGroupIcon, BriefcaseIcon,
 } from 'react-native-heroicons/outline'
-import CustomNavBar from '../components/CustomNavBar'
 import Badge from '../src/ui/Badge'
 
 const AccountScreen = () => {
@@ -120,7 +119,7 @@ const AccountScreen = () => {
         </TouchableOpacity>
       </ScrollView>
 
-      <CustomNavBar />
+      {/* Tab bar provided by Tab.Navigator */}
     </SafeAreaView>
   );
 };

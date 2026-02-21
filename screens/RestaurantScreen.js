@@ -1,6 +1,6 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, StatusBar, Dimensions } from 'react-native'
+import { View, Text, Image, ScrollView, TouchableOpacity, StatusBar } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import React, { useEffect, useLayoutEffect } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { urlFor } from '../sanity'
 import {
@@ -10,50 +10,63 @@ import {
 import { StarIcon, HeartIcon, TagIcon, UserGroupIcon } from 'react-native-heroicons/solid'
 import DishGridCard from '../components/DishGridCard'
 import BasketIcon from '../components/BasketIcon'
+import DishModal from '../components/DishModal'
 import { useDispatch, useSelector } from 'react-redux'
 import { setRestaurant } from '../features/restaurantSlice'
 import { toggleFavoriteAndPersist, selectIsFavorite } from '../features/favoritesSlice'
 import Chip from '../src/ui/Chip'
 import { formatCurrency } from '../utils/formatCurrency'
 
-const { width: SCREEN_W } = Dimensions.get('window');
-
 const RestaurantScreen = () => {
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const navigation = useNavigation()
+  const dispatch = useDispatch()
   const {
     params: { id, imgUrl, title, rating, genre, address, short_description, dishes, long, lat },
-  } = useRoute();
+  } = useRoute()
 
-  const isFavorite = useSelector((state) => selectIsFavorite(state, id));
+  const isFavorite = useSelector((state) => selectIsFavorite(state, id))
+  const [selectedDish, setSelectedDish] = useState(null)
 
   useEffect(() => {
-    dispatch(setRestaurant({ id, imgUrl, title, rating, genre, address, short_description, dishes, long, lat }));
-  }, []);
+    dispatch(setRestaurant({ id, imgUrl, title, rating, genre, address, short_description, dishes, long, lat }))
+  }, [])
 
   useLayoutEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, []);
+    navigation.setOptions({ headerShown: false })
+  }, [])
 
-  let heroUri = null;
+  let heroUri = null
   try {
-    heroUri = imgUrl ? urlFor(imgUrl).url() : null;
+    heroUri = imgUrl ? urlFor(imgUrl).url() : null
   } catch {
-    heroUri = typeof imgUrl === 'string' ? imgUrl : null;
+    heroUri = typeof imgUrl === 'string' ? imgUrl : null
   }
 
   // Build pairs for 2-column grid
-  const dishPairs = [];
+  const dishPairs = []
   if (dishes) {
     for (let i = 0; i < dishes.length; i += 2) {
-      dishPairs.push(dishes.slice(i, i + 2));
+      dishPairs.push(dishes.slice(i, i + 2))
     }
   }
 
   return (
     <>
       <StatusBar barStyle="light-content" />
-      <BasketIcon />
+
+      {/* Floating basket bar */}
+      <BasketIcon restaurantId={id} restaurantTitle={title} />
+
+      {/* Dish detail modal */}
+      <DishModal
+        visible={!!selectedDish}
+        dish={selectedDish}
+        restaurantId={id}
+        restaurantTitle={title}
+        restaurantImgUrl={imgUrl}
+        onClose={() => setSelectedDish(null)}
+      />
+
       <View className="flex-1 bg-bg">
         {/* ═══ Hero ═══ */}
         <View className="relative">
@@ -61,7 +74,7 @@ const RestaurantScreen = () => {
             <Image source={{ uri: heroUri }} className="w-full h-48" resizeMode="cover" />
           ) : (
             <View className="w-full h-48 bg-primarySoft items-center justify-center">
-              <Text className="text-5xl">🍽️</Text>
+              <Text style={{ fontSize: 64 }}>🍽️</Text>
             </View>
           )}
 
@@ -97,12 +110,13 @@ const RestaurantScreen = () => {
         </View>
 
         {/* ═══ Content ═══ */}
-        <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-surface -mt-4 rounded-t-3xl">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          className="flex-1 bg-surface -mt-4 rounded-t-3xl"
+        >
           {/* Restaurant Info */}
           <View className="px-4 pt-5 pb-3">
             <Text className="text-2xl font-extrabold text-text mb-1">{title}</Text>
-
-            {/* Meta row */}
             <View className="flex-row items-center flex-wrap mb-1">
               <StarIcon size={16} color="#C8A24A" />
               <Text className="text-sm font-bold text-text ml-1">{rating}</Text>
@@ -110,7 +124,6 @@ const RestaurantScreen = () => {
               <Text className="text-muted mx-1.5">•</Text>
               <Text className="text-muted text-sm">{genre}</Text>
             </View>
-
             <View className="flex-row items-center">
               <MapPinSolid size={14} color="#6B7280" />
               <Text className="text-muted text-sm ml-1" numberOfLines={1}>{address}</Text>
@@ -126,12 +139,10 @@ const RestaurantScreen = () => {
             </ScrollView>
           </View>
 
-          {/* Info Boxes (Fee + ETA) */}
+          {/* Info boxes */}
           <View className="flex-row px-4 mb-4">
             <View className="flex-1 bg-bg border border-border rounded-md p-3 mr-2 items-center">
-              <Text className="text-sm font-bold text-text">
-                {formatCurrency(0, 'XAF')}
-              </Text>
+              <Text className="text-sm font-bold text-text">{formatCurrency(0, 'XAF')}</Text>
               <Text className="text-xs text-muted mt-0.5">Frais de livraison</Text>
             </View>
             <View className="flex-1 bg-bg border border-border rounded-md p-3 ml-2 items-center">
@@ -154,12 +165,13 @@ const RestaurantScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Divider */}
           <View className="h-2 bg-bg" />
 
-          {/* ═══ Menu Section — 2-column grid ═══ */}
-          <View className="px-3 pt-4 pb-36">
-            <Text className="text-xl font-extrabold text-text mb-4 px-1">Notre sélection pour vous</Text>
+          {/* ═══ Menu — 2-column grid ═══ */}
+          <View className="px-3 pt-4 pb-40">
+            <Text className="text-xl font-extrabold text-text mb-4 px-1">
+              Notre sélection pour vous
+            </Text>
 
             {dishPairs.map((pair, rowIdx) => (
               <View key={rowIdx} className="flex-row">
@@ -171,9 +183,18 @@ const RestaurantScreen = () => {
                     description={dish.description}
                     price={dish.price}
                     image={dish.image}
+                    restaurantId={id}
+                    onPress={() =>
+                      setSelectedDish({
+                        id: dish._id,
+                        name: dish.name,
+                        description: dish.description,
+                        price: dish.price,
+                        image: dish.image,
+                      })
+                    }
                   />
                 ))}
-                {/* Spacer if odd count */}
                 {pair.length === 1 && <View className="flex-1 mx-1" />}
               </View>
             ))}
@@ -181,7 +202,7 @@ const RestaurantScreen = () => {
         </ScrollView>
       </View>
     </>
-  );
-};
+  )
+}
 
 export default RestaurantScreen

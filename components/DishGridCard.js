@@ -2,63 +2,82 @@ import { View, Text, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
 import Currency from '../utils/formatCurrency'
 import { urlFor } from '../sanity'
-import { PlusIcon } from 'react-native-heroicons/solid'
-import { useDispatch, useSelector } from 'react-redux'
-import { addToBasket, selectBasketItemsWithId } from '../features/basketSlice'
+import { useSelector } from 'react-redux'
+import { selectBasketItems } from '../features/basketSlice'
 
 /**
- * DishGridCard — Uber Eats-style 2-column grid card
- * Shows dish image with floating + button, name, price, description
+ * DishGridCard — UberEats style 2-col grid card.
+ * Tapping anywhere on the card opens the DishModal (via onPress).
+ * A count badge on the image shows quantity already in cart.
  */
-const DishGridCard = ({ id, name, description, price, image }) => {
-  const dispatch = useDispatch();
-  const items = useSelector((state) => selectBasketItemsWithId(state, id));
+const DishGridCard = ({
+  id,
+  name,
+  description,
+  price,
+  image,
+  restaurantId,
+  onPress,
+}) => {
+  const allItems = useSelector(selectBasketItems)
+  const count = allItems.filter(
+    (item) => item.id === id && item.restaurantId === restaurantId,
+  ).length
 
-  const addItemToBasket = () => {
-    dispatch(addToBasket({ id, name, description, price, image }));
-  };
-
-  let imageUri = null;
+  let imageUri = null
   try {
-    imageUri = image ? urlFor(image).url() : null;
+    imageUri = image ? urlFor(image).url() : null
   } catch {
-    imageUri = typeof image === 'string' ? image : null;
+    imageUri = typeof image === 'string' ? image : null
   }
 
   return (
-    <View className="flex-1 bg-surface border border-border rounded-md overflow-hidden mx-1 mb-3">
-      {/* Image + Add Button */}
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      className="flex-1 bg-surface border border-border rounded-xl overflow-hidden mx-1 mb-3"
+      style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 1,
+      }}
+    >
+      {/* Image zone */}
       <View className="relative">
         {imageUri ? (
-          <Image
-            source={{ uri: imageUri }}
-            className="w-full h-32"
-            resizeMode="cover"
-          />
+          <Image source={{ uri: imageUri }} className="w-full h-32" resizeMode="cover" />
         ) : (
           <View className="w-full h-32 bg-bg items-center justify-center">
-            <Text className="text-3xl">🍽️</Text>
+            <View className="bg-primarySoft rounded-full h-14 w-14" />
           </View>
         )}
 
-        {/* Floating + button */}
-        <TouchableOpacity
-          onPress={addItemToBasket}
-          activeOpacity={0.8}
-          className="absolute bottom-2 right-2 bg-surface h-8 w-8 rounded-full items-center justify-center border border-border"
-          style={{ elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.15, shadowRadius: 2 }}
-        >
-          {items.length > 0 ? (
-            <Text className="text-primary font-bold text-xs">{items.length}</Text>
-          ) : (
-            <PlusIcon size={16} color="#111827" />
-          )}
-        </TouchableOpacity>
+        {/* Count badge — shown only when item is in cart */}
+        {count > 0 && (
+          <View
+            className="absolute bottom-2 right-2 bg-primary rounded-full items-center justify-center"
+            style={{
+              width: 26,
+              height: 26,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3,
+              elevation: 4,
+            }}
+          >
+            <Text className="text-white font-extrabold text-xs">{count}</Text>
+          </View>
+        )}
       </View>
 
       {/* Info */}
       <View className="p-2.5">
-        <Text className="text-sm font-bold text-text" numberOfLines={1}>{name}</Text>
+        <Text className="text-sm font-bold text-text leading-5" numberOfLines={1}>
+          {name}
+        </Text>
         <Text className="text-sm font-bold text-primary mt-0.5">
           <Currency quantity={price} currency="XAF" />
         </Text>
@@ -68,8 +87,8 @@ const DishGridCard = ({ id, name, description, price, image }) => {
           </Text>
         ) : null}
       </View>
-    </View>
-  );
-};
+    </TouchableOpacity>
+  )
+}
 
 export default DishGridCard

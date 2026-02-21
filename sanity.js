@@ -1,20 +1,15 @@
- import sanityClient from '@sanity/client'
+import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 
-const client = sanityClient({
-    projectId: 'cq9tdpib',
-    dataset : 'production',
-    useCdn: true,
-    apiVersion: '2021-10-21',
-})
+const client = createClient({
+  projectId: 'cq9tdpib',
+  dataset: 'production',
+  useCdn: true,
+  apiVersion: '2023-06-01',
+});
 
 const builder = imageUrlBuilder(client);
 
-export const urlFor = (source) => {
-    return builder.image(source);
-}
-//Executez la commande pour ajouter une exception de sécurité pour le site Web de votre projet Sanity:
-//cors localhost:3000
-//sanity cors add http://localhost:3000
+export const urlFor = (source) => builder.image(source);
 
 export default client;

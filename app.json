@@ -14,16 +14,39 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.okimy.atlib"
+      "bundleIdentifier": "com.okimy.atlib",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"],
+        "NSUserNotificationsUsageDescription": "Atlib vous envoie des mises à jour en temps réel sur le statut de vos commandes.",
+        "UIUserNotificationSettings": {
+          "UIUserNotificationTypes": ["UIUserNotificationTypeAlert", "UIUserNotificationTypeBadge", "UIUserNotificationTypeSound"]
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#7A1E3A",
+          "sounds": [],
+          "mode": "production"
+        }
+      ]
+    ]
   }
 }
