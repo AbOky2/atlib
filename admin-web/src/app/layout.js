@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Bordeaux Date Admin",
-  description: "Restaurant dashboard",
+  title: "Atlib — Dashboard Restaurant",
+  description: "Tableau de bord de gestion des commandes pour les restaurants Atlib",
 };
 
 export default function RootLayout({ children }) {

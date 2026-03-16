@@ -2,12 +2,11 @@ import { View, Text, Image, ScrollView, TouchableOpacity, StatusBar } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context'
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useNavigation, useRoute } from '@react-navigation/native'
-import { urlFor } from '../sanity'
 import {
   XMarkIcon, MagnifyingGlassIcon, EllipsisHorizontalIcon,
   MapPinIcon as MapPinSolid, HeartIcon as HeartIconOutline,
 } from 'react-native-heroicons/outline'
-import { StarIcon, HeartIcon, TagIcon, UserGroupIcon } from 'react-native-heroicons/solid'
+import { StarIcon, HeartIcon, UserGroupIcon } from 'react-native-heroicons/solid'
 import DishGridCard from '../components/DishGridCard'
 import BasketIcon from '../components/BasketIcon'
 import DishModal from '../components/DishModal'
@@ -35,12 +34,8 @@ const RestaurantScreen = () => {
     navigation.setOptions({ headerShown: false })
   }, [])
 
-  let heroUri = null
-  try {
-    heroUri = imgUrl ? urlFor(imgUrl).url() : null
-  } catch {
-    heroUri = typeof imgUrl === 'string' ? imgUrl : null
-  }
+  // Since we migrated to Supabase, imgUrl is already a direct string URL
+  const heroUri = imgUrl || null
 
   // Build pairs for 2-column grid
   const dishPairs = []
@@ -120,7 +115,6 @@ const RestaurantScreen = () => {
             <View className="flex-row items-center flex-wrap mb-1">
               <StarIcon size={16} color="#C8A24A" />
               <Text className="text-sm font-bold text-text ml-1">{rating}</Text>
-              <Text className="text-muted text-sm ml-1">(210+)</Text>
               <Text className="text-muted mx-1.5">•</Text>
               <Text className="text-muted text-sm">{genre}</Text>
             </View>
@@ -145,24 +139,6 @@ const RestaurantScreen = () => {
               <Text className="text-sm font-bold text-text">{formatCurrency(0, 'XAF')}</Text>
               <Text className="text-xs text-muted mt-0.5">Frais de livraison</Text>
             </View>
-            <View className="flex-1 bg-bg border border-border rounded-md p-3 ml-2 items-center">
-              <Text className="text-sm font-bold text-text">20-30 min</Text>
-              <Text className="text-xs text-muted mt-0.5">Au plus tôt</Text>
-            </View>
-          </View>
-
-          {/* Promo Banner */}
-          <View className="mx-4 mb-4 bg-primarySoft rounded-md p-3.5 flex-row items-center border border-primary/10">
-            <View className="bg-accent p-1.5 rounded-sm mr-3">
-              <TagIcon color="white" size={18} />
-            </View>
-            <View className="flex-1">
-              <Text className="text-sm font-bold text-text">Livraison à 0 XAF</Text>
-              <Text className="text-xs text-muted">+ jusqu'à -50% sur les frais de service</Text>
-            </View>
-            <TouchableOpacity className="bg-primary px-3 py-1.5 rounded-full" activeOpacity={0.8}>
-              <Text className="text-white text-xs font-bold">Rejoindre</Text>
-            </TouchableOpacity>
           </View>
 
           <View className="h-2 bg-bg" />
@@ -177,20 +153,20 @@ const RestaurantScreen = () => {
               <View key={rowIdx} className="flex-row">
                 {pair.map((dish) => (
                   <DishGridCard
-                    key={dish._id}
-                    id={dish._id}
+                    key={dish.id}
+                    id={dish.id}
                     name={dish.name}
-                    description={dish.description}
-                    price={dish.price}
-                    image={dish.image}
+                    description={dish.short_description}
+                    price={dish.price_xaf}
+                    image={dish.image_url}
                     restaurantId={id}
                     onPress={() =>
                       setSelectedDish({
-                        id: dish._id,
+                        id: dish.id,
                         name: dish.name,
-                        description: dish.description,
-                        price: dish.price,
-                        image: dish.image,
+                        description: dish.short_description,
+                        price: dish.price_xaf,
+                        image: dish.image_url,
                       })
                     }
                   />

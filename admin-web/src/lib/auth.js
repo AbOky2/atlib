@@ -18,7 +18,8 @@ function b64urlDecode(str) {
 }
 
 async function getHmacKey() {
-  const secret = process.env.SESSION_SECRET ?? "atlib-fallback-secret";
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) throw new Error("SESSION_SECRET environment variable is not set");
   return crypto.subtle.importKey(
     "raw",
     enc.encode(secret),

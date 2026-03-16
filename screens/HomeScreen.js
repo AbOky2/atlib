@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import '../global.css'
 import { useNavigation } from '@react-navigation/native'
 import { ChevronDownIcon, BellIcon, XMarkIcon } from 'react-native-heroicons/outline'
@@ -9,23 +9,18 @@ import FeaturedRow from '../components/FeaturedRow'
 import FilterPill from '../components/FilterPill'
 import FilterModal from '../components/FilterModal'
 import RestaurantListCard from '../components/RestaurantListCard'
-import sanityClient from '../sanity'
+import { supabase } from '../src/lib/supabase'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectCurrentAddress } from '../features/addressSlice'
 import { selectCurrentOrder } from '../features/orderSlice'
 import {
   setCategory, togglePickup, toggleOffers,
   setPriceLevel, setMaxDeliveryFee, resetFilters,
-  selectActiveCategory,
-  selectPickupOnly, selectOffersOnly,
-  selectPriceLevel, selectMaxDeliveryFee,
-  selectHasActiveFilters,
+  selectActiveCategory, selectPickupOnly, selectOffersOnly,
+  selectPriceLevel, selectMaxDeliveryFee, selectHasActiveFilters,
 } from '../features/filtersSlice'
 import { loadFavorites } from '../features/favoritesSlice'
-import {
-  mockRestaurants, CATEGORIES,
-  PRICE_LEVELS, DELIVERY_FEE_PRESETS,
-} from '../src/data/mockRestaurants'
+import { CATEGORIES, PRICE_LEVELS, DELIVERY_FEE_PRESETS } from '../src/data/mockRestaurants'
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -43,30 +38,59 @@ const HomeScreen = () => {
   const currentAddress = useSelector(selectCurrentAddress);
   const currentOrder = useSelector(selectCurrentOrder);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, []);
-
   useEffect(() => { dispatch(loadFavorites()); }, []);
 
   useEffect(() => {
-    sanityClient.fetch(`*[_type=="featured"]{
-      ...,
-      restaurants[] ->{ ..., dishes[] ->, type->{ name } }
-    }`).then(setFeaturedCategories).catch(console.error);
+    const fetchFeatured = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('restaurants')
+          .select(`
+            *,
+            dishes (*),
+            categories (*)
+          `)
+          .eq('is_active', true)
+
+        if (error) throw error
+
+        // For now, mapping all restaurants into a single "Featured" block 
+        // to mimic the old Sanity structure until the UI is fully updated.
+        setFeaturedCategories([{
+          _id: 'featured_all',
+          name: 'À la une',
+          short_description: 'Les meilleurs restaurants près de chez vous',
+          restaurants: data
+        }])
+      } catch (err) {
+        console.error('Error fetching restaurants from Supabase:', err)
+      }
+    }
+
+    fetchFeatured()
   }, []);
 
   const filteredRestaurants = useMemo(() => {
-    let results = mockRestaurants.filter(
-      (r) => r.topTab === 'all' || !r.topTab,
+    // Collect all unique restaurants from the featured blocks for filtering
+    let allFetchedRestaurants = [];
+    featuredCategories.forEach(category => {
+      if (category.restaurants) {
+        allFetchedRestaurants = [...allFetchedRestaurants, ...category.restaurants];
+      }
+    });
+
+    // Remove duplicates if any
+    let results = allFetchedRestaurants.filter((r, index, self) =>
+      index === self.findIndex((t) => (t.id === r.id))
     );
-    if (activeCategory) results = results.filter((r) => r.categories.includes(activeCategory));
-    if (pickupOnly) results = results.filter((r) => r.services.pickup);
+
+    if (activeCategory) results = results.filter((r) => r.categories?.some(c => c.id === activeCategory));
+    if (pickupOnly) results = results.filter((r) => r.services?.pickup);
     if (offersOnly) results = results.filter((r) => r.activeOffers);
     if (priceLevel) results = results.filter((r) => r.priceLevel <= priceLevel);
     if (maxDeliveryFee !== null) results = results.filter((r) => r.deliveryFeeXaf <= maxDeliveryFee);
     return results;
-  }, [activeCategory, pickupOnly, offersOnly, priceLevel, maxDeliveryFee]);
+  }, [featuredCategories, activeCategory, pickupOnly, offersOnly, priceLevel, maxDeliveryFee]);
 
   const showFilteredList = hasActiveFilters;
 
@@ -125,14 +149,12 @@ const HomeScreen = () => {
                   activeOpacity={0.7}
                   style={{ width: 80 }}
                 >
-                  <View className={`h-20 w-20 rounded-2xl items-center justify-center mb-1.5 ${
-                    isActive ? 'bg-primarySoft border border-primary/30' : 'bg-bg border border-border'
-                  }`}>
+                  <View className={`h-20 w-20 rounded-2xl items-center justify-center mb-1.5 ${isActive ? 'bg-primarySoft border border-primary/30' : 'bg-bg border border-border'
+                    }`}>
                     <Text style={{ fontSize: 32 }}>{cat.emoji}</Text>
                   </View>
-                  <Text className={`text-xs font-semibold text-center ${
-                    isActive ? 'text-primary' : 'text-text'
-                  }`} numberOfLines={1}>
+                  <Text className={`text-xs font-semibold text-center ${isActive ? 'text-primary' : 'text-text'
+                    }`} numberOfLines={1}>
                     {cat.label}
                   </Text>
                 </TouchableOpacity>

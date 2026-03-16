@@ -3,9 +3,11 @@ import { useEffect, useRef } from 'react'
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Provider } from 'react-redux'
+import { Provider, useDispatch } from 'react-redux'
 import * as Notifications from 'expo-notifications'
 import { store } from './store'
+import { loadStoredAuth } from './features/authSlice'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // ─── Tab screens ─────────────────────────────────────────────────────────────
 import HomeScreen from './screens/HomeScreen'
@@ -27,13 +29,14 @@ import OrderDetailsScreen from './screens/OrderDetailsScreen'
 import RidesScreen from './screens/RidesScreen'
 import PromotionsScreen from './screens/PromotionsScreen'
 import HelpScreen from './screens/HelpScreen'
+import LoginScreen from './screens/LoginScreen'
+import RegisterScreen from './screens/RegisterScreen'
 
 // ─── Custom tab bar ───────────────────────────────────────────────────────────
 import CustomNavBar from './components/CustomNavBar'
 
 const Tab = createBottomTabNavigator()
 const Stack = createNativeStackNavigator()
-
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -46,9 +49,15 @@ function MainTabs() {
   )
 }
 
+// ─── Auth bootstrap — loads persisted token on startup ────────────────────────
+function AuthBootstrap() {
+  const dispatch = useDispatch()
+  useEffect(() => { dispatch(loadStoredAuth()) }, [])
+  return null
+}
+
 // ─── Root App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  // navigationRef allows navigation from outside React tree (notification handlers)
   const navigationRef = useNavigationContainerRef()
   const notifResponseSub = useRef(null)
 
@@ -85,52 +94,67 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
-        >
-          {/* Root — tabs */}
-          <Stack.Screen name="MainTabs" component={MainTabs} />
+      <ErrorBoundary>
+        <NavigationContainer ref={navigationRef}>
+          <AuthBootstrap />
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+              animation: 'slide_from_right',
+            }}
+          >
+            {/* Root — tabs */}
+            <Stack.Screen name="MainTabs" component={MainTabs} />
 
-          {/* Discovery */}
-          <Stack.Screen name="Restaurant" component={RestaurantScreen} />
-          <Stack.Screen name="Search" component={SearchScreen} />
+            {/* Discovery */}
+            <Stack.Screen name="Restaurant" component={RestaurantScreen} />
+            <Stack.Screen name="Search" component={SearchScreen} />
 
-          {/* Cart flow */}
-          <Stack.Screen name="Paniers" component={PaniersScreen} />
-          <Stack.Screen name="Basket" component={BasketScreen} />
+            {/* Cart flow */}
+            <Stack.Screen name="Paniers" component={PaniersScreen} />
+            <Stack.Screen name="Basket" component={BasketScreen} />
 
-          {/* Address — slide up modal */}
-          <Stack.Screen
-            name="Address"
-            component={AddressScreen}
-            options={{ presentation: 'modal' }}
-          />
+            {/* Address — slide up modal */}
+            <Stack.Screen
+              name="Address"
+              component={AddressScreen}
+              options={{ presentation: 'modal' }}
+            />
 
-          {/* Cart summary — bottom sheet modal */}
-          <Stack.Screen
-            name="CartSummary"
-            component={CartSummaryScreen}
-            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-          />
+            {/* Cart summary — bottom sheet modal */}
+            <Stack.Screen
+              name="CartSummary"
+              component={CartSummaryScreen}
+              options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+            />
 
-          {/* Order flow */}
-          <Stack.Screen name="PreparingOrder" component={PreparingOrderScreen} />
-          <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
+            {/* Order flow */}
+            <Stack.Screen name="PreparingOrder" component={PreparingOrderScreen} />
+            <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
 
-          {/* Account sub-screens */}
-          <Stack.Screen name="Wallet" component={WalletScreen} />
-          <Stack.Screen name="Favorites" component={FavoritesScreen} />
-          <Stack.Screen name="Orders" component={OrdersScreen} />
-          <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
-          <Stack.Screen name="Rides" component={RidesScreen} />
-          <Stack.Screen name="Promotions" component={PromotionsScreen} />
-          <Stack.Screen name="Help" component={HelpScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+            {/* Account sub-screens */}
+            <Stack.Screen name="Wallet" component={WalletScreen} />
+            <Stack.Screen name="Favorites" component={FavoritesScreen} />
+            <Stack.Screen name="Orders" component={OrdersScreen} />
+            <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+            <Stack.Screen name="Rides" component={RidesScreen} />
+            <Stack.Screen name="Promotions" component={PromotionsScreen} />
+            <Stack.Screen name="Help" component={HelpScreen} />
+
+            {/* Auth */}
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{ animation: 'slide_from_bottom', presentation: 'modal' }}
+            />
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{ animation: 'slide_from_bottom', presentation: 'modal' }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </ErrorBoundary>
     </Provider>
   )
 }

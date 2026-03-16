@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const STORAGE_KEY = '@bordeaux_date_favorites';
+const STORAGE_KEY = '@atlib_favorites';
 
 const initialState = {
   items: [], // Array of restaurant IDs

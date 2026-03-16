@@ -10,7 +10,6 @@ import {
   clearRestaurantBasket,
 } from '../features/basketSlice'
 import { XMarkIcon, PlusIcon, MinusIcon } from 'react-native-heroicons/solid'
-import { urlFor } from '../sanity'
 import Currency from '../utils/formatCurrency'
 
 /**
@@ -96,12 +95,7 @@ const CartSummaryScreen = () => {
         contentContainerStyle={{ paddingBottom: 16 }}
       >
         {entries.map((item) => {
-          let imgUri = null
-          try {
-            imgUri = item.image ? urlFor(item.image).url() : null
-          } catch {
-            imgUri = null
-          }
+          const imgUri = item.image || null
 
           return (
             <View

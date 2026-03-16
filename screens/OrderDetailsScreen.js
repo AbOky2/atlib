@@ -5,7 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { ArrowLeftIcon, MapPinIcon } from 'react-native-heroicons/outline'
 import { useSelector } from 'react-redux'
 import { selectOrderHistory } from '../features/orderSlice'
-import { ORDER_STATUS_CONFIG } from '../src/data/mockOrders'
+import { ORDER_STATUS_CONFIG } from '../constants/orderStatuses'
 import { formatCurrency } from '../utils/formatCurrency'
 import Card from '../src/ui/Card'
 

@@ -1,14 +1,8 @@
 import { Text, TouchableOpacity, Image, View } from 'react-native'
 import React from 'react'
-import { urlFor } from '../sanity'
 
 const CategoryCard = ({ imgUrl, title }) => {
-  let imageUri = null;
-  try {
-    imageUri = imgUrl ? urlFor(imgUrl).url() : null;
-  } catch {
-    imageUri = null;
-  }
+  const imageUri = imgUrl || null;
 
   return (
     <TouchableOpacity className="mr-3 items-center" activeOpacity={0.8}>

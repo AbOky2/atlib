@@ -14,7 +14,10 @@ export function middleware(request) {
   }
 
   const isProtected =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/api/orders");
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/api/orders") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/admin");
   if (!isProtected) return NextResponse.next();
 
   const token = request.cookies.get("restaurant_session")?.value;
@@ -32,5 +35,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/dashboard(.*)", "/api/orders(.*)", "/login"],
+  matcher: ["/dashboard(.*)", "/admin(.*)", "/api/orders(.*)", "/api/admin(.*)", "/login"],
 };

@@ -2,7 +2,6 @@ import { View, Text, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
 import { StarIcon, HeartIcon } from 'react-native-heroicons/solid'
 import { HeartIcon as HeartIconOutline } from 'react-native-heroicons/outline'
-import { urlFor } from '../sanity'
 import { useNavigation } from '@react-navigation/native'
 import { useDispatch, useSelector } from 'react-redux'
 import { toggleFavoriteAndPersist, selectIsFavorite } from '../features/favoritesSlice'
@@ -35,13 +34,8 @@ const RestaurantCard = ({
         dispatch(toggleFavoriteAndPersist(id));
     }
 
-    // Build image URI — handle both Sanity image refs and plain URLs
-    let imageUri = null;
-    try {
-        imageUri = imgUrl ? urlFor(imgUrl).url() : null;
-    } catch {
-        imageUri = typeof imgUrl === 'string' ? imgUrl : null;
-    }
+    // Build image URI — handle directly for Supabase URLs
+    const imageUri = imgUrl || null;
 
     return (
         <TouchableOpacity

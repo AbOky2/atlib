@@ -16,18 +16,12 @@ import {
   ArrowLeftIcon,
 } from 'react-native-heroicons/outline'
 import Currency from '../utils/formatCurrency'
-import { urlFor } from '../sanity'
 import CustomNavBar from '../components/CustomNavBar'
 
 const RestaurantBasketCard = ({ group, address, onViewBasket, onClear }) => {
   const { restaurantTitle, restaurantImgUrl, items, total } = group
 
-  let imgUri = null
-  try {
-    imgUri = restaurantImgUrl ? urlFor(restaurantImgUrl).url() : null
-  } catch {
-    imgUri = typeof restaurantImgUrl === 'string' ? restaurantImgUrl : null
-  }
+  const imgUri = restaurantImgUrl || null
 
   const uniqueItems = {}
   items.forEach((item) => {

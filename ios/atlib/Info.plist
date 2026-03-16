@@ -33,6 +33,10 @@
     </array>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>ExpoWidgetsAppGroupIdentifier</key>
+    <string>group.com.okimy.atlib</string>
+    <key>ExpoWidgets_EnablePushNotifications</key>
+    <false/>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
@@ -44,8 +48,16 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
-    <key>RCTNewArchEnabled</key>
+    <key>NSSupportsLiveActivities</key>
     <true/>
+    <key>NSSupportsLiveActivitiesFrequentUpdates</key>
+    <false/>
+    <key>NSUserNotificationsUsageDescription</key>
+    <string>Atlib vous envoie des mises à jour en temps réel sur le statut de vos commandes.</string>
+    <key>UIBackgroundModes</key>
+    <array>
+      <string>remote-notification</string>
+    </array>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>
@@ -70,6 +82,15 @@
     </array>
     <key>UIUserInterfaceStyle</key>
     <string>Light</string>
+    <key>UIUserNotificationSettings</key>
+    <dict>
+      <key>UIUserNotificationTypes</key>
+      <array>
+        <string>UIUserNotificationTypeAlert</string>
+        <string>UIUserNotificationTypeBadge</string>
+        <string>UIUserNotificationTypeSound</string>
+      </array>
+    </dict>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
   </dict>

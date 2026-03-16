@@ -5,6 +5,7 @@ import addressReducer from "./features/addressSlice";
 import orderReducer from "./features/orderSlice";
 import favoritesReducer from "./features/favoritesSlice";
 import filtersReducer from "./features/filtersSlice";
+import authReducer from "./features/authSlice";
 
 export const store = configureStore({
     reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
         order: orderReducer,
         favorites: favoritesReducer,
         filters: filtersReducer,
+        auth: authReducer,
     }
 });

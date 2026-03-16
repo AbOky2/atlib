@@ -1,8 +1,18 @@
-import { View, Text } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import React, { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useNavigation, CommonActions } from '@react-navigation/native'
-import * as Animatable from 'react-native-animatable'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+  FadeIn,
+  FadeInUp,
+  FadeInLeft,
+  Easing,
+} from 'react-native-reanimated'
 import * as Progress from 'react-native-progress'
 
 const STEPS = [
@@ -11,12 +21,32 @@ const STEPS = [
   { label: 'Confirmation en cours...', delay: 1400 },
 ]
 
-const PreparingOrderScreen = () => {
+export default function PreparingOrderScreen() {
   const navigation = useNavigation()
 
+  // Pulsing ring animation
+  const pulse = useSharedValue(1)
+  // Rotating outer ring
+  const rotate = useSharedValue(0)
+
   useEffect(() => {
+    // Pulse the icon container
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.12, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    )
+    // Slow spin on the outer ring
+    rotate.value = withRepeat(
+      withTiming(360, { duration: 6000, easing: Easing.linear }),
+      -1,
+      false,
+    )
+
     const timer = setTimeout(() => {
-      // Reset the stack so back from OrderTracking always returns to Home
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
@@ -27,89 +57,154 @@ const PreparingOrderScreen = () => {
     return () => clearTimeout(timer)
   }, [])
 
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }))
+
+  const rotateStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotate.value}deg` }],
+  }))
+
   return (
-    <SafeAreaView
-      className="flex-1 items-center justify-center px-8"
-      style={{ backgroundColor: '#7A1E3A' }}
-    >
+    <SafeAreaView style={styles.root}>
+
       {/* Animated icon */}
-      <Animatable.View
-        animation="pulse"
-        iterationCount="infinite"
-        duration={1600}
-        className="mb-10"
-      >
-        <View
-          className="rounded-full items-center justify-center"
-          style={{
-            width: 96,
-            height: 96,
-            backgroundColor: 'rgba(255,255,255,0.15)',
-          }}
-        >
-          <View
-            className="rounded-full items-center justify-center"
-            style={{
-              width: 68,
-              height: 68,
-              backgroundColor: 'rgba(255,255,255,0.25)',
-            }}
-          >
-            <Text style={{ fontSize: 32 }}>🛍️</Text>
+      <View style={styles.iconWrapper}>
+        {/* Dashed rotating ring */}
+        <Animated.View style={[styles.outerRing, rotateStyle]} />
+
+        {/* Pulsing icon */}
+        <Animated.View style={[styles.iconBubble, pulseStyle]}>
+          <View style={styles.iconInner}>
+            <Text style={styles.iconEmoji}>🛍️</Text>
           </View>
-        </View>
-      </Animatable.View>
+        </Animated.View>
+      </View>
 
       {/* Title */}
-      <Animatable.Text
-        animation="fadeInUp"
-        delay={200}
-        className="text-2xl font-extrabold text-white text-center mb-2"
+      <Animated.Text
+        entering={FadeInUp.delay(200).duration(500)}
+        style={styles.title}
       >
         Commande en cours
-      </Animatable.Text>
-      <Animatable.Text
-        animation="fadeInUp"
-        delay={400}
-        className="text-white/70 text-center mb-10 leading-6"
+      </Animated.Text>
+
+      <Animated.Text
+        entering={FadeInUp.delay(350).duration(500)}
+        style={styles.subtitle}
       >
         Votre commande est transmise au restaurant.
-      </Animatable.Text>
+      </Animated.Text>
 
-      {/* Progress indicator */}
-      <View className="w-full mb-8">
+      {/* Progress bar */}
+      <Animated.View
+        entering={FadeIn.delay(500).duration(400)}
+        style={styles.progressWrapper}
+      >
         <Progress.Bar
           indeterminate
           color="white"
           unfilledColor="rgba(255,255,255,0.2)"
           borderWidth={0}
-          height={4}
+          height={3}
           width={null}
           borderRadius={2}
         />
-      </View>
+      </Animated.View>
 
       {/* Steps */}
       {STEPS.map((step, i) => (
-        <Animatable.View
+        <Animated.View
           key={i}
-          animation="fadeInLeft"
-          delay={step.delay}
-          className="flex-row items-center self-start mb-3"
+          entering={FadeInLeft.delay(step.delay + 200).duration(400)}
+          style={styles.step}
         >
-          <View
-            className="rounded-full mr-3"
-            style={{
-              width: 8,
-              height: 8,
-              backgroundColor: 'rgba(255,255,255,0.6)',
-            }}
-          />
-          <Text className="text-white/80 text-sm font-medium">{step.label}</Text>
-        </Animatable.View>
+          <View style={styles.stepDot} />
+          <Text style={styles.stepLabel}>{step.label}</Text>
+        </Animated.View>
       ))}
     </SafeAreaView>
   )
 }
 
-export default PreparingOrderScreen
+const BG = '#7A1E3A'
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    backgroundColor: BG,
+  },
+  iconWrapper: {
+    width: 120,
+    height: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 40,
+  },
+  outerRing: {
+    position: 'absolute',
+    width: 116,
+    height: 116,
+    borderRadius: 58,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
+    borderStyle: 'dashed',
+  },
+  iconBubble: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconInner: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconEmoji: { fontSize: 32 },
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
+    marginBottom: 40,
+    lineHeight: 22,
+    fontSize: 14,
+  },
+  progressWrapper: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  step: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  stepDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    marginRight: 12,
+  },
+  stepLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+})

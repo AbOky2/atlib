@@ -1,7 +1,6 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
 import Currency from '../utils/formatCurrency'
-import { urlFor } from '../sanity'
 import { useSelector } from 'react-redux'
 import { selectBasketItems } from '../features/basketSlice'
 
@@ -24,12 +23,7 @@ const DishGridCard = ({
     (item) => item.id === id && item.restaurantId === restaurantId,
   ).length
 
-  let imageUri = null
-  try {
-    imageUri = image ? urlFor(image).url() : null
-  } catch {
-    imageUri = typeof image === 'string' ? image : null
-  }
+  const imageUri = image || null
 
   return (
     <TouchableOpacity

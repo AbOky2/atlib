@@ -15,12 +15,14 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.okimy.atlib",
+      "buildNumber": "1",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"],
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
         "NSUserNotificationsUsageDescription": "Atlib vous envoie des mises à jour en temps réel sur le statut de vos commandes.",
-        "UIUserNotificationSettings": {
-          "UIUserNotificationTypes": ["UIUserNotificationTypeAlert", "UIUserNotificationTypeBadge", "UIUserNotificationTypeSound"]
-        }
+        "NSSupportsLiveActivities": true,
+        "NSSupportsLiveActivitiesFrequentUpdates": true
       }
     },
     "android": {
@@ -28,6 +30,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.okimy.atlib",
+      "versionCode": 1,
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
@@ -46,7 +50,9 @@
           "sounds": [],
           "mode": "production"
         }
-      ]
+      ],
+      "expo-widgets",
+      "./plugins/withLiveActivity"
     ]
   }
 }

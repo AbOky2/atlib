@@ -14,16 +14,17 @@ import {
 } from '../features/basketSlice'
 import { selectCurrentAddress } from '../features/addressSlice'
 import { createOrderRemote } from '../features/orderSlice'
+import { selectIsAuthenticated, selectAuthToken, selectCurrentUser } from '../features/authSlice'
 import {
   ArrowLeftIcon, MapPinIcon, ExclamationTriangleIcon,
   ClockIcon, ChevronDownIcon, ChevronUpIcon,
 } from 'react-native-heroicons/outline'
 import { MinusIcon, PlusIcon } from 'react-native-heroicons/solid'
-import { urlFor } from '../sanity'
 import Currency from '../utils/formatCurrency'
 import PaymentOptions from '../components/PaymentOptions'
 import Card from '../src/ui/Card'
 import { registerForPushNotificationsAsync } from '../utils/notifications'
+import { startOrderActivity } from '../utils/liveActivity'
 
 const BasketScreen = () => {
   const navigation = useNavigation()
@@ -31,6 +32,9 @@ const BasketScreen = () => {
   const dispatch = useDispatch()
   const allItems = useSelector(selectBasketItems)
   const currentAddress = useSelector(selectCurrentAddress)
+  const isAuthenticated = useSelector(selectIsAuthenticated)
+  const authToken = useSelector(selectAuthToken)
+  const currentUser = useSelector(selectCurrentUser)
   const [selectedPayment, setSelectedPayment] = useState('cash')
   const [accordionOpen, setAccordionOpen] = useState(true)
 
@@ -51,7 +55,7 @@ const BasketScreen = () => {
   const groupedEntries = Object.entries(grouped)
 
   const subtotal = useSelector((state) => selectBasketTotalForRestaurant(state, restaurantId))
-  const deliveryFee = 500
+  const deliveryFee = currentAddress?.deliveryFee || 500
   const total = subtotal + deliveryFee
 
   const toggleAccordion = () => {
@@ -60,6 +64,18 @@ const BasketScreen = () => {
   }
 
   const handlePlaceOrder = async () => {
+    // Require authentication before ordering
+    if (!isAuthenticated) {
+      Alert.alert(
+        'Connexion requise',
+        'Connectez-vous pour passer votre commande.',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          { text: 'Se connecter', onPress: () => navigation.navigate('Login') },
+        ],
+      )
+      return
+    }
     if (!currentAddress?.zone) {
       Alert.alert(
         'Adresse manquante',
@@ -90,11 +106,21 @@ const BasketScreen = () => {
           restaurantName: restaurantTitle,
           restaurantImage: restaurantImgUrl || '',
           pushToken,
+          authToken,
+          customerName: currentUser?.name,
         }),
       )
 
-      // Dispatch clear BEFORE navigation so items don't show in next visit
       dispatch(clearRestaurantBasket(restaurantId))
+
+      // Démarre la Live Activity (Dynamic Island + Lock Screen) — EAS Build uniquement
+      startOrderActivity({
+        id: `ord_${Date.now()}`,
+        restaurantName: restaurantTitle,
+        totalXAF: total,
+        status: 'PENDING',
+        estimatedTime: '30-45 min',
+      })
 
       navigation.navigate('PreparingOrder')
     } catch (e) {
@@ -103,12 +129,7 @@ const BasketScreen = () => {
     }
   }
 
-  let restaurantImgUri = null
-  try {
-    restaurantImgUri = restaurantImgUrl ? urlFor(restaurantImgUrl).url() : null
-  } catch {
-    restaurantImgUri = typeof restaurantImgUrl === 'string' ? restaurantImgUrl : null
-  }
+  const restaurantImgUri = restaurantImgUrl || null
 
   const canOrder = !!currentAddress?.zone && items.length > 0
 
@@ -223,10 +244,7 @@ const BasketScreen = () => {
             {/* Items */}
             {accordionOpen &&
               groupedEntries.map(([key, item], idx) => {
-                let imgUri = null
-                try {
-                  imgUri = item.image ? urlFor(item.image).url() : null
-                } catch { imgUri = null }
+                const imgUri = item.image || null
 
                 return (
                   <View

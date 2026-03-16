@@ -124,11 +124,15 @@ export default function DashboardPage() {
   }, [restaurantName, router]);
 
   const fetchDetails = useCallback(async (id) => {
-    const res = await fetch(`/api/orders/${id}`);
-    if (res.ok) {
-      const data = await res.json();
-      setSelected(data.order);
-      setItems(data.items ?? []);
+    try {
+      const res = await fetch(`/api/orders/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelected(data.order);
+        setItems(data.items ?? []);
+      }
+    } catch (err) {
+      console.error("[fetchDetails]", err.message);
     }
   }, []);
 
@@ -196,6 +200,9 @@ export default function DashboardPage() {
           <button onClick={() => fetchOrders()} style={s.btnGhost} disabled={loading}>
             Actualiser
           </button>
+          <a href="/admin" style={{ ...s.btnGhost, textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+            Gérer les comptes
+          </a>
           <button onClick={logout} style={s.btnGhost}>
             Déconnexion
           </button>

@@ -7,6 +7,7 @@ import { selectCurrentOrder, selectOrderStatuses, fetchOrderByIdRemote } from '.
 import { selectRestaurant } from '../features/restaurantSlice'
 import { selectCurrentAddress } from '../features/addressSlice'
 import { scheduleOrderStatusNotification } from '../utils/notifications'
+import { updateOrderActivity, endOrderActivity } from '../utils/liveActivity'
 import {
   XMarkIcon, PhoneIcon, MapPinIcon, ChatBubbleLeftRightIcon,
   ClockIcon,
@@ -46,14 +47,19 @@ const OrderTrackingScreen = () => {
     return () => clearInterval(timer);
   }, [dispatch, currentOrder?.id]);
 
-  // Schedule a local notification when status changes (while app is open / backgrounded)
+  // Notification locale + mise à jour Live Activity quand le statut change
   useEffect(() => {
     const status = currentOrder?.status;
     if (!status) return;
     if (status === lastNotifiedStatus.current) return;
-    // Don't notify on the initial PENDING state (user just placed the order)
     if (status !== 'PENDING' && lastNotifiedStatus.current !== null) {
       scheduleOrderStatusNotification(status, restaurant?.title, currentOrder?.id);
+      // Met à jour le Dynamic Island / Lock Screen
+      if (status === 'DELIVERED' || status === 'CANCELLED') {
+        endOrderActivity();
+      } else {
+        updateOrderActivity(status);
+      }
     }
     lastNotifiedStatus.current = status;
   }, [currentOrder?.status]);
@@ -223,7 +229,7 @@ const OrderTrackingScreen = () => {
         <View className="mx-4 mt-4">
           <Card className="flex-row items-center">
             <Image
-              source={{ uri: restaurant.imgUrl || 'https://via.placeholder.com/60' }}
+              source={restaurant.imgUrl ? { uri: restaurant.imgUrl } : require('../assets/icon.png')}
               className="w-12 h-12 rounded-md bg-bg mr-3"
             />
             <View className="flex-1">

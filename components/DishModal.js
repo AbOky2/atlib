@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import {
   selectBasketItems, setItemQuantity, clearBasket,
 } from '../features/basketSlice'
-import { urlFor } from '../sanity'
 import Currency from '../utils/formatCurrency'
 import { XMarkIcon, MinusIcon, PlusIcon } from 'react-native-heroicons/solid'
 
@@ -45,12 +44,7 @@ const DishModal = ({
 
   const foreignItems = allItems.filter((i) => i.restaurantId !== restaurantId)
 
-  let imageUri = null
-  try {
-    imageUri = dish.image ? urlFor(dish.image).url() : null
-  } catch {
-    imageUri = typeof dish.image === 'string' ? dish.image : null
-  }
+  const imageUri = dish.image || null
 
   const lineTotal = dish.price * qty
 
@@ -210,8 +204,8 @@ const DishModal = ({
                 {qty === 0
                   ? 'Retirer du panier'
                   : isUpdate
-                  ? `Mettre à jour · ${lineTotal.toLocaleString('fr-FR')} XAF`
-                  : `Ajouter au panier · ${lineTotal.toLocaleString('fr-FR')} XAF`}
+                    ? `Mettre à jour · ${lineTotal.toLocaleString('fr-FR')} XAF`
+                    : `Ajouter au panier · ${lineTotal.toLocaleString('fr-FR')} XAF`}
               </Text>
             </TouchableOpacity>
           </View>
