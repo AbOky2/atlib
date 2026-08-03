@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": ".test-build",
+    "rootDir": "src"
+  },
+  "include": [
+    "src/lib/palette.ts",
+    "src/lib/orderStatus.ts",
+    "src/lib/pricing.ts",
+    "src/lib/eta.ts",
+    "src/lib/localities.ts",
+    "src/lib/ids.ts",
+    "src/lib/reconcile.ts",
+    "src/lib/cartLine.ts"
+  ]
+}

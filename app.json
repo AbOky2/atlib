@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "NOIR Delivery",
+    "slug": "chad-delivery",
+    "version": "1.0.0",
+    "scheme": "chaddelivery",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#fcf9f8"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.okimy.chaddelivery",
+      "appleTeamId": "A_REMPLACER_PAR_TON_TEAM_ID",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSupportsLiveActivities": true
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.okimy.chaddelivery"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-router",
+      "./plugins/withLiveActivity",
+      "@bacons/apple-targets",
+      "expo-splash-screen",
+      "expo-status-bar"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "faf27282-9135-45c0-a820-0c8d3ea053f0"
+      }
+    },
+    "owner": "okimy"
+  }
+}
