@@ -78,7 +78,7 @@ export default function PromotionsScreen() {
                         <View className="flex-1 pr-6 relative z-10">
                             <View className="flex-row items-center gap-2 mb-2">
                                 <Sparkles color="#FFD700" size={16} />
-                                <Text className="text-[#FFD700] font-labelbold text-eyebrow uppercase tracking-[0.12em]">
+                                <Text className="text-gold font-labelbold text-eyebrow uppercase tracking-[0.12em]">
                                     Bientôt disponible
                                 </Text>
                             </View>

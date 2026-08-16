@@ -76,6 +76,9 @@ module.exports = {
         warning: "#B25E00",
         "warning-soft": "#FFF0DF",
 
+        // Premium tier accent — used only by the NOIR+ teaser.
+        gold: "#E8B830",
+
         // Dark staff surfaces (restaurant dashboard).
         "ink-900": "#0a0a0a",
         "ink-800": "#141313",

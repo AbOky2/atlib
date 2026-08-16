@@ -47,6 +47,9 @@ export const COLORS = {
     warning: '#B25E00',
     warningSoft: '#FFF0DF',
 
+    /** Premium tier accent — the NOIR+ teaser, and nothing else. */
+    gold: '#E8B830',
+
     // ---- Dark staff surfaces (restaurant dashboard) ------------------------
     ink900: '#0a0a0a',
     ink800: '#141313',

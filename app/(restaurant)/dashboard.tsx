@@ -128,7 +128,7 @@ export default function RestaurantDashboard() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-[#0a0a0a]">
+        <SafeAreaView className="flex-1 bg-ink-900">
             <View className="px-6 py-6 border-b border-ink">
                 <View className="flex-row items-start justify-between">
                     <View className="flex-1 pr-4">

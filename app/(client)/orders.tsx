@@ -96,7 +96,7 @@ export default function OrdersScreen() {
                                         <View className="flex-row items-center justify-between mb-4">
                                             <View className="flex-row items-center gap-2">
                                                 <Text className="text-caption font-label text-ink-faint">{formattedDate}</Text>
-                                                <View className="w-1 h-1 bg-[#ccc] rounded-full" />
+                                                <View className="w-1 h-1 bg-ink-disabled rounded-full" />
                                                 <Text className="text-caption font-label text-ink-faint">{formattedTime}</Text>
                                             </View>
                                             <View
