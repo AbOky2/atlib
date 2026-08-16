@@ -5,7 +5,6 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Mail, Lock, Eye, EyeOff, ChevronRight, Sparkles, User, MailCheck, Phone, KeyRound } from 'lucide-react-native';
 import { useAuthStore } from '../src/store/authStore';
-import { supabase } from '../src/lib/supabase';
 import { isValidChadPhone, formatChadPhone } from '../src/lib/phone';
 import { BRAND, BRAND_TAGLINE, BRAND_FULL } from '../src/lib/brand';
 import { shadowSoft, shadowFloat } from '../src/lib/elevation';
@@ -31,7 +30,7 @@ export default function LoginScreen() {
     const [formError, setFormError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
 
-    const { signIn, signUp, requestPhoneCode, verifyPhoneCode, loading, error, clearError } = useAuthStore();
+    const { signIn, signUp, requestPhoneCode, verifyPhoneCode, requestPasswordReset, loading, error, clearError } = useAuthStore();
 
     const resetFeedback = () => {
         setFormError(null);
@@ -118,13 +117,9 @@ export default function LoginScreen() {
             setFormError('Saisissez votre adresse email ci-dessus, puis réappuyez sur « Mot de passe oublié ».');
             return;
         }
-        try {
-            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim());
-            if (resetError) throw resetError;
+        if (await requestPasswordReset(email) === 'ok') {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             setNotice(`Email de réinitialisation envoyé à ${email.trim()}. Vérifiez votre boîte mail.`);
-        } catch {
-            setFormError("Impossible d'envoyer l'email de réinitialisation. Réessayez dans un instant.");
         }
     };
 

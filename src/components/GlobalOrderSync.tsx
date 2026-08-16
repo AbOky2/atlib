@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { useUserOrders } from '../hooks/useSupabase';
+import { useUserOrders } from '../data/orders';
 import { supabase } from '../lib/supabase';
 import { getEstimatedDeliveryTime } from '../lib/localities';
 import { findActiveOrder, isTerminal, statusIndex } from '../lib/orderStatus';

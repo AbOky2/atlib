@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { Heart, Star, Clock, Bike } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { useRestaurants } from '../../src/hooks/useSupabase';
+import { useRestaurants } from '../../src/data/catalogue';
 import { RemoteImage } from '../../src/components/RemoteImage';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useCartStore } from '../../src/store/cartStore';

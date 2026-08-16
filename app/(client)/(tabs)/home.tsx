@@ -5,7 +5,9 @@ import { Bell, ChevronDown, Star, Heart, MapPin } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { useRestaurants, useUserOrders, prefetchRestaurant, type Restaurant } from '../../../src/hooks/useSupabase';
+import { type Restaurant } from '../../../src/data/types';
+import { prefetchRestaurant, useRestaurants } from '../../../src/data/catalogue';
+import { useUserOrders } from '../../../src/data/orders';
 import { useCartStore } from '../../../src/store/cartStore';
 import { useAuthStore } from '../../../src/store/authStore';
 import { useFavoritesStore } from '../../../src/store/favoritesStore';

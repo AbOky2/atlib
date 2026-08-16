@@ -15,4 +15,4 @@ export const computeOrderTotal = (subtotal: number) =>
     subtotal > 0 ? subtotal + DELIVERY_FEE_XAF + SERVICE_FEE_XAF : 0;
 
 /** Consistent XAF formatting used across the app. */
-export const formatXaf = (price: number) => new Intl.NumberFormat('fr-FR').format(price ?? 0) + ' F';
+export const formatXaf = (price: number | null | undefined) => new Intl.NumberFormat('fr-FR').format(price ?? 0) + ' F';

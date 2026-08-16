@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
-import { useUserOrders } from './useSupabase';
+import { useUserOrders } from '../data/orders';
 import { statusLabel } from '../lib/liveActivity';
 
 export interface AppNotification {

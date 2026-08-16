@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 
 import { useAuthStore } from '../../src/store/authStore';
 import { useCartStore } from '../../src/store/cartStore';
-import { useUserOrders, updateOrderStatus, ORDER_ERRORS } from '../../src/hooks/useSupabase';
+import { ORDER_ERRORS, updateOrderStatus, useUserOrders } from '../../src/data/orders';
 import { findActiveOrder, statusIndex, statusMeta, STATUS_FLOW, STATUS_META, type OrderStatus } from '../../src/lib/orderStatus';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
 import { getEstimatedDeliveryTime } from '../../src/lib/localities';

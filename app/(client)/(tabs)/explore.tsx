@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useRestaurants, prefetchRestaurant } from '../../../src/hooks/useSupabase';
+import { prefetchRestaurant, useRestaurants } from '../../../src/data/catalogue';
 import { RemoteImage } from '../../../src/components/RemoteImage';
 import { CategoryRail } from '../../../src/components/CategoryRail';
 import { ClosedBadge } from '../../../src/components/ClosedBadge';

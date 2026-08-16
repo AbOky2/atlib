@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Utensils } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
-import { useMenuDishes, setDishAvailability } from '../hooks/useSupabase';
+import { setDishAvailability, useMenuDishes } from '../data/restaurantAdmin';
 import { useCartStore } from '../store/cartStore';
 import { RemoteImage } from './RemoteImage';
 import { formatXaf } from '../lib/pricing';

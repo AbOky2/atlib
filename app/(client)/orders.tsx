@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Package, Clock, CheckCircle2, XCircle, ChefHat, Truck, type LucideIcon } from 'lucide-react-native';
 import { useAuthStore } from '../../src/store/authStore';
-import { useUserOrders } from '../../src/hooks/useSupabase';
+import { useUserOrders } from '../../src/data/orders';
 import { statusMeta, type OrderStatus } from '../../src/lib/orderStatus';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
 import { formatXaf as formatPrice } from '../../src/lib/pricing';

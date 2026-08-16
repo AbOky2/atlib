@@ -8,7 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useCartStore } from '../../src/store/cartStore';
 import { useAuthStore } from '../../src/store/authStore';
-import { createOrder, ORDER_ERRORS } from '../../src/hooks/useSupabase';
+import { ORDER_ERRORS, createOrder } from '../../src/data/orders';
 import { getEstimatedDeliveryTime } from '../../src/lib/localities';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
 import {

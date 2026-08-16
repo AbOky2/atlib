@@ -157,3 +157,16 @@ export const STATUS_META: Record<OrderStatus, StatusMeta> = {
 /** Meta for any status string, falling back to PENDING for unknown values. */
 export const statusMeta = (status: string): StatusMeta =>
     STATUS_META[(isOrderStatus(status) ? status : 'PENDING') as OrderStatus];
+
+/**
+ * Milliseconds of an order timestamp, or null when the column is empty.
+ *
+ * `orders.created_at` is nullable in the schema. Every screen used to call
+ * `new Date(order.created_at)` through an `any`, which silently produced an
+ * Invalid Date — a NaN age, a blank time, and no error anywhere.
+ */
+export const timestampMs = (iso: string | null | undefined): number | null => {
+    if (!iso) return null;
+    const ms = new Date(iso).getTime();
+    return Number.isNaN(ms) ? null : ms;
+};

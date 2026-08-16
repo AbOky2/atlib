@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Minus, Plus, Utensils } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import type { Dish } from '../hooks/useSupabase';
+import type { Dish } from '../data/types';
 import { shadowSheet } from '../lib/elevation';
 import { RemoteImage } from './RemoteImage';
 import { formatXaf as formatPrice } from '../lib/pricing';

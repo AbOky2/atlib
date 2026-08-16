@@ -19,6 +19,10 @@ interface AuthStore {
     requestPhoneCode: (phone: string) => Promise<AuthResult>;
     /** Exchange the code for a session. */
     verifyPhoneCode: (phone: string, code: string, fullName?: string) => Promise<AuthResult>;
+    /** Send a password-reset email. */
+    requestPasswordReset: (email: string) => Promise<AuthResult>;
+    /** Remember a verified phone number on the account for future checkouts. */
+    rememberPhone: (phone: string) => void;
     signOut: () => Promise<void>;
     clearError: () => void;
 }
@@ -180,6 +184,27 @@ export const useAuthStore = create<AuthStore>((set) => ({
             set({ loading: false, error: 'Vérification impossible. Réessayez.' });
             return 'error';
         }
+    },
+
+    requestPasswordReset: async (email) => {
+        set({ error: null });
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+            if (error) {
+                set({ error: friendlyAuthError(error.message) });
+                return 'error';
+            }
+            return 'ok';
+        } catch {
+            set({ error: "Impossible d'envoyer l'email de réinitialisation. Réessayez dans un instant." });
+            return 'error';
+        }
+    },
+
+    // Best effort by design: failing to remember a number must never interrupt a
+    // checkout, so this returns nothing and swallows its own failure.
+    rememberPhone: (phone) => {
+        supabase.auth.updateUser({ data: { phone } }).catch(() => {});
     },
 
     signOut: async () => {

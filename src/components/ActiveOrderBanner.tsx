@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/authStore';
-import { useUserOrders } from '../hooks/useSupabase';
+import { useUserOrders } from '../data/orders';
 import { findActiveOrder } from '../lib/orderStatus';
 import { ChefHat, Bike, Clock } from 'lucide-react-native';
 import { shadowFloat } from '../lib/elevation';

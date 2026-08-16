@@ -105,3 +105,29 @@ test('statusMeta retombe sur PENDING pour un statut inconnu', () => {
     assert.deepEqual(statusMeta('???'), STATUS_META.PENDING);
     assert.deepEqual(statusMeta('DELIVERED'), STATUS_META.DELIVERED);
 });
+
+// --- timestampMs : le bug que le typage a mis au jour ------------------------
+// `orders.created_at` est nullable. Les écrans lisaient `new Date(x).getTime()`
+// à travers un `any`, ce qui produisait NaN sans jamais lever d'erreur : âge de
+// commande absurde, heure vide, et rien dans les logs.
+const { timestampMs } = require('../.test-build/lib/orderStatus');
+
+test('un horodatage valide est converti en millisecondes', () => {
+    assert.equal(timestampMs('2026-08-17T10:00:00.000Z'), Date.parse('2026-08-17T10:00:00.000Z'));
+});
+
+test('un horodatage absent renvoie null, jamais NaN', () => {
+    assert.equal(timestampMs(null), null);
+    assert.equal(timestampMs(undefined), null);
+    assert.equal(timestampMs(''), null);
+});
+
+test('un horodatage illisible renvoie null plutôt qu\'une date invalide', () => {
+    assert.equal(timestampMs('pas-une-date'), null);
+});
+
+test('la différence de deux horodatages reste un nombre utilisable', () => {
+    const a = timestampMs('2026-08-17T10:00:00.000Z');
+    const b = timestampMs('2026-08-17T10:30:00.000Z');
+    assert.equal((b - a) / 60000, 30, '30 minutes entre les deux');
+});

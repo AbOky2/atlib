@@ -5,15 +5,16 @@ import { useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { Button } from "../../src/components/ui/Button";
 import { Clock, Phone, Coins, MapPin, MessageSquare, Power, ClipboardList, UtensilsCrossed } from "lucide-react-native";
+import type { RestaurantOrder } from "../../src/data/types";
+import { useRestaurant } from "../../src/data/catalogue";
+import { updateOrderStatus, ORDER_ERRORS } from "../../src/data/orders";
 import {
     useRestaurantOrders,
     useMyRestaurantId,
-    useRestaurant,
-    updateOrderStatus,
     setRestaurantAcceptingOrders,
-    ORDER_ERRORS,
-    AVAILABILITY_ERRORS } from "../../src/hooks/useSupabase";
-import { statusMeta, isOrderStatus, isLive, type OrderStatus } from "../../src/lib/orderStatus";
+    AVAILABILITY_ERRORS,
+} from "../../src/data/restaurantAdmin";
+import { statusMeta, isOrderStatus, isLive, timestampMs, type OrderStatus } from "../../src/lib/orderStatus";
 import { isAcceptingOrders } from "../../src/lib/availability";
 import { changeToGive } from "../../src/lib/cash";
 import { formatXaf } from "../../src/lib/pricing";
@@ -65,10 +66,10 @@ export default function RestaurantDashboard() {
     // Orders that still need the kitchen's attention come first, oldest at the top —
     // the one that has been waiting longest is the one at risk.
     const { queue, history } = useMemo(() => {
-        const all = (orders ?? []) as any[];
+        const all = orders ?? [];
         const live = all
             .filter((o) => isLive(o.status))
-            .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+            .sort((a, b) => (timestampMs(a.created_at) ?? 0) - (timestampMs(b.created_at) ?? 0));
         const done = all.filter((o) => !isLive(o.status));
         return { queue: live, history: done };
     }, [orders]);
@@ -82,12 +83,12 @@ export default function RestaurantDashboard() {
         setRefreshing(false);
     }, [refetch]);
 
-    const handleUpdateStatus = async (order: any, newStatus: OrderStatus) => {
+    const handleUpdateStatus = async (order: RestaurantOrder, newStatus: OrderStatus) => {
         try {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             // Optimistic update so the admin UI reflects the change instantly.
-            queryClient.setQueryData(['restaurant-orders', restaurantId], (old: any) =>
-                Array.isArray(old) ? old.map((o: any) => (o.id === order.id ? { ...o, status: newStatus } : o)) : old,
+            queryClient.setQueryData<RestaurantOrder[]>(['restaurant-orders', restaurantId], (old) =>
+                old?.map((o) => (o.id === order.id ? { ...o, status: newStatus } : o)),
             );
             // Conditional update through the state machine: rejected with
             // STATUS_CONFLICT if the order moved concurrently (e.g. cancelled).
@@ -241,14 +242,15 @@ function OrderCard({
     onAdvance,
     muted = false,
 }: {
-    order: any;
-    onAdvance: (order: any, next: OrderStatus) => void;
+    order: RestaurantOrder;
+    onAdvance: (order: RestaurantOrder, next: OrderStatus) => void;
     muted?: boolean;
 }) {
     const meta = statusMeta(order.status);
     const action = NEXT_ACTION[order.status as OrderStatus];
     const change = changeToGive(order.total_xaf ?? 0, order.cash_paid_with_xaf);
-    const waitingMins = Math.max(0, Math.round((Date.now() - new Date(order.created_at).getTime()) / 60000));
+    const placedAt = timestampMs(order.created_at);
+    const waitingMins = placedAt ? Math.max(0, Math.round((Date.now() - placedAt) / 60_000)) : 0;
     const urgent = order.status === 'PENDING';
 
     return (
@@ -274,7 +276,7 @@ function OrderCard({
                 </View>
                 <View className="items-end">
                     <Text className="font-label text-caption text-white/60">
-                        {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {placedAt ? new Date(placedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                     </Text>
                     {isLive(order.status) && (
                         <Text
@@ -330,7 +332,7 @@ function OrderCard({
 
                 <View className="h-px bg-white/10 w-full my-3" />
 
-                {order.order_items?.map((item: any) => (
+                {order.order_items?.map((item) => (
                     <Text key={item.id} className="font-body text-white text-body">
                         {item.qty}x <Text className="text-white/60">{item.name}</Text>
                     </Text>

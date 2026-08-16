@@ -7,7 +7,6 @@ import * as Haptics from 'expo-haptics';
 import { useCartStore } from '../../src/store/cartStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { useAddressStore } from '../../src/store/addressStore';
-import { supabase } from '../../src/lib/supabase';
 import { getEstimatedDeliveryTime } from '../../src/lib/localities';
 import { isValidChadPhone, normalizeChadPhone } from '../../src/lib/phone';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
@@ -24,6 +23,7 @@ export default function CheckoutAddressScreen() {
     const previousDelivery = useCartStore(state => state.deliveryAddress);
     const selectedAddress = useAddressStore(state => state.currentAddress);
     const user = useAuthStore(state => state.user);
+    const rememberPhone = useAuthStore(state => state.rememberPhone);
     const [note, setNote] = useState('');
     // The restaurant delivers itself and must be able to CALL the customer —
     // a real phone number is as critical as the address.
@@ -60,7 +60,7 @@ export default function CheckoutAddressScreen() {
             phone: cleanPhone,
         });
         // Remember the number on the account so future checkouts prefill it.
-        supabase.auth.updateUser({ data: { phone: cleanPhone } }).catch(() => {});
+        rememberPhone(cleanPhone);
         router.push('/payment-method');
     };
 
