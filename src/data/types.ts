@@ -17,7 +17,6 @@ export type Dish = Database['public']['Tables']['dishes']['Row'];
 export type Category = Database['public']['Tables']['categories']['Row'];
 export type Order = Database['public']['Tables']['orders']['Row'];
 export type OrderItem = Database['public']['Tables']['order_items']['Row'];
-export type Profile = Database['public']['Tables']['profiles']['Row'];
 
 /** A dish as the menu screens read it: the row plus the category it belongs to. */
 export type MenuDish = Dish & { categories: Pick<Category, 'id' | 'name'> | null };

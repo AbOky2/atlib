@@ -36,9 +36,6 @@ function getNotificationsSafe(): any | null {
     return cached;
 }
 
-/** True when notifications can actually be used on this binary. */
-export const notificationsAvailable = () => getNotificationsSafe() !== null;
-
 /** Android channel for order updates — high importance so it rings through. */
 export const ORDER_CHANNEL_ID = 'order-updates';
 /** Restaurant-side channel: a new order must be impossible to miss. */

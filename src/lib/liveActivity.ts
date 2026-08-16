@@ -21,7 +21,6 @@ import {
     endActivityWithFinalState,
     addPushTokenListener,
     addActivityErrorListener,
-    areActivitiesEnabled,
     isActivityRunning,
     type LiveActivityPushToken,
 } from '../../modules/live-activity';
@@ -57,10 +56,6 @@ export const onLiveActivityPushToken = (
  */
 export const liveActivityRunning = (): boolean =>
     Platform.OS === 'ios' && isActivityRunning();
-
-/** Has the user allowed Live Activities for this app? */
-export const liveActivitiesAllowed = (): boolean =>
-    Platform.OS === 'ios' && areActivitiesEnabled();
 
 /** Surface start/update failures instead of losing them in a device console. */
 export const onLiveActivityError = (listener: (message: string) => void): (() => void) => {
