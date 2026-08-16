@@ -26,12 +26,12 @@ interface CartStore {
     items: CartItem[];
     currentRestaurantId: string | null;
     currentRestaurantName: string | null;
-    deliveryAddress: { locality: string; description: string; note?: string } | null;
+    deliveryAddress: { locality: string; description: string; note?: string; phone?: string } | null;
     addItem: (item: AddCartItem) => void;
     removeItem: (lineId: string) => void;
     updateQuantity: (lineId: string, quantity: number) => void;
     clearCart: () => void;
-    setDeliveryAddress: (address: { locality: string; description: string; note?: string }) => void;
+    setDeliveryAddress: (address: { locality: string; description: string; note?: string; phone?: string }) => void;
     getTotalPrice: () => number;
     getTotalItems: () => number;
     toastMessage: string | null;

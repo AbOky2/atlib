@@ -1,17 +1,19 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, Image, Pressable, RefreshControl, ActivityIndicator, Share } from 'react-native';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Heart, Share2, Star, Clock, CreditCard, Plus, Utensils } from 'lucide-react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCartStore } from '../../src/store/cartStore';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useRestaurant, useDishes, type Dish } from '../../src/hooks/useSupabase';
 import { DishCustomizationModal } from '../../src/components/DishCustomizationModal';
+import { RemoteImage } from '../../src/components/RemoteImage';
 import { BRAND } from '../../src/lib/brand';
 import { restaurantEtaRange, formatEtaRange } from '../../src/lib/eta';
 import { DELIVERY_FEE_XAF, formatXaf as formatPrice } from '../../src/lib/pricing';
 import { shadowSoft, shadowFloat } from '../../src/lib/elevation';
+import { isAcceptingOrders, CLOSED_NOTICE } from '../../src/lib/availability';
 
 export default function RestaurantDetailsScreen() {
     const insets = useSafeAreaInsets();
@@ -37,15 +39,30 @@ export default function RestaurantDetailsScreen() {
         setRefreshing(false);
     }, [refetch]);
 
-    const isRestaurantOpen = useMemo(() => {
-        if (!restaurant) return true;
-        // Assuming always open for now since DB removed opening_time
-        return true;
-    }, [restaurant]);
+    // Belt and braces. The screen is now unmounted when popped from the Stack,
+    // so a sheet cannot outlive it — but a sheet left open while the user walks
+    // away is still wrong, and closing on blur costs nothing.
+    useFocusEffect(
+        useCallback(() => () => setSelectedDish(null), []),
+    );
+
+    // Opening another restaurant can reuse this component, so state tied to the
+    // previous one is dropped explicitly.
+    useEffect(() => {
+        setActiveCategory(null);
+        setSelectedDish(null);
+    }, [id]);
+
+    const isOpen = isAcceptingOrders(restaurant);
 
     // Tapping a dish (card or +) opens the customization modal — nothing is added
     // to the cart until the user validates from the modal.
     const openDish = (item: Dish) => {
+        if (!isOpen) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            showToast(CLOSED_NOTICE, 'info');
+            return;
+        }
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setSelectedDish(item);
     };
@@ -84,7 +101,7 @@ export default function RestaurantDetailsScreen() {
     // let the menu fill in with a small inline loader if dishes are still fetching.
     if (loadingRestaurant && !restaurant) {
         return (
-            <View className="flex-1 bg-[#1c1b1b] items-center justify-center">
+            <View className="flex-1 bg-background items-center justify-center">
                 <ActivityIndicator size="large" color="#FF5733" />
             </View>
         );
@@ -92,31 +109,36 @@ export default function RestaurantDetailsScreen() {
 
     if (!restaurant) {
         return (
-            <View className="flex-1 bg-[#1c1b1b] items-center justify-center">
+            <View className="flex-1 bg-background items-center justify-center">
                 <Text className="text-ink-faint font-body">Restaurant non trouvé</Text>
             </View>
         );
     }
 
     const eta = formatEtaRange(restaurantEtaRange(restaurant.id));
+    // The sticky element is the category bar. Its position shifts when the
+    // closed notice is inserted above it, so it is derived rather than hardcoded
+    // — a literal index silently stuck to the wrong child the day a section was
+    // added.
+    const stickyIndex = isOpen ? 1 : 2;
 
     return (
-        <View className="flex-1 bg-[#1c1b1b]">
-            {/* Solid in-flow header (was absolute/overlapping the photo) — the hero
-                image now sits cleanly BELOW it. */}
+        <View className="flex-1 bg-background">
+            {/* Solid in-flow header — one theme across the whole browse flow, so
+                opening a restaurant no longer flips the screen to black. */}
             <View
-                className="flex-row justify-between items-center px-6 pb-4 bg-[#1c1b1b] z-50"
-                style={{ paddingTop: Math.max(insets.top + 10, 40) }}
+                className="flex-row justify-between items-center px-6 pb-4 bg-white border-b border-hairline z-50"
+                style={{ paddingTop: Math.max(insets.top + 10, 40), ...shadowSoft }}
             >
                 <View className="flex-row items-center gap-3">
                     <Pressable
                         onPress={() => router.back()}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 active:scale-95"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low active:scale-95"
                     >
-                        <ArrowLeft color="#fff" size={24} />
+                        <ArrowLeft color="#1c1b1b" size={24} />
                     </Pressable>
                 </View>
-                <Text className="text-2xl font-title tracking-tight text-white">{BRAND}</Text>
+                <Text className="text-2xl font-title tracking-tight text-ink">{BRAND}</Text>
                 <View className="flex-row items-center gap-2">
                     <Pressable
                         onPress={() => {
@@ -124,18 +146,18 @@ export default function RestaurantDetailsScreen() {
                             const added = toggleFavorite(id ?? '');
                             showToast(added ? 'Ajouté aux favoris !' : 'Retiré des favoris');
                         }}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 active:scale-95"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low active:scale-95"
                     >
-                        <Heart fill={isFav ? "#FF5733" : "transparent"} color={isFav ? "#FF5733" : "#fff"} size={20} />
+                        <Heart fill={isFav ? "#FF5733" : "transparent"} color={isFav ? "#FF5733" : "#1c1b1b"} size={20} />
                     </Pressable>
                     <Pressable
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                             Share.share({ message: `Découvre ${restaurant.name} sur NOIR Delivery !` }).catch(() => {});
                         }}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 active:scale-95"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low active:scale-95"
                     >
-                        <Share2 color="#fff" size={20} />
+                        <Share2 color="#1c1b1b" size={20} />
                     </Pressable>
                 </View>
             </View>
@@ -143,23 +165,19 @@ export default function RestaurantDetailsScreen() {
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                stickyHeaderIndices={[2]}
+                stickyHeaderIndices={[stickyIndex]}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF5733" />
                 }
             >
                 {/* Hero Section */}
                 <View className="relative h-[380px] w-full overflow-hidden">
-                    <Image
-                        source={{ uri: restaurant.image_url ?? '' }}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                    />
+                    <RemoteImage uri={restaurant.image_url} displayWidth={430} className="w-full h-full" />
                     {/* Flat scrim (no gradient) so the white name/rating stay readable. */}
                     <View className="absolute inset-0 bg-black/35" />
 
                     <View className="absolute bottom-0 left-0 w-full px-6 pb-8">
-                        <View className="self-start flex-row items-center gap-2 mb-4">
+                        <View className="self-start flex-row items-center gap-2 mb-3">
                             <View className="flex-row items-center gap-2 bg-[#FF5733] px-3 py-1.5 rounded-full" style={shadowSoft}>
                                 <Star fill="#fff" color="#fff" size={14} />
                                 <Text className="text-white text-[11px] font-heading tracking-[0.05em] uppercase">
@@ -167,7 +185,12 @@ export default function RestaurantDetailsScreen() {
                                 </Text>
                             </View>
                         </View>
-                        <Text className="text-5xl font-display tracking-tight text-white mb-2 leading-[0.95]">
+                        <Text
+                            numberOfLines={2}
+                            adjustsFontSizeToFit
+                            minimumFontScale={0.75}
+                            className="text-[34px] font-display tracking-tight text-white leading-[1.05]"
+                        >
                             {restaurant.name}
                         </Text>
                         <View className="flex-row flex-wrap items-center gap-x-6 gap-y-2 mt-4">
@@ -187,11 +210,20 @@ export default function RestaurantDetailsScreen() {
                     </View>
                 </View>
 
-                {/* Dummy view for layout spacing */}
-                <View className="h-0" />
+                {/* Closed notice — stated once, plainly, before the menu */}
+                {!isOpen && (
+                    <View className="mx-6 mt-6 mb-2 flex-row items-center gap-3 rounded-3xl border border-surface-container-highest bg-white px-5 py-4">
+                        <View className="w-9 h-9 rounded-full bg-surface-container-low items-center justify-center">
+                            <Clock color="#1c1b1b" size={17} />
+                        </View>
+                        <Text className="flex-1 text-[13px] font-body text-ink-muted leading-relaxed">
+                            {CLOSED_NOTICE} Vous pouvez consulter la carte en attendant.
+                        </Text>
+                    </View>
+                )}
 
                 {/* Category Scroll */}
-                <View className="bg-[#1c1b1b]/95 pb-4 pt-4 border-b border-hairline z-40">
+                <View className="bg-background pb-4 pt-4 border-b border-hairline z-40">
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-6 flex-row gap-8">
                         {categories.map((cat, index) => (
                             <Pressable
@@ -201,7 +233,7 @@ export default function RestaurantDetailsScreen() {
                                     setActiveCategory(cat);
                                 }}
                             >
-                                <Text className={`text-[11px] font-heading tracking-[0.05em] uppercase ${index === categories.length - 1 ? 'pr-8' : 'mr-8'} ${activeCategory === cat ? 'text-[#FF5733]' : 'text-ink-faint'}`}>
+                                <Text className={`text-[11px] font-heading tracking-[0.05em] uppercase ${index === categories.length - 1 ? 'pr-8' : 'mr-8'} ${activeCategory === cat ? 'text-[#FF5733]' : 'text-ink-muted'}`}>
                                     {cat}
                                 </Text>
                             </Pressable>
@@ -218,7 +250,7 @@ export default function RestaurantDetailsScreen() {
                     )}
                     {!loadingMenu && categories.length === 0 && (
                         <View className="items-center py-16">
-                            <Utensils color="#444" size={40} />
+                            <Utensils color="#c4c7c7" size={40} />
                             <Text className="text-ink-faint font-body mt-4">Menu bientôt disponible.</Text>
                         </View>
                     )}
@@ -229,8 +261,8 @@ export default function RestaurantDetailsScreen() {
                         return (
                             <View key={`section-${category}`}>
                                 <View className="flex-row items-center gap-4 mb-6">
-                                    <Text className="text-xl font-title tracking-[0.04em] uppercase text-white">{category}</Text>
-                                    <View className="h-px flex-1 bg-white/10" />
+                                    <Text className="text-xl font-title tracking-[0.04em] uppercase text-ink">{category}</Text>
+                                    <View className="h-px flex-1 bg-hairline" />
                                 </View>
 
                                 <View className="flex-col gap-7">
@@ -241,18 +273,18 @@ export default function RestaurantDetailsScreen() {
                                             className="flex-row gap-4 items-start active:opacity-70"
                                         >
                                             <View className="flex-1 pt-0.5">
-                                                <Text numberOfLines={2} className="font-heading tracking-[-0.01em] text-lg text-white leading-snug">{item.name}</Text>
-                                                <Text numberOfLines={2} className="text-[#b0aca8] text-xs font-body leading-relaxed mt-1.5 mb-2.5" style={{ minHeight: 34 }}>
+                                                <Text numberOfLines={2} className="font-heading tracking-[-0.01em] text-lg text-ink leading-snug">{item.name}</Text>
+                                                <Text numberOfLines={2} className="text-ink-muted text-xs font-body leading-relaxed mt-1.5 mb-2.5" style={{ minHeight: 34 }}>
                                                     {item.short_description || 'Spécialité de la maison'}
                                                 </Text>
-                                                <Text className="font-title text-base text-white">{formatPrice(item.price_xaf)}</Text>
+                                                <Text className="font-title text-base text-ink">{formatPrice(item.price_xaf)}</Text>
                                             </View>
                                             <View className="w-[104px] h-[104px]">
-                                                <View className="w-full h-full rounded-2xl overflow-hidden bg-[#1c1b1b] items-center justify-center">
+                                                <View className="w-full h-full rounded-2xl overflow-hidden bg-surface-container-highest items-center justify-center">
                                                     {item.image_url ? (
-                                                        <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="cover" />
+                                                        <RemoteImage uri={item.image_url} displayWidth={104} className="w-full h-full" />
                                                     ) : (
-                                                        <Utensils color="#5f5e5e" size={28} />
+                                                        <Utensils color="#8d8a87" size={28} />
                                                     )}
                                                 </View>
                                                 <Pressable
@@ -261,10 +293,10 @@ export default function RestaurantDetailsScreen() {
                                                         openDish(item);
                                                     }}
                                                     hitSlop={8}
-                                                    className="absolute -bottom-2.5 -right-2.5 w-9 h-9 bg-white rounded-full items-center justify-center active:scale-90"
-                                                    style={shadowSoft}
+                                                    className="absolute -bottom-2.5 -right-2.5 w-9 h-9 bg-[#1c1b1b] rounded-full items-center justify-center active:scale-90"
+                                                    style={shadowFloat}
                                                 >
-                                                    <Plus color="#1c1b1b" size={20} />
+                                                    <Plus color="#ffffff" size={20} />
                                                 </Pressable>
                                             </View>
                                         </Pressable>
@@ -276,7 +308,7 @@ export default function RestaurantDetailsScreen() {
                 </View>
             </ScrollView>
 
-            {cartItems > 0 && isRestaurantOpen && (
+            {cartItems > 0 && isOpen && (
                 <View
                     className="absolute left-0 right-0 px-6"
                     style={{ bottom: Math.max(insets.bottom, 16) }}
@@ -285,13 +317,13 @@ export default function RestaurantDetailsScreen() {
                     <Pressable
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                            router.push('/(client)/cart');
+                            router.push('/cart');
                         }}
-                        className="w-full bg-[#FF5733] h-[60px] rounded-full flex-row items-center justify-between px-7 active:scale-[0.98]"
+                        className="w-full bg-[#FF5733] h-[54px] rounded-full flex-row items-center justify-between px-6 active:scale-[0.98]"
                         style={shadowFloat}
                     >
                         <View className="flex-row items-center gap-3">
-                            <View className="min-w-[28px] h-7 px-1.5 rounded-full bg-white/25 items-center justify-center">
+                            <View className="min-w-[26px] h-6 px-1.5 rounded-full bg-white/25 items-center justify-center">
                                 <Text className="text-white font-labelbold text-xs">{cartItems}</Text>
                             </View>
                             <Text className="text-white font-labelbold text-sm tracking-wide">Voir le panier</Text>
@@ -301,12 +333,14 @@ export default function RestaurantDetailsScreen() {
                 </View>
             )}
 
-            <DishCustomizationModal
-                dish={selectedDish}
-                restaurantName={restaurant?.name}
-                onClose={() => setSelectedDish(null)}
-                onConfirm={handleModalConfirm}
-            />
+            {selectedDish && (
+                <DishCustomizationModal
+                    dish={selectedDish}
+                    restaurantName={restaurant?.name}
+                    onClose={() => setSelectedDish(null)}
+                    onConfirm={handleModalConfirm}
+                />
+            )}
         </View>
     );
 }

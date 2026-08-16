@@ -17,15 +17,17 @@ interface AddressState {
     removeAddress: (id: string) => void;
 }
 
+// v0 shipped a pre-seeded sample address ("Portail bleu…") that real users could
+// unknowingly order to. v1 starts empty and the migration purges that sample.
+const isLegacySample = (a: SavedAddress | null | undefined) =>
+    a?.id === '1' && a.locality === 'Sabangali' && a.description.startsWith('Portail bleu');
+
 export const useAddressStore = create<AddressState>()(
     persist(
         (set) => ({
-            savedAddresses: [
-                // A default sample address so the flow has something on first launch.
-                { id: '1', locality: 'Sabangali', description: 'Portail bleu, mur blanc avec fleurs...' }
-            ],
-            selectedAddressId: '1',
-            currentAddress: { id: '1', locality: 'Sabangali', description: 'Portail bleu, mur blanc avec fleurs...' },
+            savedAddresses: [],
+            selectedAddressId: null,
+            currentAddress: null,
 
             addAddress: (address) => set((state) => {
                 const newAddress: SavedAddress = {
@@ -60,7 +62,20 @@ export const useAddressStore = create<AddressState>()(
         }),
         {
             name: 'address-store',
+            version: 1,
             storage: createJSONStorage(() => zustandStorage),
+            migrate: (persisted: any, version) => {
+                if (persisted && version < 1) {
+                    persisted.savedAddresses = (persisted.savedAddresses ?? []).filter(
+                        (a: SavedAddress) => !isLegacySample(a),
+                    );
+                    if (isLegacySample(persisted.currentAddress)) {
+                        persisted.currentAddress = persisted.savedAddresses[0] ?? null;
+                        persisted.selectedAddressId = persisted.currentAddress?.id ?? null;
+                    }
+                }
+                return persisted;
+            },
         }
     )
 );

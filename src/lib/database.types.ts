@@ -1,3 +1,12 @@
+/**
+ * Generated Supabase types, with three columns declared ahead of deployment:
+ * `restaurants.is_accepting_orders`, `orders.cash_paid_with_xaf` and
+ * `orders.eta_minutes` (see supabase_notifications.sql). All three are optional
+ * at runtime — the client keeps working against a database where the migration
+ * hasn't been applied yet. Regenerating this file after the migration is a no-op
+ * for them. The `live_activity_tokens` table is written through untyped calls
+ * for the same reason.
+ */
 export type Json =
   | string
   | number
@@ -161,6 +170,8 @@ export type Database = {
           restaurant_id: string | null
           restaurant_name: string | null
           status: string
+          cash_paid_with_xaf: number | null
+          eta_minutes: number | null
           subtotal_xaf: number
           total_xaf: number
           updated_at: string | null
@@ -183,6 +194,8 @@ export type Database = {
           restaurant_id?: string | null
           restaurant_name?: string | null
           status?: string
+          cash_paid_with_xaf?: number | null
+          eta_minutes?: number | null
           subtotal_xaf?: number
           total_xaf?: number
           updated_at?: string | null
@@ -205,6 +218,8 @@ export type Database = {
           restaurant_id?: string | null
           restaurant_name?: string | null
           status?: string
+          cash_paid_with_xaf?: number | null
+          eta_minutes?: number | null
           subtotal_xaf?: number
           total_xaf?: number
           updated_at?: string | null
@@ -257,6 +272,7 @@ export type Database = {
           genre: string | null
           id: string
           image_url: string | null
+          is_accepting_orders: boolean | null
           is_active: boolean | null
           lat: number | null
           lng: number | null
@@ -270,6 +286,7 @@ export type Database = {
           genre?: string | null
           id?: string
           image_url?: string | null
+          is_accepting_orders?: boolean | null
           is_active?: boolean | null
           lat?: number | null
           lng?: number | null
@@ -283,6 +300,7 @@ export type Database = {
           genre?: string | null
           id?: string
           image_url?: string | null
+          is_accepting_orders?: boolean | null
           is_active?: boolean | null
           lat?: number | null
           lng?: number | null

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Image, Pressable, TextInput } from 'react-native';
+import { View, Text, ScrollView, Pressable, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronRight, Minus, Plus, ArrowRight, ShoppingBag } from 'lucide-react-native';
+import { ChevronRight, Minus, Plus, ArrowRight, ShoppingBag, Utensils } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCartStore } from '../../src/store/cartStore';
+import { RemoteImage } from '../../src/components/RemoteImage';
 import { useAuthStore } from '../../src/store/authStore';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
 import { DELIVERY_FEE_XAF, SERVICE_FEE_XAF, computeOrderTotal, formatXaf as formatPrice } from '../../src/lib/pricing';
+import { restaurantEtaRange, formatEtaRange } from '../../src/lib/eta';
 import { shadowSoft, shadowFloat } from '../../src/lib/elevation';
 
 export default function CartScreen() {
@@ -22,6 +24,7 @@ export default function CartScreen() {
     const removeItem = useCartStore(state => state.removeItem);
     const isAuthenticated = useAuthStore(state => state.isAuthenticated);
     const currentRestaurantName = useCartStore(state => state.currentRestaurantName);
+    const currentRestaurantId = useCartStore(state => state.currentRestaurantId);
     const showToast = useCartStore(state => state.showToast);
 
     const handleApplyPromo = () => {
@@ -43,7 +46,7 @@ export default function CartScreen() {
             <ScreenHeader
                 title="Mon Panier"
                 back="close"
-                onBack={() => router.replace('/(client)/home' as any)}
+                onBack={() => router.replace('/home')}
                 right={
                     <Text className="text-[10px] font-label uppercase tracking-[0.08em] text-ink-faint">
                         {cartItemsCount} Article{cartItemsCount > 1 ? 's' : ''}
@@ -82,21 +85,26 @@ export default function CartScreen() {
                                 <View className="flex-row items-center justify-between mb-6">
                                     <View>
                                         <Text className="text-xl font-title tracking-tight text-ink">{currentRestaurantName || 'Restaurant'}</Text>
-                                        <Text className="text-xs text-[#444748] font-label">Livraison estimée • 20-35 min</Text>
+                                        <Text className="text-xs text-ink-muted font-label">
+                                            Livraison estimée • {currentRestaurantId ? formatEtaRange(restaurantEtaRange(currentRestaurantId)) : '—'}
+                                        </Text>
                                     </View>
-                                    <ChevronRight color="#444748" size={24} />
+                                    <ChevronRight color="#5f5e5e" size={24} />
                                 </View>
 
                                 <View className="flex-col gap-6">
                                     {items.map((item) => (
                                         <View key={item.lineId} className="flex-row gap-5 items-start p-4 -mx-4 rounded-3xl bg-white" style={shadowSoft}>
                                             <View className="w-24 h-24 rounded-2xl overflow-hidden bg-surface-container-highest flex-shrink-0 relative items-center justify-center">
-                                                <Image
-                                                    source={{ uri: item.image_url || 'https://images.unsplash.com/photo-1544025162-811114bd4760?q=80&w=400&auto=format&fit=crop' }}
-                                                    className="w-full h-full object-cover"
-                                                    style={{ width: '100%', height: '100%' }}
-                                                    resizeMode="cover"
-                                                />
+                                                {item.image_url ? (
+                                                    <RemoteImage
+                                                        uri={item.image_url}
+                                                        displayWidth={96}
+                                                        style={{ width: '100%', height: '100%' }}
+                                                    />
+                                                ) : (
+                                                    <Utensils color="#8d8a87" size={28} />
+                                                )}
                                             </View>
                                             <View className="flex-1 flex-col h-24 justify-between">
                                                 <View>
@@ -104,7 +112,7 @@ export default function CartScreen() {
                                                         <Text className="font-heading text-base leading-tight text-ink flex-1 pr-2" numberOfLines={1}>{item.name}</Text>
                                                         <Text className="font-labelbold text-sm text-ink">{formatPrice(item.price * item.quantity)}</Text>
                                                     </View>
-                                                    <Text className="text-xs text-[#444748] mt-1 font-body leading-relaxed" numberOfLines={1}>{item.note?.trim() ? item.note : 'Portion standard'}</Text>
+                                                    <Text className="text-xs text-ink-muted mt-1 font-body leading-relaxed" numberOfLines={1}>{item.note?.trim() ? item.note : 'Portion standard'}</Text>
                                                 </View>
                                                 <View className="flex-row items-center justify-between mt-2">
                                                     <View className="flex-row items-center bg-surface-container-highest rounded-full p-1 h-9">
@@ -166,15 +174,15 @@ export default function CartScreen() {
                             {/* Summary */}
                             <View className="mb-4 flex-col gap-4">
                                 <View className="flex-row justify-between items-center">
-                                    <Text className="text-sm text-[#444748] font-body">Sous-total</Text>
+                                    <Text className="text-sm text-ink-muted font-body">Sous-total</Text>
                                     <Text className="text-sm font-label text-ink">{formatPrice(cartTotal)}</Text>
                                 </View>
                                 <View className="flex-row justify-between items-center">
-                                    <Text className="text-sm text-[#444748] font-body">Frais de livraison</Text>
+                                    <Text className="text-sm text-ink-muted font-body">Frais de livraison</Text>
                                     <Text className="text-sm font-label text-ink">{formatPrice(deliveryFee)}</Text>
                                 </View>
                                 <View className="flex-row justify-between items-center">
-                                    <Text className="text-sm text-[#444748] font-body">Frais de service</Text>
+                                    <Text className="text-sm text-ink-muted font-body">Frais de service</Text>
                                     <Text className="text-sm font-label text-ink">{formatPrice(serviceFee)}</Text>
                                 </View>
 
@@ -184,7 +192,7 @@ export default function CartScreen() {
                                         <Text className="text-3xl font-display tracking-tight text-ink">{formatPrice(finalTotal)}</Text>
                                     </View>
                                     <View className="pb-1">
-                                        <Text className="text-[10px] text-[#444748] italic font-body">TVA incluse</Text>
+                                        <Text className="text-[10px] text-ink-muted italic font-body">Paiement à la livraison</Text>
                                     </View>
                                 </View>
                             </View>
@@ -203,12 +211,12 @@ export default function CartScreen() {
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             if (isAuthenticated) {
-                                router.push('/(client)/checkout-address');
+                                router.push('/checkout-address');
                             } else {
                                 router.push('/login');
                             }
                         }}
-                        className="w-full bg-[#1c1b1b] h-14 rounded-full flex-row items-center justify-between px-8 active:scale-[0.98] transition-transform"
+                        className="w-full bg-[#1c1b1b] h-[54px] rounded-full flex-row items-center justify-between px-6 active:scale-[0.98]"
                         style={shadowFloat}
                     >
                         <Text className="text-sm font-labelbold text-white">Commander</Text>

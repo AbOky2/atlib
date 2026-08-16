@@ -20,7 +20,12 @@ export const useNotificationStore = create<NotificationStore>()(
             readIds: [],
             lastSeenAt: null,
             markRead: (id) =>
-                set((state) => (state.readIds.includes(id) ? state : { readIds: [...state.readIds, id] })),
+                set((state) => {
+                    if (state.readIds.includes(id)) return state;
+                    const next = [...state.readIds, id];
+                    // Same cap as markAllRead — the persisted set must never grow unbounded.
+                    return { readIds: next.length > 200 ? next.slice(next.length - 200) : next };
+                }),
             markAllRead: (ids) =>
                 set((state) => {
                     const merged = Array.from(new Set([...state.readIds, ...ids]));

@@ -6,19 +6,32 @@ import SwiftUI
 private let brand = Color(red: 1.0, green: 0.34, blue: 0.2) // #FF5733
 private let inkOnDark = Color.white
 private let mutedOnDark = Color.white.opacity(0.55)
-private let faintOnDark = Color.white.opacity(0.35)
 
 /// The lifecycle is encoded in `progress` (see src/lib/orderStatus.ts) — map it
 /// back to a step icon without touching the ContentState contract.
+/// ⚠️ These bucket boundaries are a contract with STATUS_META.progress; it is
+/// locked by tests/liveActivityContract.test.cjs so the two can't drift apart.
 private func stepSymbol(for progress: Double) -> String {
     switch progress {
     case ..<0.2: return "hourglass"
     case ..<0.35: return "checkmark.seal.fill"
     case ..<0.55: return "flame.fill"
     case ..<0.75: return "bag.fill"
-    case ..<0.95: return "bicycle"
+    // The restaurant delivers itself, by moto in N'Djamena — not by bicycle.
+    case ..<0.95: return "scooter"
     default: return "checkmark.circle.fill"
     }
+}
+
+/// Deep link to THIS order's tracking screen.
+///
+/// expo-router maps `app/(client)/tracking.tsx` to `/tracking` — the `(client)`
+/// group never appears in the URL — and the screen reads `orderId` from the
+/// QUERY string. A path segment (`/tracking/<id>`) matches no route at all and
+/// would drop the user on the not-found screen.
+private func trackingURL(_ orderId: String) -> URL? {
+    let id = orderId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? orderId
+    return URL(string: "chaddelivery://tracking?orderId=\(id)")
 }
 
 private func stepIndex(for progress: Double) -> Int {
@@ -40,6 +53,9 @@ struct ChadDeliveryLiveActivity: Widget {
                 .padding(18)
                 .activityBackgroundTint(Color(red: 0.055, green: 0.05, blue: 0.05).opacity(0.96))
                 .activitySystemActionForegroundColor(.white)
+                // Without this, tapping the LOCK SCREEN activity just opened the
+                // app on Home — only the Dynamic Island carried a destination.
+                .widgetURL(trackingURL(context.attributes.orderId))
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -61,7 +77,7 @@ struct ChadDeliveryLiveActivity: Widget {
                         Text(context.state.deliveryTime)
                             .font(.system(size: 16, weight: .heavy, design: .rounded))
                             .foregroundColor(inkOnDark)
-                        Text("estimé")
+                        Text("arrivée")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundColor(mutedOnDark)
                     }
@@ -95,7 +111,7 @@ struct ChadDeliveryLiveActivity: Widget {
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(brand)
             }
-            .widgetURL(URL(string: "chaddelivery://tracking/\(context.attributes.orderId)"))
+            .widgetURL(trackingURL(context.attributes.orderId))
             .keylineTint(brand)
         }
     }
@@ -137,7 +153,7 @@ private struct LockScreenView: View {
                     Text(context.state.deliveryTime)
                         .font(.system(size: 21, weight: .heavy, design: .rounded))
                         .foregroundColor(inkOnDark)
-                    Text("estimé")
+                    Text("arrivée")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(mutedOnDark)
                 }

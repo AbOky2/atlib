@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CreditCard, Banknote, ShieldCheck, Clock, MapPin, Pencil, MessageSquare } from 'lucide-react-native';
+import { CreditCard, Banknote, ShieldCheck, Clock, MapPin, Pencil, MessageSquare, Phone, Coins } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useQueryClient } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ import { DELIVERY_FEE_XAF, SERVICE_FEE_XAF, computeOrderTotal, formatXaf as form
 import { shadowSoft, shadowFloat } from '../../src/lib/elevation';
 import { COLORS } from '../../src/lib/palette';
 import { uuidv4 } from '../../src/lib/ids';
+import { suggestedCashAmounts, changeToGive } from '../../src/lib/cash';
 
 function SectionLabel({ children }: { children: string }) {
     return (
@@ -41,6 +42,8 @@ export default function PaymentMethodScreen() {
     const headerOffset = useHeaderOffset();
     const [selectedMethod, setSelectedMethod] = useState<'cash'>('cash');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    // null = exact change ("j'ai l'appoint"), a number = the note handed over.
+    const [cashPaidWith, setCashPaidWith] = useState<number | null>(null);
     const queryClient = useQueryClient();
 
     // Idempotency key: one per checkout attempt. Survives retries (a lost
@@ -60,6 +63,8 @@ export default function PaymentMethodScreen() {
 
     const finalTotal = computeOrderTotal(cartTotal);
     const eta = deliveryAddress ? getEstimatedDeliveryTime(deliveryAddress.locality) : null;
+    const cashOptions = suggestedCashAmounts(finalTotal);
+    const change = changeToGive(finalTotal, cashPaidWith);
 
     const handleConfirmOrder = async () => {
         if (inFlightRef.current) return;
@@ -68,8 +73,10 @@ export default function PaymentMethodScreen() {
             return;
         }
         if (items.length === 0) return;
-        if (!deliveryAddress) {
-            router.replace('/(client)/checkout-address');
+        // The address AND the contact number are captured on the previous screen —
+        // without either, the restaurant cannot deliver. Send the user back.
+        if (!deliveryAddress || !deliveryAddress.phone) {
+            router.replace('/checkout-address');
             return;
         }
 
@@ -81,7 +88,7 @@ export default function PaymentMethodScreen() {
             const createdOrder = await createOrder({
                 customer_id: user.id,
                 customer_name: user.user_metadata?.full_name || 'Client',
-                customer_phone: user.user_metadata?.phone || '00000000',
+                customer_phone: deliveryAddress.phone,
                 restaurant_id: items[0].restaurantId,
                 restaurant_name: items[0].restaurantName || 'Restaurant',
                 delivery_address: formattedAddress,
@@ -91,6 +98,9 @@ export default function PaymentMethodScreen() {
                 delivery_fee_xaf: DELIVERY_FEE_XAF,
                 total_xaf: finalTotal,
                 payment_method: selectedMethod,
+                // null means "exact change"; the restaurant then owes nothing back.
+                cash_paid_with_xaf: cashPaidWith,
+                eta_minutes: eta,
                 client_request_id: requestIdRef.current,
                 items: items.map(item => ({
                     dish_id: item.id,
@@ -108,7 +118,7 @@ export default function PaymentMethodScreen() {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             clearCart();
             router.replace({
-                pathname: '/(client)/order-confirmed',
+                pathname: '/order-confirmed',
                 params: { orderId: createdOrder?.id ?? '' },
             });
         } catch (error: any) {
@@ -172,6 +182,15 @@ export default function PaymentMethodScreen() {
                             </View>
                             <Pencil color={COLORS.inkFaint} size={16} style={{ marginTop: 4 }} />
                         </Pressable>
+
+                        {deliveryAddress?.phone ? (
+                            <View className="px-5 pb-3 -mt-1 flex-row items-center gap-2.5 pl-[76px]">
+                                <Phone color={COLORS.inkFaint} size={13} />
+                                <Text className="flex-1 text-[12px] font-body text-ink-faint" numberOfLines={1}>
+                                    {deliveryAddress.phone}
+                                </Text>
+                            </View>
+                        ) : null}
 
                         {deliveryAddress?.note ? (
                             <View className="px-5 pb-4 -mt-1 flex-row items-center gap-2.5 pl-[76px]">
@@ -244,6 +263,68 @@ export default function PaymentMethodScreen() {
                             </View>
                             <Radio selected={false} />
                         </Pressable>
+                    </View>
+
+                    {/* Change — the question that saves the doorstep conversation */}
+                    <SectionLabel>Vous payez avec</SectionLabel>
+                    <View className="bg-white rounded-sheet border border-surface-container-highest mb-8 p-5" style={shadowSoft}>
+                        <Text className="text-[13px] font-body text-ink-muted leading-relaxed mb-4">
+                            Indiquez le billet que vous aurez, pour que le restaurant prépare votre monnaie.
+                        </Text>
+
+                        <View className="flex-row flex-wrap gap-2.5">
+                            <Pressable
+                                onPress={() => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    setCashPaidWith(null);
+                                }}
+                                accessibilityRole="radio"
+                                accessibilityState={{ checked: cashPaidWith === null }}
+                                className={`px-4 h-11 rounded-full items-center justify-center border active:scale-[0.97] ${
+                                    cashPaidWith === null
+                                        ? 'bg-[#1c1b1b] border-[#1c1b1b]'
+                                        : 'bg-white border-surface-container-highest'
+                                }`}
+                            >
+                                <Text className={`text-[13px] font-labelbold ${cashPaidWith === null ? 'text-white' : 'text-ink'}`}>
+                                    J'ai l'appoint
+                                </Text>
+                            </Pressable>
+
+                            {cashOptions.map((amount) => {
+                                const selected = cashPaidWith === amount;
+                                return (
+                                    <Pressable
+                                        key={amount}
+                                        onPress={() => {
+                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                            setCashPaidWith(amount);
+                                        }}
+                                        accessibilityRole="radio"
+                                        accessibilityState={{ checked: selected }}
+                                        className={`px-4 h-11 rounded-full items-center justify-center border active:scale-[0.97] ${
+                                            selected
+                                                ? 'bg-[#1c1b1b] border-[#1c1b1b]'
+                                                : 'bg-white border-surface-container-highest'
+                                        }`}
+                                    >
+                                        <Text className={`text-[13px] font-labelbold ${selected ? 'text-white' : 'text-ink'}`}>
+                                            {formatPrice(amount)}
+                                        </Text>
+                                    </Pressable>
+                                );
+                            })}
+                        </View>
+
+                        {change != null && change > 0 ? (
+                            <View className="flex-row items-center gap-2.5 mt-4 pt-4 border-t border-surface-container-highest">
+                                <Coins color={COLORS.accent} size={16} />
+                                <Text className="flex-1 text-[13px] font-body text-ink-muted">
+                                    Le restaurant vous rendra
+                                </Text>
+                                <Text className="text-[15px] font-title text-ink">{formatPrice(change)}</Text>
+                            </View>
+                        ) : null}
                     </View>
 
                     {/* Order summary */}

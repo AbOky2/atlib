@@ -156,7 +156,24 @@ $$;
 --           OR restaurant_id = (SELECT public.my_restaurant_id()) )
 
 -- ----------------------------------------------------------------------------
--- 6. Garde-fous d'infra
+-- 6. Garde-fous d'infra (best effort)
+--
+-- Sur Supabase hébergé, `authenticated` et `anon` sont des rôles RÉSERVÉS : le
+-- rôle `postgres` du SQL Editor n'est pas superutilisateur et se voit refuser
+-- l'ALTER ROLE avec 42501. Comme l'éditeur exécute tout le script dans UNE
+-- transaction, cet échec annulait l'intégralité du déploiement — l'index unique,
+-- la RPC, les index : tout était perdu pour une ligne de confort.
+--
+-- On tente donc la mise en place, et on l'ignore proprement si la plateforme la
+-- refuse. Le timeout n'est pas nécessaire au fonctionnement de l'app ; c'est une
+-- ceinture de sécurité contre les requêtes folles, à régler sinon depuis
+-- Dashboard → Settings → Database.
 -- ----------------------------------------------------------------------------
-ALTER ROLE authenticated SET statement_timeout = '5s';
-ALTER ROLE anon          SET statement_timeout = '5s';
+DO $$
+BEGIN
+    EXECUTE 'ALTER ROLE authenticated SET statement_timeout = ''5s''';
+    EXECUTE 'ALTER ROLE anon SET statement_timeout = ''5s''';
+    RAISE NOTICE 'statement_timeout appliqué aux rôles API.';
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'statement_timeout non modifiable ici (rôles réservés) — étape ignorée, le reste du script est appliqué.';
+END $$;

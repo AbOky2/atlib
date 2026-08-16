@@ -62,7 +62,7 @@ export default function OrdersScreen() {
                             <Text className="text-xl font-title text-ink mt-6">Aucune commande</Text>
                             <Text className="text-sm text-ink-muted text-center font-body mt-2">Vous n'avez pas encore passé de commande.</Text>
                             <Pressable
-                                onPress={() => router.replace('/(client)/home' as any)}
+                                onPress={() => router.replace('/home')}
                                 className="bg-[#FF5733] px-8 py-4 rounded-full mt-8 active:scale-95"
                             >
                                 <Text className="text-white text-xs font-labelbold">Commander</Text>
@@ -89,7 +89,7 @@ export default function OrdersScreen() {
                                         key={order.id}
                                         onPress={() => {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                            router.push({ pathname: '/(client)/tracking', params: { orderId: order.id } });
+                                            router.push({ pathname: '/tracking', params: { orderId: order.id } });
                                         }}
                                         className="bg-white rounded-3xl p-5 border border-hairline active:scale-[0.99]"
                                         style={shadowSoft}

@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Image } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { Heart, Star, Clock, Bike } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useRestaurants } from '../../src/hooks/useSupabase';
+import { RemoteImage } from '../../src/components/RemoteImage';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useCartStore } from '../../src/store/cartStore';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
@@ -30,7 +31,7 @@ export default function FavoritesScreen() {
             <ScreenHeader
                 title="Mes Favoris"
                 back="arrow"
-                onBack={() => router.replace('/(client)/home' as any)}
+                onBack={() => router.replace('/home')}
                 right={
                     <View className="flex-row items-center gap-1">
                         <Heart fill="#FF5733" color="#FF5733" size={18} />
@@ -54,7 +55,7 @@ export default function FavoritesScreen() {
                             <Text className="text-xl font-title text-ink mt-6">Aucun favori</Text>
                             <Text className="text-sm text-ink-muted text-center font-body mt-2">Appuyez sur ♥ sur un restaurant pour le sauvegarder ici.</Text>
                             <Pressable
-                                onPress={() => router.replace('/(client)/home' as any)}
+                                onPress={() => router.replace('/home')}
                                 className="bg-[#FF5733] px-8 py-4 rounded-full mt-8 active:scale-95"
                             >
                                 <Text className="text-white text-xs font-labelbold">Explorer</Text>
@@ -67,13 +68,13 @@ export default function FavoritesScreen() {
                                     key={restaurant.id}
                                     onPress={() => {
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                                        router.push({ pathname: '/(client)/restaurant', params: { id: restaurant.id } });
+                                        router.push({ pathname: '/restaurant', params: { id: restaurant.id } });
                                     }}
                                     className="bg-white rounded-3xl overflow-hidden border border-hairline active:scale-[0.98]"
                                     style={shadowSoft}
                                 >
                                     <View className="h-44 relative">
-                                        <Image source={{ uri: restaurant.image_url ?? '' }} className="w-full h-full" resizeMode="cover" />
+                                        <RemoteImage uri={restaurant.image_url} displayWidth={360} className="w-full h-full" />
                                         {/* Flat scrim (no gradient) for legibility of the name over the photo. */}
                                         <View className="absolute inset-0 bg-black/30" />
                                         <Pressable

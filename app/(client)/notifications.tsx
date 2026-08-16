@@ -50,7 +50,8 @@ export default function NotificationsScreen() {
 
     const openNotification = (n: AppNotification) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.push('/(client)/tracking');
+        // Open THE order the notification is about — not just the active one.
+        router.push({ pathname: '/tracking', params: { orderId: n.orderId } });
     };
 
     return (

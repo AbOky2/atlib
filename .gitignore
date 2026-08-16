@@ -31,7 +31,12 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+# `.env*.local` seul laissait passer un simple `.env` — or c'est exactement le
+# nom qu'utilise `supabase functions serve` pour les secrets locaux (clé privée
+# APNs comprise). On ignore toute la famille.
+.env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo

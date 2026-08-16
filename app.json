@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.okimy.chaddelivery",
-      "appleTeamId": "A_REMPLACER_PAR_TON_TEAM_ID",
+      "appleTeamId": "P268RXF8X7",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSSupportsLiveActivities": true
@@ -23,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#fcf9f8",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -40,7 +40,14 @@
       "./plugins/withLiveActivity",
       "@bacons/apple-targets",
       "expo-splash-screen",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-image",
+      [
+        "expo-notifications",
+        {
+          "color": "#FF5733"
+        }
+      ]
     ],
     "extra": {
       "router": {},

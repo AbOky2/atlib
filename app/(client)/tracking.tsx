@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, ScrollView, Pressable, Animated, Platform, Linking, LayoutAnimation, UIManager } from 'react-native';
+import { View, Text, ScrollView, Pressable, Animated, Platform, LayoutAnimation, UIManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, ChevronDown, ChevronUp, Receipt, Package, UtensilsCrossed, MapPin, LifeBuoy, Bike, ChefHat, Home, Clock, X, Smartphone, type LucideIcon } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -11,15 +11,18 @@ import { useCartStore } from '../../src/store/cartStore';
 import { useUserOrders, updateOrderStatus, ORDER_ERRORS } from '../../src/hooks/useSupabase';
 import { findActiveOrder, statusIndex, statusMeta, STATUS_FLOW, STATUS_META, type OrderStatus } from '../../src/lib/orderStatus';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
+import { getEstimatedDeliveryTime } from '../../src/lib/localities';
+import { liveActivityRunning } from '../../src/lib/liveActivity';
+import { arrivalTimeLabel } from '../../src/lib/eta';
 import { formatXaf } from '../../src/lib/pricing';
 import { shadowSoft } from '../../src/lib/elevation';
 import { COLORS } from '../../src/lib/palette';
 
+import { openSupportChat, SUPPORT_ORDER_MESSAGE } from '../../src/lib/support';
+
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-const SUPPORT_WHATSAPP = 'whatsapp://send?phone=+23566000000&text=Bonjour,%20j%27ai%20besoin%20d%27aide%20avec%20ma%20commande.';
 
 const STEP_ICON: Record<OrderStatus, LucideIcon> = {
     PENDING: Receipt,
@@ -160,6 +163,7 @@ export default function TrackingScreen() {
     const queryClient = useQueryClient();
     const [isOrderDetailsExpanded, setIsOrderDetailsExpanded] = useState(false);
     const [cancelling, setCancelling] = useState(false);
+    const [activityRunning, setActivityRunning] = useState(false);
     const user = useAuthStore(state => state.user);
     const showToast = useCartStore(state => state.showToast);
     const showDialog = useCartStore(state => state.showDialog);
@@ -174,10 +178,21 @@ export default function TrackingScreen() {
         || orders?.[0];
 
     const neighborhood = (activeOrder as any)?.delivery_zone || '';
+    // Same computation the Live Activity uses, so the two can never disagree.
+    const arrival = arrivalTimeLabel(
+        activeOrder?.created_at,
+        getEstimatedDeliveryTime(neighborhood || activeOrder?.delivery_address || '') || 15,
+    );
     const index = activeOrder ? statusIndex(activeOrder.status) : 0;
     const cancelled = activeOrder?.status === 'CANCELLED';
     const delivered = activeOrder?.status === 'DELIVERED';
     const live = !!activeOrder && !cancelled && !delivered;
+
+    // Re-check on every status change: the activity starts at confirmation and
+    // ends when the order does.
+    useEffect(() => {
+        setActivityRunning(liveActivityRunning());
+    }, [activeOrder?.status, activeOrder?.id]);
 
     // Let the timeline glide when the status advances (poll or realtime push).
     const prevIndex = useRef(index);
@@ -223,7 +238,7 @@ export default function TrackingScreen() {
                     await updateOrderStatus(activeOrder.id, 'CANCELLED', 'PENDING');
                     await queryClient.invalidateQueries({ queryKey: ['orders', user?.id] });
                     showToast('Commande annulée avec succès', 'success');
-                    router.replace('/(client)/home');
+                    router.replace('/home');
                 } catch (error: any) {
                     if (error?.message === ORDER_ERRORS.STATUS_CONFLICT) {
                         showToast('Trop tard — le restaurant a déjà accepté votre commande.', 'error');
@@ -249,7 +264,7 @@ export default function TrackingScreen() {
                     Votre prochaine commande apparaîtra ici, avec son suivi en direct.
                 </Text>
                 <Pressable
-                    onPress={() => router.replace('/(client)/home')}
+                    onPress={() => router.replace('/home')}
                     className="bg-[#1c1b1b] px-8 py-4 rounded-full active:scale-95"
                 >
                     <Text className="text-white text-xs font-labelbold">Commander</Text>
@@ -270,12 +285,12 @@ export default function TrackingScreen() {
             <ScreenHeader
                 title="Suivi de commande"
                 back="close"
-                onBack={() => router.replace('/(client)/home' as any)}
+                onBack={() => router.replace('/home')}
                 right={
                     <Pressable
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                            Linking.openURL(SUPPORT_WHATSAPP).catch(() => {});
+                            openSupportChat(SUPPORT_ORDER_MESSAGE);
                         }}
                         accessibilityRole="button"
                         accessibilityLabel="Aide"
@@ -299,8 +314,23 @@ export default function TrackingScreen() {
                     {/* Status hero */}
                     <StatusHero status={activeOrder.status} />
 
-                    {/* Live Activity hint — the ETA lives on the lock screen / island. */}
-                    {live && Platform.OS === 'ios' && index >= 1 && (
+                    {/* Off iOS there is no Dynamic Island to own the ETA, so the
+                        arrival time belongs here — otherwise those users would have
+                        no time information anywhere in the product. */}
+                    {live && Platform.OS !== 'ios' && index >= 1 && arrival && (
+                        <View className="flex-row items-center gap-3 bg-surface-container-low rounded-2xl px-4 py-3.5 mb-6">
+                            <View className="w-9 h-9 rounded-full bg-[#1c1b1b] items-center justify-center">
+                                <Clock color="#fff" size={16} />
+                            </View>
+                            <Text className="flex-1 text-[13px] font-body text-ink-muted leading-snug">
+                                Arrivée estimée vers <Text className="font-labelbold text-ink">{arrival}</Text>
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Live Activity hint — shown ONLY when one is really running,
+                        so the app never claims a lock-screen tracker it doesn't have. */}
+                    {live && Platform.OS === 'ios' && index >= 1 && activityRunning && (
                         <View className="flex-row items-center gap-3 bg-surface-container-low rounded-2xl px-4 py-3.5 mb-6">
                             <View className="w-9 h-9 rounded-full bg-[#1c1b1b] items-center justify-center">
                                 <Smartphone color="#fff" size={16} />
@@ -433,7 +463,7 @@ export default function TrackingScreen() {
                     {/* Terminal states — back home CTA */}
                     {(delivered || cancelled) && (
                         <Pressable
-                            onPress={() => router.replace('/(client)/home')}
+                            onPress={() => router.replace('/home')}
                             className="mb-10 w-full py-4 rounded-full bg-[#1c1b1b] items-center active:scale-[0.98]"
                         >
                             <Text className="text-white font-labelbold text-sm">

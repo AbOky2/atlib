@@ -27,3 +27,26 @@ export function restaurantEtaRange(restaurantId: string): EtaRange {
 }
 
 export const formatEtaRange = ({ min, max }: EtaRange): string => `${min}–${max} min`;
+
+/**
+ * Wall-clock arrival label ("19h45") for an order placed at `createdAtIso`.
+ *
+ * Deliberately NOT a countdown. A Live Activity is read from a LOCKED screen —
+ * precisely when the app is not running — so a "12 min" string would freeze at
+ * whatever value it held when the app was last foregrounded and quietly lie for
+ * the rest of the delivery. A target time is computed once, needs no refresh,
+ * and stays true whether the app runs or not.
+ *
+ * Returns null for an unusable timestamp so callers can degrade to "Bientôt".
+ */
+export function arrivalTimeLabel(
+    createdAtIso: string | null | undefined,
+    etaMinutes: number,
+): string | null {
+    if (!createdAtIso) return null;
+    const placedAt = new Date(createdAtIso).getTime();
+    if (Number.isNaN(placedAt)) return null;
+    const arrival = new Date(placedAt + etaMinutes * 60_000);
+    // French convention: bare hour, zero-padded minutes ("9h05", "19h45").
+    return `${arrival.getHours()}h${String(arrival.getMinutes()).padStart(2, '0')}`;
+}

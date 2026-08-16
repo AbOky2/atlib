@@ -110,8 +110,14 @@ export function useUserOrders(customerId: string | undefined) {
     });
 }
 
-/** RPC helper: the restaurant id owned by the authenticated (admin) user. */
-export function useMyRestaurantId() {
+/**
+ * RPC helper: the restaurant id owned by the authenticated (admin) user.
+ *
+ * Returns null for a normal customer, which is exactly how the client app tells
+ * whether to offer the staff entry point. `enabled` keeps signed-out users from
+ * calling it at all.
+ */
+export function useMyRestaurantId(enabled = true) {
     return useQuery({
         queryKey: ['my-restaurant-id'],
         queryFn: async () => {
@@ -119,6 +125,8 @@ export function useMyRestaurantId() {
             if (error) throw error;
             return (data as string | null) ?? null;
         },
+        enabled,
+        staleTime: 1000 * 60 * 10,
     });
 }
 
@@ -154,6 +162,12 @@ export interface CreateOrderInput {
     /** Idempotency key: generated ONCE per checkout attempt so a retry after a
      *  lost response returns the SAME order instead of creating a second one. */
     client_request_id?: string;
+    /** Cash the customer will hand over, so the restaurant brings the change. */
+    cash_paid_with_xaf?: number | null;
+    /** Announced delivery time in minutes, persisted so the SERVER can rebuild
+     *  the arrival label for Live Activity pushes without duplicating the
+     *  locality table (see src/lib/localities.ts). */
+    eta_minutes?: number | null;
     items: { dish_id: string; name: string; qty: number; price_xaf: number }[];
 }
 
@@ -167,6 +181,9 @@ export const ORDER_ERRORS = {
 const RPC_MISSING_CODES = new Set(['PGRST202', '42883']);
 // Postgres unique violation — the partial unique index on live orders fired.
 const UNIQUE_VIOLATION = '23505';
+// Undefined column (42703) / schema cache miss (PGRST204): a newer optional field
+// isn't in this database yet. We retry without it rather than fail the checkout.
+const MISSING_COLUMN_CODES = new Set(['42703', 'PGRST204']);
 
 /**
  * Create a new order.
@@ -201,31 +218,44 @@ export async function createOrder(order: CreateOrderInput) {
         throw new Error(ORDER_ERRORS.ACTIVE_ORDER_EXISTS);
     }
 
-    const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-            customer_id: order.customer_id,
-            customer_name: order.customer_name,
-            customer_phone: order.customer_phone,
-            restaurant_id: order.restaurant_id,
-            restaurant_name: order.restaurant_name,
-            delivery_address: order.delivery_address,
-            delivery_zone: order.delivery_zone,
-            delivery_note: order.delivery_note,
-            delivery_lat: order.delivery_lat,
-            delivery_lng: order.delivery_lng,
-            subtotal_xaf: order.subtotal_xaf,
-            delivery_fee_xaf: order.delivery_fee_xaf,
-            total_xaf: order.total_xaf,
-            payment_method: order.payment_method,
-            status: 'PENDING',
-        })
-        .select()
-        .single();
+    const baseRow = {
+        customer_id: order.customer_id,
+        customer_name: order.customer_name,
+        customer_phone: order.customer_phone,
+        restaurant_id: order.restaurant_id,
+        restaurant_name: order.restaurant_name,
+        delivery_address: order.delivery_address,
+        delivery_zone: order.delivery_zone,
+        delivery_note: order.delivery_note,
+        delivery_lat: order.delivery_lat,
+        delivery_lng: order.delivery_lng,
+        subtotal_xaf: order.subtotal_xaf,
+        delivery_fee_xaf: order.delivery_fee_xaf,
+        total_xaf: order.total_xaf,
+        payment_method: order.payment_method,
+        status: 'PENDING',
+    };
+    // Fields added after the original schema. If this database predates them the
+    // insert is retried without them — a missing "change to give" must never
+    // cost the customer their order.
+    const optionalRow = {
+        ...(order.cash_paid_with_xaf != null ? { cash_paid_with_xaf: order.cash_paid_with_xaf } : {}),
+        ...(order.eta_minutes != null ? { eta_minutes: order.eta_minutes } : {}),
+    };
 
-    if (orderError) {
-        if (orderError.code === UNIQUE_VIOLATION) throw new Error(ORDER_ERRORS.ACTIVE_ORDER_EXISTS);
-        throw orderError;
+    const insertHeader = (row: Record<string, unknown>) =>
+        supabase.from('orders').insert(row).select().single();
+
+    let { data: orderData, error: orderError } = await insertHeader({ ...baseRow, ...optionalRow });
+
+    if (orderError && MISSING_COLUMN_CODES.has(orderError.code ?? '') && Object.keys(optionalRow).length) {
+        console.warn('[createOrder] colonne optionnelle absente — nouvel essai sans elle');
+        ({ data: orderData, error: orderError } = await insertHeader(baseRow));
+    }
+
+    if (orderError || !orderData) {
+        if (orderError?.code === UNIQUE_VIOLATION) throw new Error(ORDER_ERRORS.ACTIVE_ORDER_EXISTS);
+        throw orderError ?? new Error('ORDER_CREATE_FAILED');
     }
 
     const orderItems = items.map(item => ({
@@ -272,6 +302,58 @@ export function useRestaurantOrders(restaurantId: string | undefined) {
         // and thousands of restaurants don't scan the orders table every 15s unconditionally.
         refetchInterval: (query) => (hasLiveOrder(query.state.data) ? 20000 + Math.floor(Math.random() * 8000) : false),
     });
+}
+
+/**
+ * The restaurant's FULL menu, including dishes currently switched off.
+ *
+ * Distinct from useDishes, which is the customer's view and filters to what is
+ * actually orderable — the kitchen needs to see what it has hidden in order to
+ * bring it back.
+ */
+export function useMenuDishes(restaurantId: string | undefined) {
+    return useQuery({
+        queryKey: ['menu-dishes', restaurantId],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('dishes')
+                .select('*, categories(*)')
+                .eq('restaurant_id', restaurantId!)
+                .order('name');
+            if (error) throw error;
+            return data;
+        },
+        enabled: !!restaurantId,
+        staleTime: 1000 * 60 * 5,
+    });
+}
+
+/** Switch a dish on or off the menu. */
+export async function setDishAvailability(dishId: string, available: boolean) {
+    const { error } = await supabase
+        .from('dishes')
+        .update({ is_available: available })
+        .eq('id', dishId);
+    if (error) throw error;
+}
+
+/**
+ * Open or close a restaurant to new orders.
+ *
+ * Throws COLUMN_MISSING when the database hasn't been migrated yet, so the UI
+ * can explain the situation instead of pretending the switch worked.
+ */
+export const AVAILABILITY_ERRORS = { COLUMN_MISSING: 'COLUMN_MISSING' } as const;
+
+export async function setRestaurantAcceptingOrders(restaurantId: string, accepting: boolean) {
+    const { error } = await supabase
+        .from('restaurants')
+        .update({ is_accepting_orders: accepting })
+        .eq('id', restaurantId);
+    if (error) {
+        if (MISSING_COLUMN_CODES.has(error.code ?? '')) throw new Error(AVAILABILITY_ERRORS.COLUMN_MISSING);
+        throw error;
+    }
 }
 
 /**

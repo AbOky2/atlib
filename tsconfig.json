@@ -7,5 +7,12 @@
     "**/*.ts",
     "**/*.tsx",
     "global.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".test-build",
+    // Edge Functions run on Deno, with their own globals and URL imports —
+    // they are not part of the React Native program.
+    "supabase/functions"
   ]
 }

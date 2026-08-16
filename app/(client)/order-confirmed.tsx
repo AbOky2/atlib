@@ -28,8 +28,10 @@ const ACT_1_MS = 1500;
 const ACT_2_MS = 1600;
 const ACT_3_MS = 1500;
 
+// Payment is cash on delivery — nothing has been charged at this point, so the
+// copy celebrates the ORDER, never a "payment".
 const STAGES = [
-    { title: 'Paiement confirmé', subtitle: 'Votre commande est validée' },
+    { title: 'Commande confirmée', subtitle: 'Votre commande est validée' },
     { title: 'Transmission au restaurant', subtitle: 'Le chef reçoit votre commande…' },
     { title: "C'est parti !", subtitle: 'Suivez votre commande en direct' },
 ] as const;
@@ -78,7 +80,7 @@ export default function OrderConfirmedScreen() {
     const goToTracking = () => {
         if (doneRef.current) return;
         doneRef.current = true;
-        router.replace(orderId ? { pathname: '/(client)/tracking', params: { orderId } } : '/(client)/tracking');
+        router.replace(orderId ? { pathname: '/tracking', params: { orderId } } : '/tracking');
     };
 
     useEffect(() => {

@@ -11,6 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from '../src/store/authStore';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { BrandSplash } from '../src/components/BrandSplash';
+import PushNotificationsSync from '../src/components/PushNotificationsSync';
 import { setupReactQueryNetwork } from '../src/lib/reactQueryNetwork';
 
 SplashScreen.preventAutoHideAsync();
@@ -57,6 +58,7 @@ export default function RootLayout() {
             <QueryClientProvider client={queryClient}>
                 <>
                     <Stack screenOptions={{ headerShown: false }} />
+                    <PushNotificationsSync />
                     <Toast />
                     {!splashDone && <BrandSplash onDone={() => setSplashDone(true)} />}
                     <StatusBar style="dark" />

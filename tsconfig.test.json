@@ -17,6 +17,11 @@
     "src/lib/localities.ts",
     "src/lib/ids.ts",
     "src/lib/reconcile.ts",
-    "src/lib/cartLine.ts"
+    "src/lib/cartLine.ts",
+    "src/lib/cash.ts",
+    "src/lib/availability.ts",
+    "src/lib/images.ts",
+    "src/lib/phone.ts",
+    "src/lib/categories.ts"
   ]
 }

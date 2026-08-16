@@ -1,42 +1,35 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TextInput, Image, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Star, Clock, Truck, Flame, Beef, Pizza, Coffee, X } from 'lucide-react-native';
+import { Search, Star, Clock, Truck, X } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useRestaurants, prefetchRestaurant } from '../../src/hooks/useSupabase';
-import { CategoryChip } from '../../src/components/CategoryChip';
-import { useHeaderInsetTop } from '../../src/components/ScreenHeader';
-import { restaurantEtaRange, formatEtaRange } from '../../src/lib/eta';
-import { DELIVERY_FEE_XAF, formatXaf } from '../../src/lib/pricing';
-import { shadowSoft } from '../../src/lib/elevation';
-
-const CATEGORIES = [
-    { id: 'all', icon: <Flame color="#FF5733" size={20} />, label: 'Tout' },
-    { id: 'grillades', icon: <Beef color="#D9480F" size={20} />, label: 'Grillades' },
-    { id: 'pizza', icon: <Pizza color="#E8590C" size={20} />, label: 'Pizza' },
-    { id: 'traditionnel', icon: <Coffee color="#9C6644" size={20} />, label: 'Tradition' },
-];
+import { useRestaurants, prefetchRestaurant } from '../../../src/hooks/useSupabase';
+import { RemoteImage } from '../../../src/components/RemoteImage';
+import { CategoryRail } from '../../../src/components/CategoryRail';
+import { ClosedBadge } from '../../../src/components/ClosedBadge';
+import { isAcceptingOrders } from '../../../src/lib/availability';
+import { FOOD_CATEGORIES, ALL_CATEGORY_ID, matchesCategory } from '../../../src/lib/categories';
+import { useHeaderInsetTop } from '../../../src/components/ScreenHeader';
+import { restaurantEtaRange, formatEtaRange } from '../../../src/lib/eta';
+import { DELIVERY_FEE_XAF, formatXaf } from '../../../src/lib/pricing';
+import { shadowSoft } from '../../../src/lib/elevation';
 
 export default function ExploreScreen() {
     const insets = useSafeAreaInsets();
     const insetTop = useHeaderInsetTop();
     const queryClient = useQueryClient();
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeCategory, setActiveCategory] = useState('all');
+    const [activeCategory, setActiveCategory] = useState(ALL_CATEGORY_ID);
     const { data: restaurants, isLoading } = useRestaurants();
 
     const filteredRestaurants = useMemo(() => {
         if (!restaurants) return [];
         let result = restaurants;
 
-        if (activeCategory !== 'all') {
-            result = result.filter(r =>
-                r.genre?.toLowerCase().includes(activeCategory.toLowerCase())
-            );
-        }
+        result = result.filter((r) => matchesCategory(r.genre, activeCategory));
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
@@ -93,25 +86,14 @@ export default function ExploreScreen() {
             >
                 {/* Categories — spaced away from the search bar */}
                 <View className="mb-8">
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentInsetAdjustmentBehavior="never"
-                        contentContainerStyle={{ gap: 10, paddingHorizontal: 24, paddingVertical: 10, alignItems: 'center' }}
-                    >
-                        {CATEGORIES.map(cat => (
-                            <CategoryChip
-                                key={cat.id}
-                                icon={cat.icon}
-                                label={cat.label}
-                                active={activeCategory === cat.id}
-                                onPress={() => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                    setActiveCategory(cat.id);
-                                }}
-                            />
-                        ))}
-                    </ScrollView>
+                    <CategoryRail
+                        items={FOOD_CATEGORIES}
+                        activeId={activeCategory}
+                        onSelect={(id) => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            setActiveCategory(id);
+                        }}
+                    />
                 </View>
 
                 {/* Results */}
@@ -142,15 +124,21 @@ export default function ExploreScreen() {
                                         onPressIn={() => prefetchRestaurant(queryClient, restaurant.id)}
                                         onPress={() => {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                                            router.push({ pathname: '/(client)/restaurant', params: { id: restaurant.id } });
+                                            router.push({ pathname: '/restaurant', params: { id: restaurant.id } });
                                         }}
                                         className="flex-row gap-4 p-4 bg-white rounded-3xl border border-hairline active:scale-[0.99]"
                                     >
-                                        <View className="w-20 h-20 rounded-2xl overflow-hidden bg-black flex-shrink-0">
-                                            <Image source={{ uri: restaurant.image_url ?? '' }} className="w-full h-full" resizeMode="cover" />
+                                        <View
+                                            className="w-20 h-20 rounded-2xl overflow-hidden bg-black flex-shrink-0"
+                                            style={{ opacity: isAcceptingOrders(restaurant) ? 1 : 0.45 }}
+                                        >
+                                            <RemoteImage uri={restaurant.image_url} displayWidth={80} className="w-full h-full" />
                                         </View>
                                         <View className="flex-1 justify-center">
-                                            <Text className="text-base font-heading tracking-tight text-ink" numberOfLines={1}>{restaurant.name}</Text>
+                                            <View className="flex-row items-center gap-2">
+                                                <Text className="text-base font-heading tracking-tight text-ink flex-shrink" numberOfLines={1}>{restaurant.name}</Text>
+                                                {!isAcceptingOrders(restaurant) && <ClosedBadge tone="onSurface" />}
+                                            </View>
                                             <Text className="text-xs text-ink-faint font-body mt-1" numberOfLines={1}>{restaurant.genre}</Text>
                                             <View className="flex-row items-center gap-4 mt-2">
                                                 <View className="flex-row items-center gap-1">

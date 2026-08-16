@@ -4,7 +4,6 @@ import {
     Text,
     Modal,
     Pressable,
-    Image,
     ScrollView,
     TextInput,
     KeyboardAvoidingView,
@@ -17,6 +16,7 @@ import { X, Minus, Plus, Utensils } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import type { Dish } from '../hooks/useSupabase';
 import { shadowSheet } from '../lib/elevation';
+import { RemoteImage } from './RemoteImage';
 import { formatXaf as formatPrice } from '../lib/pricing';
 
 /**
@@ -96,9 +96,14 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
         return delta;
     }, [groups, selected]);
 
-    if (!dish) {
-        return <Modal visible={false} transparent onRequestClose={onClose} />;
-    }
+    // Render NOTHING when there is no dish.
+    //
+    // This used to return `<Modal visible={false} />`, which still mounts a
+    // native modal host. On iOS that host can survive the screen being popped
+    // and re-pushed, leaving an invisible full-screen view that swallows every
+    // touch — the blank, unresponsive screen seen when opening a restaurant a
+    // second time. A modal that isn't needed should not exist.
+    if (!dish) return null;
 
     const unitPrice = dish.price_xaf + optionsDelta;
     const total = unitPrice * quantity;
@@ -136,15 +141,27 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
 
     return (
         <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-            <View className="flex-1 justify-end">
+            {/* The sheet is anchored to the bottom of a full-height container, so
+                it reaches the physical edge of the screen.
+                It used to sit inside a KeyboardAvoidingView that had no height of
+                its own, which made `maxHeight: '90%'` resolve against nothing: the
+                sheet floated with a strip of the page still visible underneath —
+                and the action bar looked detached from the card it belongs to. */}
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                style={{ flex: 1, justifyContent: 'flex-end' }}
+            >
                 {/* Backdrop — tap anywhere outside the sheet to close. */}
-                <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }} onPress={onClose} />
+                <Pressable
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)' }}
+                    onPress={onClose}
+                    accessibilityLabel="Fermer"
+                />
 
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                    <Animated.View
-                        className="bg-white rounded-t-sheet overflow-hidden"
-                        style={{ maxHeight: '90%', transform: [{ translateY: dragY }], ...shadowSheet }}
-                    >
+                <Animated.View
+                    className="bg-white rounded-t-sheet overflow-hidden"
+                    style={{ maxHeight: '92%', transform: [{ translateY: dragY }], ...shadowSheet }}
+                >
                         {/* The whole image header IS the swipe-to-dismiss zone — a big target,
                             and it lives OUTSIDE the ScrollView so the pan never fights scrolling. */}
                         <View
@@ -152,7 +169,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                             className="relative w-full h-56 bg-surface-container-highest items-center justify-center"
                         >
                             {dish.image_url ? (
-                                <Image source={{ uri: dish.image_url }} className="w-full h-full" resizeMode="cover" />
+                                <RemoteImage uri={dish.image_url} displayWidth={430} className="w-full h-full" />
                             ) : (
                                 <Utensils color="#a8a29e" size={48} />
                             )}
@@ -280,7 +297,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                             className="px-5 border-t border-surface-container-highest bg-white flex-row items-center gap-3"
                             style={{ paddingBottom: Math.max(insets.bottom, 16), paddingTop: 14 }}
                         >
-                            <View className="flex-row items-center bg-surface-container-low rounded-full p-1" style={{ height: 54 }}>
+                            <View className="flex-row items-center bg-surface-container-low rounded-full p-1" style={{ height: 50 }}>
                                 <Pressable
                                     onPress={() => {
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -289,7 +306,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                     hitSlop={6}
                                     accessibilityRole="button"
                                     accessibilityLabel="Réduire la quantité"
-                                    className="w-11 h-11 rounded-full bg-white items-center justify-center active:scale-95 border border-surface-container-highest"
+                                    className="w-10 h-10 rounded-full bg-white items-center justify-center active:scale-95 border border-surface-container-highest"
                                 >
                                     <Minus color={quantity <= 1 ? '#c4c7c7' : '#1c1b1b'} size={18} />
                                 </Pressable>
@@ -304,7 +321,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                     hitSlop={6}
                                     accessibilityRole="button"
                                     accessibilityLabel="Augmenter la quantité"
-                                    className="w-11 h-11 rounded-full bg-white items-center justify-center active:scale-95 border border-surface-container-highest"
+                                    className="w-10 h-10 rounded-full bg-white items-center justify-center active:scale-95 border border-surface-container-highest"
                                 >
                                     <Plus color="#1c1b1b" size={18} />
                                 </Pressable>
@@ -314,7 +331,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                 accessibilityRole="button"
                                 accessibilityLabel={`Ajouter au panier, ${formatPrice(total)}`}
                                 className="flex-1 bg-[#1c1b1b] rounded-full flex-row items-center justify-between px-5 active:scale-[0.98]"
-                                style={{ height: 54 }}
+                                style={{ height: 50 }}
                             >
                                 <Text className="text-white font-labelbold text-sm">Ajouter</Text>
                                 <Text className="text-white font-title text-base tracking-tight">
@@ -322,9 +339,8 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                 </Text>
                             </Pressable>
                         </View>
-                    </Animated.View>
-                </KeyboardAvoidingView>
-            </View>
+                </Animated.View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }
