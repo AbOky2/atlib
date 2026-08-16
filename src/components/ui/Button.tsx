@@ -10,13 +10,13 @@ export function Button({ label, variant = "default", className, ...props }: Butt
     const variantClasses = {
         default: "bg-primary active:bg-primary/90",
         outline: "border-2 border-primary bg-transparent active:bg-primary/5",
-        ghost: "bg-transparent active:bg-surface-variant",
+        ghost: "bg-transparent active:bg-fill",
     };
 
     const textClasses = {
-        default: "text-on-primary font-labelbold text-base",
-        outline: "text-primary font-labelbold text-base",
-        ghost: "text-primary font-labelbold text-base",
+        default: "text-on-primary font-labelbold text-bodylg",
+        outline: "text-primary font-labelbold text-bodylg",
+        ghost: "text-primary font-labelbold text-bodylg",
     };
 
     return (

@@ -8,7 +8,6 @@ import { useUserOrders } from '../../src/hooks/useSupabase';
 import { statusMeta, type OrderStatus } from '../../src/lib/orderStatus';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
 import { formatXaf as formatPrice } from '../../src/lib/pricing';
-import { shadowSoft } from '../../src/lib/elevation';
 
 // Icons stay a UI concern; labels/colours come from the canonical status module
 // (they had drifted between screens before it existed).
@@ -43,13 +42,13 @@ export default function OrdersScreen() {
                     {!user ? (
                         <View className="py-20 items-center">
                             <Package color="#ccc" size={48} />
-                            <Text className="text-xl font-title text-ink mt-6">Connectez-vous</Text>
-                            <Text className="text-sm text-ink-muted text-center font-body mt-2">Connectez-vous pour voir vos commandes.</Text>
+                            <Text className="text-h3 font-title text-ink mt-6">Connectez-vous</Text>
+                            <Text className="text-body text-ink-muted text-center font-body mt-2">Connectez-vous pour voir vos commandes.</Text>
                             <Pressable
                                 onPress={() => router.push('/login')}
-                                className="bg-[#FF5733] px-8 py-4 rounded-full mt-8 active:scale-95"
+                                className="bg-accent px-8 py-4 rounded-full mt-8 active:scale-95"
                             >
-                                <Text className="text-white text-xs font-labelbold">Se connecter</Text>
+                                <Text className="text-white text-caption font-labelbold">Se connecter</Text>
                             </Pressable>
                         </View>
                     ) : isLoading ? (
@@ -59,13 +58,13 @@ export default function OrdersScreen() {
                     ) : !orders || orders.length === 0 ? (
                         <View className="py-20 items-center">
                             <Package color="#ccc" size={48} />
-                            <Text className="text-xl font-title text-ink mt-6">Aucune commande</Text>
-                            <Text className="text-sm text-ink-muted text-center font-body mt-2">Vous n'avez pas encore passé de commande.</Text>
+                            <Text className="text-h3 font-title text-ink mt-6">Aucune commande</Text>
+                            <Text className="text-body text-ink-muted text-center font-body mt-2">Vous n'avez pas encore passé de commande.</Text>
                             <Pressable
                                 onPress={() => router.replace('/home')}
-                                className="bg-[#FF5733] px-8 py-4 rounded-full mt-8 active:scale-95"
+                                className="bg-accent px-8 py-4 rounded-full mt-8 active:scale-95"
                             >
-                                <Text className="text-white text-xs font-labelbold">Commander</Text>
+                                <Text className="text-white text-caption font-labelbold">Commander</Text>
                             </Pressable>
                         </View>
                     ) : (
@@ -91,14 +90,14 @@ export default function OrdersScreen() {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                             router.push({ pathname: '/tracking', params: { orderId: order.id } });
                                         }}
-                                        className="bg-white rounded-3xl p-5 border border-hairline active:scale-[0.99]"
-                                        style={shadowSoft}
+                                        className="bg-white rounded-panel p-5 border border-hairline active:scale-[0.99]"
+                                       
                                     >
                                         <View className="flex-row items-center justify-between mb-4">
                                             <View className="flex-row items-center gap-2">
-                                                <Text className="text-xs font-label text-ink-faint">{formattedDate}</Text>
+                                                <Text className="text-caption font-label text-ink-faint">{formattedDate}</Text>
                                                 <View className="w-1 h-1 bg-[#ccc] rounded-full" />
-                                                <Text className="text-xs font-label text-ink-faint">{formattedTime}</Text>
+                                                <Text className="text-caption font-label text-ink-faint">{formattedTime}</Text>
                                             </View>
                                             <View
                                                 className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full"
@@ -106,7 +105,7 @@ export default function OrdersScreen() {
                                             >
                                                 <StatusIcon color={meta.color} size={12} />
                                                 <Text
-                                                    className="text-[10px] font-label uppercase tracking-[0.08em]"
+                                                    className="text-eyebrow font-label uppercase tracking-[0.08em]"
                                                     style={{ color: meta.color }}
                                                 >{meta.label}</Text>
                                             </View>
@@ -114,14 +113,14 @@ export default function OrdersScreen() {
 
                                         <View className="flex-row justify-between items-center">
                                             <View>
-                                                <Text className="text-sm font-heading text-ink">
+                                                <Text className="text-body font-heading text-ink">
                                                     {order.restaurants?.name || `Commande #${order.id.slice(0, 8).toUpperCase()}`}
                                                 </Text>
-                                                <Text className="text-xs text-ink-faint font-body mt-1">
+                                                <Text className="text-caption text-ink-faint font-body mt-1">
                                                     {(order as any).order_items?.length ?? 0} article(s) • #{order.id.slice(0, 8).toUpperCase()}
                                                 </Text>
                                             </View>
-                                            <Text className="text-lg font-title tracking-tight text-ink">
+                                            <Text className="text-h3 font-title tracking-tight text-ink">
                                                 {formatPrice(order.total_xaf ?? 0)}
                                             </Text>
                                         </View>

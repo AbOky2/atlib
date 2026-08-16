@@ -35,13 +35,13 @@ export default function PromotionsScreen() {
             >
                 <View className="p-6">
                     {/* Add Promo Code Input */}
-                    <Text className="text-[11px] font-label uppercase tracking-[0.08em] text-ink-faint mb-3">
+                    <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-3">
                         Ajouter une promotion
                     </Text>
                     <View className="flex-row items-center gap-3 mb-10">
-                        <View className="flex-1 bg-white rounded-2xl px-4 border border-surface-container-highest" style={{ height: 56, justifyContent: 'center' }}>
+                        <View className="flex-1 bg-white rounded-card px-4 border border-hairline" style={{ height: 56, justifyContent: 'center' }}>
                             <TextInput
-                                className="font-label text-base text-ink"
+                                className="font-label text-bodylg text-ink"
                                 placeholder="Saisir le code promotionnel"
                                 placeholderTextColor={COLORS.inkFaint}
                                 value={promoCode}
@@ -50,19 +50,19 @@ export default function PromotionsScreen() {
                             />
                         </View>
                         <Pressable
-                            className={`px-6 rounded-2xl items-center justify-center ${promoCode.trim() ? 'bg-[#1c1b1b] active:scale-[0.98]' : 'bg-surface-container-highest'}`}
+                            className={`px-6 rounded-card items-center justify-center ${promoCode.trim() ? 'bg-ink active:scale-[0.98]' : 'bg-fill-strong'}`}
                             style={{ height: 56 }}
                             onPress={handleApplyCode}
                             disabled={!promoCode.trim()}
                         >
-                            <Text className={`font-labelbold text-sm ${promoCode.trim() ? 'text-white' : 'text-ink-faint'}`}>
+                            <Text className={`font-labelbold text-body ${promoCode.trim() ? 'text-white' : 'text-ink-faint'}`}>
                                 Appliquer
                             </Text>
                         </Pressable>
                     </View>
 
                     {/* NOIR+ teaser — no fake free-trial promise, just what's coming */}
-                    <Text className="text-[11px] font-label uppercase tracking-[0.08em] text-ink-faint mb-3">
+                    <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-3">
                         Abonnements
                     </Text>
                     <Pressable
@@ -70,7 +70,7 @@ export default function PromotionsScreen() {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             showToast(`${BRAND}+ arrive très bientôt. Restez à l'écoute !`, 'info');
                         }}
-                        className="bg-[#1c1b1b] p-6 rounded-sheet flex-row justify-between items-center relative overflow-hidden active:scale-[0.99] mb-10"
+                        className="bg-ink p-6 rounded-sheet flex-row justify-between items-center relative overflow-hidden active:scale-[0.99] mb-10"
                     >
                         {/* Decorative element */}
                         <View className="absolute -right-6 -top-6 bg-white/10 w-32 h-32 rounded-full" />
@@ -78,14 +78,14 @@ export default function PromotionsScreen() {
                         <View className="flex-1 pr-6 relative z-10">
                             <View className="flex-row items-center gap-2 mb-2">
                                 <Sparkles color="#FFD700" size={16} />
-                                <Text className="text-[#FFD700] font-labelbold text-[10px] uppercase tracking-[0.12em]">
+                                <Text className="text-[#FFD700] font-labelbold text-eyebrow uppercase tracking-[0.12em]">
                                     Bientôt disponible
                                 </Text>
                             </View>
-                            <Text className="font-display text-2xl text-white mb-1 tracking-tight">
+                            <Text className="font-display text-h2 text-white mb-1 tracking-tight">
                                 {BRAND}+
                             </Text>
-                            <Text className="text-white/60 text-sm font-body leading-relaxed">
+                            <Text className="text-white/60 text-body font-body leading-relaxed">
                                 0 F de frais de livraison en illimité. Lancement très prochainement.
                             </Text>
                         </View>
@@ -97,17 +97,17 @@ export default function PromotionsScreen() {
                     <View className="h-px bg-hairline mb-8" />
 
                     {/* Active promotions — honest empty state until a promo backend exists */}
-                    <Text className="text-[11px] font-label uppercase tracking-[0.08em] text-ink-faint mb-3">
+                    <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-3">
                         Vos promotions actives
                     </Text>
-                    <View className="bg-white border border-surface-container-highest px-6 py-12 rounded-sheet items-center">
-                        <View className="w-14 h-14 rounded-full items-center justify-center mb-4" style={{ backgroundColor: COLORS.accentTint }}>
+                    <View className="bg-white border border-hairline px-6 py-12 rounded-sheet items-center">
+                        <View className="w-14 h-14 rounded-full items-center justify-center mb-4" style={{ backgroundColor: COLORS.accentSoft }}>
                             <Tag color={COLORS.accent} size={24} />
                         </View>
-                        <Text className="font-heading text-lg text-ink text-center">
+                        <Text className="font-heading text-h3 text-ink text-center">
                             Aucune promotion active
                         </Text>
-                        <Text className="text-sm text-center text-ink-muted font-body mt-2 leading-relaxed">
+                        <Text className="text-body text-center text-ink-muted font-body mt-2 leading-relaxed">
                             Vos offres et récompenses apparaîtront ici dès qu'elles seront disponibles.
                         </Text>
                     </View>

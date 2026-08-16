@@ -9,8 +9,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     Animated,
-    PanResponder,
-} from 'react-native';
+    PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Minus, Plus, Utensils } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -166,7 +165,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                             and it lives OUTSIDE the ScrollView so the pan never fights scrolling. */}
                         <View
                             {...panResponder.panHandlers}
-                            className="relative w-full h-56 bg-surface-container-highest items-center justify-center"
+                            className="relative w-full h-56 bg-fill-strong items-center justify-center"
                         >
                             {dish.image_url ? (
                                 <RemoteImage uri={dish.image_url} displayWidth={430} className="w-full h-full" />
@@ -195,19 +194,19 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                         >
                             <View className="px-6 pt-6">
                                 {restaurantName ? (
-                                    <Text className="text-[11px] font-label uppercase tracking-[0.08em] text-ink-faint mb-2">
+                                    <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-2">
                                         {restaurantName}
                                     </Text>
                                 ) : null}
-                                <Text className="text-[26px] font-display tracking-tight text-ink">
+                                <Text className="text-h1 font-display tracking-tight text-ink">
                                     {dish.name}
                                 </Text>
                                 {dish.short_description ? (
-                                    <Text className="text-sm text-ink-muted font-body leading-relaxed mt-2">
+                                    <Text className="text-body text-ink-muted font-body leading-relaxed mt-2">
                                         {dish.short_description}
                                     </Text>
                                 ) : null}
-                                <Text className="text-xl font-title text-ink mt-3">
+                                <Text className="text-h3 font-title text-ink mt-3">
                                     {formatPrice(dish.price_xaf)}
                                 </Text>
 
@@ -215,12 +214,12 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                 {groups.map((group) => (
                                     <View key={group.id} className="mt-7">
                                         <View className="flex-row items-center justify-between mb-3">
-                                            <Text className="text-base font-heading text-ink">
+                                            <Text className="text-bodylg font-heading text-ink">
                                                 {group.title}
                                             </Text>
                                             {group.required ? (
-                                                <View className="bg-[#1c1b1b] px-2 py-0.5 rounded-full">
-                                                    <Text className="text-[9px] font-label uppercase tracking-[0.08em] text-white">
+                                                <View className="bg-ink px-2 py-0.5 rounded-full">
+                                                    <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-white">
                                                         Requis
                                                     </Text>
                                                 </View>
@@ -233,24 +232,24 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                                     <Pressable
                                                         key={opt.id}
                                                         onPress={() => toggleOption(group, opt.id)}
-                                                        className={`flex-row items-center justify-between px-4 py-3.5 rounded-2xl border ${
+                                                        className={`flex-row items-center justify-between px-4 py-3.5 rounded-card border ${
                                                             isSel
-                                                                ? 'border-[#1c1b1b] bg-surface-container-low'
-                                                                : 'border-surface-container-highest bg-white'
+                                                                ? 'border-ink bg-fill'
+                                                                : 'border-hairline bg-white'
                                                         }`}
                                                     >
-                                                        <Text className="text-sm font-label text-ink flex-1 pr-3">
+                                                        <Text className="text-body font-label text-ink flex-1 pr-3">
                                                             {opt.label}
                                                         </Text>
                                                         <View className="flex-row items-center gap-3">
                                                             {opt.priceDelta ? (
-                                                                <Text className="text-xs font-labelbold text-ink-muted">
+                                                                <Text className="text-caption font-labelbold text-ink-muted">
                                                                     +{formatPrice(opt.priceDelta)}
                                                                 </Text>
                                                             ) : null}
                                                             <View
                                                                 className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
-                                                                    isSel ? 'border-[#1c1b1b] bg-[#1c1b1b]' : 'border-[#d8d4d2]'
+                                                                    isSel ? 'border-ink bg-ink' : 'border-hairline'
                                                                 }`}
                                                             >
                                                                 {isSel ? (
@@ -267,15 +266,15 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
 
                                 {/* Special instructions — always available, real free text */}
                                 <View className="mt-7">
-                                    <Text className="text-base font-heading text-ink mb-1">
+                                    <Text className="text-bodylg font-heading text-ink mb-1">
                                         Instructions spéciales
                                     </Text>
-                                    <Text className="text-xs text-ink-faint font-body mb-3">
+                                    <Text className="text-caption text-ink-faint font-body mb-3">
                                         Une demande particulière pour ce plat ? (optionnel)
                                     </Text>
-                                    <View className="bg-surface-container-low rounded-2xl border border-surface-container-highest">
+                                    <View className="bg-fill rounded-card border border-hairline">
                                         <TextInput
-                                            className="px-4 py-3.5 text-sm font-body text-ink min-h-[76px]"
+                                            className="px-4 py-3.5 text-body font-body text-ink min-h-[76px]"
                                             placeholder="Ex : sans oignon, sauce à part…"
                                             placeholderTextColor="#8d8a87"
                                             multiline
@@ -294,10 +293,10 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
 
                         {/* Sticky action bar — stepper + CTA on one line (the Eats pattern). */}
                         <View
-                            className="px-5 border-t border-surface-container-highest bg-white flex-row items-center gap-3"
+                            className="px-5 border-t border-hairline bg-white flex-row items-center gap-3"
                             style={{ paddingBottom: Math.max(insets.bottom, 16), paddingTop: 14 }}
                         >
-                            <View className="flex-row items-center bg-surface-container-low rounded-full p-1" style={{ height: 50 }}>
+                            <View className="flex-row items-center bg-fill rounded-full p-1" style={{ height: 50 }}>
                                 <Pressable
                                     onPress={() => {
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -306,11 +305,11 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                     hitSlop={6}
                                     accessibilityRole="button"
                                     accessibilityLabel="Réduire la quantité"
-                                    className="w-10 h-10 rounded-full bg-white items-center justify-center active:scale-95 border border-surface-container-highest"
+                                    className="w-10 h-10 rounded-full bg-white items-center justify-center active:scale-95 border border-hairline"
                                 >
                                     <Minus color={quantity <= 1 ? '#c4c7c7' : '#1c1b1b'} size={18} />
                                 </Pressable>
-                                <Text className="w-9 text-center text-base font-title text-ink">
+                                <Text className="w-9 text-center text-bodylg font-title text-ink">
                                     {quantity}
                                 </Text>
                                 <Pressable
@@ -321,7 +320,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                     hitSlop={6}
                                     accessibilityRole="button"
                                     accessibilityLabel="Augmenter la quantité"
-                                    className="w-10 h-10 rounded-full bg-white items-center justify-center active:scale-95 border border-surface-container-highest"
+                                    className="w-10 h-10 rounded-full bg-white items-center justify-center active:scale-95 border border-hairline"
                                 >
                                     <Plus color="#1c1b1b" size={18} />
                                 </Pressable>
@@ -330,11 +329,11 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                 onPress={handleConfirm}
                                 accessibilityRole="button"
                                 accessibilityLabel={`Ajouter au panier, ${formatPrice(total)}`}
-                                className="flex-1 bg-[#1c1b1b] rounded-full flex-row items-center justify-between px-5 active:scale-[0.98]"
+                                className="flex-1 bg-ink rounded-full flex-row items-center justify-between px-5 active:scale-[0.98]"
                                 style={{ height: 50 }}
                             >
-                                <Text className="text-white font-labelbold text-sm">Ajouter</Text>
-                                <Text className="text-white font-title text-base tracking-tight">
+                                <Text className="text-white font-labelbold text-body">Ajouter</Text>
+                                <Text className="text-white font-title text-bodylg tracking-tight">
                                     {formatPrice(total)}
                                 </Text>
                             </Pressable>

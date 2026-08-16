@@ -87,23 +87,23 @@ export default function GlobalDialog() {
                 >
                     {/* Grabber */}
                     <View className="items-center mb-5">
-                        <View className="w-10 h-1 rounded-full bg-surface-container-highest" />
+                        <View className="w-10 h-1 rounded-full bg-fill-strong" />
                     </View>
 
                     {/* Contextual icon */}
                     <View className="items-center mb-4">
                         <View
                             className="w-14 h-14 rounded-full items-center justify-center"
-                            style={{ backgroundColor: destructive ? COLORS.redTint : COLORS.fill }}
+                            style={{ backgroundColor: destructive ? COLORS.dangerSoft : COLORS.fill }}
                         >
-                            <Icon color={destructive ? COLORS.red : COLORS.ink} size={24} strokeWidth={2.1} />
+                            <Icon color={destructive ? COLORS.danger : COLORS.ink} size={24} strokeWidth={2.1} />
                         </View>
                     </View>
 
-                    <Text className="text-[21px] font-title tracking-tight text-ink text-center mb-2">
+                    <Text className="text-h2 font-title tracking-tight text-ink text-center mb-2">
                         {title}
                     </Text>
-                    <Text className="text-sm font-body text-ink-muted text-center leading-relaxed mb-7 px-2">
+                    <Text className="text-body font-body text-ink-muted text-center leading-relaxed mb-7 px-2">
                         {message}
                     </Text>
 
@@ -112,16 +112,16 @@ export default function GlobalDialog() {
                         onPress={handleConfirm}
                         accessibilityRole="button"
                         className="w-full h-14 rounded-full items-center justify-center active:scale-[0.98] mb-2.5"
-                        style={{ backgroundColor: destructive ? COLORS.red : COLORS.ink }}
+                        style={{ backgroundColor: destructive ? COLORS.danger : COLORS.ink }}
                     >
-                        <Text className="text-white text-[15px] font-labelbold">{confirmText}</Text>
+                        <Text className="text-white text-body font-labelbold">{confirmText}</Text>
                     </Pressable>
                     <Pressable
                         onPress={handleCancel}
                         accessibilityRole="button"
-                        className="w-full h-14 rounded-full items-center justify-center bg-surface-container-low active:bg-surface-container-highest"
+                        className="w-full h-14 rounded-full items-center justify-center bg-fill active:bg-fill-strong"
                     >
-                        <Text className="text-ink text-[15px] font-labelbold">{cancelText}</Text>
+                        <Text className="text-ink text-body font-labelbold">{cancelText}</Text>
                     </Pressable>
                 </Animated.View>
             </View>

@@ -289,16 +289,16 @@ export default function OrderConfirmedScreen() {
                     className="items-center mt-9"
                     style={{ opacity: textOpacity, transform: [{ translateY: textShift }], width: width - 64 }}
                 >
-                    <Text className="text-[26px] font-display tracking-tight text-ink text-center">
+                    <Text className="text-h1 font-display tracking-tight text-ink text-center">
                         {STAGES[stage].title}
                     </Text>
                     <View className="flex-row items-center mt-2">
-                        <Text className="text-[15px] font-body text-ink-muted text-center">
+                        <Text className="text-body font-body text-ink-muted text-center">
                             {STAGES[stage].subtitle}
                         </Text>
                         {stage === 1 && (
                             <Animated.Text
-                                className="text-[15px] font-body text-ink-muted"
+                                className="text-body font-body text-ink-muted"
                                 style={{ opacity: dotPulse }}
                             >
                                 {' '}•••
@@ -307,7 +307,7 @@ export default function OrderConfirmedScreen() {
                     </View>
                     {stage === 2 && orderId ? (
                         <View className="bg-fill px-4 py-2 rounded-full mt-4">
-                            <Text className="text-[12px] font-labelbold text-ink-muted">
+                            <Text className="text-caption font-labelbold text-ink-muted">
                                 Commande #{String(orderId).slice(0, 8).toUpperCase()}
                             </Text>
                         </View>
@@ -330,7 +330,7 @@ export default function OrderConfirmedScreen() {
                     ))}
                 </View>
                 <Pressable onPress={goToTracking} hitSlop={12} className="active:opacity-50">
-                    <Text className="text-[13px] font-labelbold text-ink-faint">Passer</Text>
+                    <Text className="text-label font-labelbold text-ink-faint">Passer</Text>
                 </Pressable>
             </View>
         </Pressable>

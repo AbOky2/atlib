@@ -9,8 +9,7 @@ import {
     setupNotifications,
     registerForPushToken,
     onNotificationTap,
-    type OrderNotificationData,
-} from '../lib/notifications';
+    type OrderNotificationData } from '../lib/notifications';
 
 /**
  * Single owner of push registration and notification routing.

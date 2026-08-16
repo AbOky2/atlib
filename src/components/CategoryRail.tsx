@@ -47,7 +47,7 @@ export function CategoryRail({
                         </View>
                         <Text
                             numberOfLines={1}
-                            className={`text-[12px] mt-1 ${active ? 'font-labelbold text-ink' : 'font-label text-ink-muted'}`}
+                            className={`text-caption mt-1 ${active ? 'font-labelbold text-ink' : 'font-label text-ink-muted'}`}
                         >
                             {label}
                         </Text>

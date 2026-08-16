@@ -1,77 +1,89 @@
+/**
+ * NOIR Delivery — design tokens.
+ *
+ * `fontSize` and `borderRadius` REPLACE Tailwind's defaults rather than extend
+ * them. That is deliberate: as long as `text-sm` and `rounded-3xl` remain
+ * available, every screen keeps inventing its own scale — the audit found 23
+ * distinct text sizes and 7 radius families across the app. Removing the generic
+ * names makes the system the only way to express a size, so a drift becomes a
+ * build-time absence rather than a silent 2 px inconsistency.
+ *
+ * Everything else sits on a 4 pt grid (Tailwind's default spacing already does),
+ * with 8 pt as the dominant rhythm and 24 pt as the single page gutter.
+ */
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./app/**/*.{js,jsx,ts,tsx}", "./src/components/**/*.{js,jsx,ts,tsx}"],
   theme: {
+    // ---- Type scale -------------------------------------------------------
+    // One step per role. Line heights are set here so vertical rhythm cannot be
+    // forgotten at the call site.
+    fontSize: {
+      display: ['40px', { lineHeight: '44px' }],
+      h1: ['30px', { lineHeight: '36px' }],
+      h2: ['24px', { lineHeight: '30px' }],
+      h3: ['19px', { lineHeight: '25px' }],
+      bodylg: ['17px', { lineHeight: '24px' }],
+      body: ['15px', { lineHeight: '22px' }],
+      label: ['13px', { lineHeight: '18px' }],
+      caption: ['12px', { lineHeight: '16px' }],
+      // Uppercase reads optically larger, so the eyebrow can sit below caption
+      // without losing legibility. The only justified sub-12 px size.
+      eyebrow: ['11px', { lineHeight: '14px' }],
+    },
+
+    // ---- Corner language --------------------------------------------------
+    // Radius follows the size and the role of a surface, never decoration.
+    borderRadius: {
+      none: '0px',
+      chip: '12px',   // chips, badges, small controls
+      card: '16px',   // inputs, thumbnails, list tiles
+      panel: '20px',  // grouped surfaces, cards
+      sheet: '28px',  // bottom sheets, hero media
+      full: '9999px', // pills, avatars, icon buttons
+    },
+
     extend: {
       colors: {
-        "on-secondary-fixed-variant": "#474746",
-        "primary-container": "#3d0600",
-        "error": "#ba1a1a",
-        "error-container": "#ffdad6",
-        "on-primary-fixed-variant": "#8c1800",
-        "surface-tint": "#FF5733",
-        "inverse-surface": "#313030",
-        "on-surface": "#1c1b1b",
-        "on-tertiary-container": "#838486",
-        "on-secondary-container": "#636262",
-        "tertiary-fixed": "#e2e2e4",
-        "tertiary-fixed-dim": "#c6c6c8",
-        "surface-container-high": "#eae7e7",
-        "tertiary-container": "#1a1c1d",
-        "on-secondary": "#ffffff",
-        "surface-variant": "#e5e2e1",
-        "primary-fixed-dim": "#ffb4a4",
-        "on-primary-container": "#ec4a27",
-        "inverse-on-surface": "#f3f0ef",
-        "on-tertiary-fixed": "#1a1c1d",
-        "outline": "#747878",
-        "surface-bright": "#fcf9f8",
-        "primary-fixed": "#ffdad3",
-        "surface-container": "#f0eded",
-        "on-primary": "#ffffff",
-        "on-error-container": "#93000a",
-        "on-primary-fixed": "#3d0600",
-        "secondary-fixed": "#e5e2e1",
-        "surface-container-lowest": "#ffffff",
-        "secondary-container": "#e2dfde",
-        "inverse-primary": "#ffb4a4",
-        "tertiary": "#1c1b1b",
-        "on-background": "#1c1b1b",
-        "on-error": "#ffffff",
-        "primary": "#1c1b1b",
-        // Warm neutral ramp (replaces the #747878 / #a1a1aa / #9ca3af drift).
-        "ink": "#1c1b1b",
-        "ink-muted": "#5f5e5e",
-        "ink-faint": "#8d8a87",
-        "ink-disabled": "#c4c7c7",
-        "hairline": "#e7e3e1",
-        "accent": "#FF5733",
-        "accent-tint": "#FFEDE7",
-        "danger": "#ba1a1a",
-        "danger-tint": "#ffdad6",
-        // Fill aliases onto the warm ramp (used by tracking/order-confirmed/offline).
-        "fill": "#f6f3f2",
-        "fill-strong": "#e5e2e1",
-        "on-surface-variant": "#444748",
-        "surface-container-low": "#f6f3f2",
-        "surface": "#fcf9f8",
-        "background": "#fcf9f8",
-        "outline-variant": "#c4c7c7",
-        "secondary": "#5f5e5e",
-        "surface-container-highest": "#e5e2e1",
-        "on-tertiary": "#ffffff",
-        "secondary-fixed-dim": "#c8c6c5",
-        "surface-dim": "#dcd9d9",
-        "on-secondary-fixed": "#1c1b1b"
+        // ---- Neutrals (warm) ---------------------------------------------
+        ink: "#1c1b1b",          // primary text, dark surfaces
+        "ink-muted": "#5f5e5e",  // secondary text — readable, not decorative
+        "ink-faint": "#7d7975",  // tertiary text; darkened from #8d8a87 for outdoor legibility
+        "ink-disabled": "#b9b5b1",
+        hairline: "#e7e3e1",     // default border
+        "hairline-soft": "#f0ecea",
+
+        // ---- Surfaces -----------------------------------------------------
+        background: "#fcf9f8",
+        surface: "#ffffff",
+        "surface-sunken": "#f6f3f2",
+        "surface-raised": "#ffffff",
+        fill: "#f6f3f2",
+        "fill-strong": "#ebe7e5",
+
+        // ---- Brand --------------------------------------------------------
+        // ONE canonical orange. Reserved for the primary CTA, the active
+        // selection and small brand accents — never as a general surface tint.
+        accent: "#FF5733",
+        "accent-pressed": "#E04A29",
+        "accent-soft": "#FFEDE7",
+
+        // ---- Feedback -----------------------------------------------------
+        success: "#1E874B",
+        "success-soft": "#E4F4EA",
+        danger: "#BA1A1A",
+        "danger-soft": "#FFDAD6",
+        warning: "#B25E00",
+        "warning-soft": "#FFF0DF",
+
+        // Dark staff surfaces (restaurant dashboard).
+        "ink-900": "#0a0a0a",
+        "ink-800": "#141313",
+        "ink-700": "#1c1b1b",
       },
-      borderRadius: {
-        // Single corner language: pills = rounded-full, thumbnails = 2xl(16),
-        // cards/rows = 3xl(24), feature/hero/sheets = sheet(28).
-        sheet: '28px',
-      },
+
       fontFamily: {
-        // Real weight ramp mapped to the faces actually loaded in app/_layout.tsx.
-        // (Bare `manrope`/`inter` stay as aliases so any un-migrated class still renders.)
+        // Weight lives in the family, mapped to the faces loaded in app/_layout.
         display: ['Manrope_800ExtraBold'],
         title: ['Manrope_700Bold'],
         heading: ['Manrope_600SemiBold'],
@@ -79,9 +91,22 @@ module.exports = {
         body: ['Inter_400Regular'],
         label: ['Inter_500Medium'],
         labelbold: ['Inter_600SemiBold'],
-        manrope: ['Manrope', 'sans-serif'],
-        inter: ['Inter', 'sans-serif'],
-      }
+      },
+
+      // Component heights that several screens must agree on.
+      height: {
+        control: '52px',  // inputs, chips row, secondary buttons
+        cta: '56px',      // the one primary action of a screen
+        icon: '44px',     // icon button / minimum touch target
+      },
+      minHeight: {
+        touch: '44px',
+      },
+      letterSpacing: {
+        eyebrow: '0.08em',
+        tight: '-0.01em',
+        tighter: '-0.02em',
+      },
     },
   },
   plugins: [],

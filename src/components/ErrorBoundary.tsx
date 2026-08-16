@@ -31,18 +31,18 @@ export class ErrorBoundary extends React.Component<Props, State> {
         if (!this.state.hasError) return this.props.children;
         return (
             <View className="flex-1 bg-background items-center justify-center px-8">
-                <Text className="text-5xl mb-4">😕</Text>
-                <Text className="text-xl font-title text-ink text-center">
+                <Text className="text-display mb-4">😕</Text>
+                <Text className="text-h3 font-title text-ink text-center">
                     Oups, un problème est survenu
                 </Text>
-                <Text className="text-sm text-ink-muted font-body text-center mt-2 leading-relaxed">
+                <Text className="text-body text-ink-muted font-body text-center mt-2 leading-relaxed">
                     Une erreur inattendue s'est produite. Réessayez — vos données sont en sécurité.
                 </Text>
                 <Pressable
                     onPress={this.reset}
-                    className="bg-[#1c1b1b] px-8 py-4 rounded-full mt-8 active:scale-95"
+                    className="bg-ink px-8 py-4 rounded-full mt-8 active:scale-95"
                 >
-                    <Text className="text-white text-xs font-labelbold uppercase tracking-[0.08em]">Réessayer</Text>
+                    <Text className="text-white text-caption font-labelbold uppercase tracking-[0.08em]">Réessayer</Text>
                 </Pressable>
             </View>
         );

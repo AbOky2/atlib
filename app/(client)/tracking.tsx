@@ -82,10 +82,10 @@ function StatusHero({ status }: { status: string }) {
                     <Icon color="#fff" size={30} strokeWidth={2.2} />
                 </View>
             </View>
-            <Text className="text-[26px] font-display tracking-tight text-ink text-center">
+            <Text className="text-h1 font-display tracking-tight text-ink text-center">
                 {cancelled ? 'Commande annulée' : meta.headline}
             </Text>
-            <Text className="text-[14px] font-body text-ink-muted text-center mt-1.5 px-8">
+            <Text className="text-label font-body text-ink-muted text-center mt-1.5 px-8">
                 {cancelled ? 'Aucun montant ne vous sera facturé.' : delivered ? 'Bon appétit ! 🎉' : meta.description}
             </Text>
         </View>
@@ -141,14 +141,14 @@ function TimelineStep({
             {/* Copy */}
             <View className={`flex-1 pl-3 ${last ? '' : 'pb-7'}`} style={{ paddingTop: 6 }}>
                 <Text
-                    className={`text-[15px] tracking-tight ${
+                    className={`text-body tracking-tight ${
                         current ? 'font-title text-ink' : done ? 'font-heading text-ink' : 'font-heading text-ink-disabled'
                     }`}
                 >
                     {meta.headline}
                 </Text>
                 {(current || done) && (
-                    <Text className={`text-[13px] font-body mt-0.5 ${current ? 'text-ink-muted' : 'text-ink-faint'}`}>
+                    <Text className={`text-label font-body mt-0.5 ${current ? 'text-ink-muted' : 'text-ink-faint'}`}>
                         {meta.description}
                     </Text>
                 )}
@@ -256,18 +256,18 @@ export default function TrackingScreen() {
     if (!activeOrder) {
         return (
             <View className="flex-1 bg-background items-center justify-center px-8">
-                <View className="w-20 h-20 bg-surface-container-low rounded-full items-center justify-center mb-5">
+                <View className="w-20 h-20 bg-fill rounded-full items-center justify-center mb-5">
                     <Package color="#8d8a87" size={30} />
                 </View>
-                <Text className="text-xl font-title text-ink">Aucune commande</Text>
-                <Text className="text-sm text-ink-muted font-body text-center mt-2 mb-7">
+                <Text className="text-h3 font-title text-ink">Aucune commande</Text>
+                <Text className="text-body text-ink-muted font-body text-center mt-2 mb-7">
                     Votre prochaine commande apparaîtra ici, avec son suivi en direct.
                 </Text>
                 <Pressable
                     onPress={() => router.replace('/home')}
-                    className="bg-[#1c1b1b] px-8 py-4 rounded-full active:scale-95"
+                    className="bg-ink px-8 py-4 rounded-full active:scale-95"
                 >
-                    <Text className="text-white text-xs font-labelbold">Commander</Text>
+                    <Text className="text-white text-caption font-labelbold">Commander</Text>
                 </Pressable>
             </View>
         );
@@ -294,10 +294,10 @@ export default function TrackingScreen() {
                         }}
                         accessibilityRole="button"
                         accessibilityLabel="Aide"
-                        className="h-10 px-4 rounded-full bg-surface-container-low flex-row items-center gap-2 active:scale-95"
+                        className="h-10 px-4 rounded-full bg-fill flex-row items-center gap-2 active:scale-95"
                     >
                         <LifeBuoy color="#1c1b1b" size={16} />
-                        <Text className="text-[12px] font-labelbold text-ink">Aide</Text>
+                        <Text className="text-caption font-labelbold text-ink">Aide</Text>
                     </Pressable>
                 }
             />
@@ -318,11 +318,11 @@ export default function TrackingScreen() {
                         arrival time belongs here — otherwise those users would have
                         no time information anywhere in the product. */}
                     {live && Platform.OS !== 'ios' && index >= 1 && arrival && (
-                        <View className="flex-row items-center gap-3 bg-surface-container-low rounded-2xl px-4 py-3.5 mb-6">
-                            <View className="w-9 h-9 rounded-full bg-[#1c1b1b] items-center justify-center">
+                        <View className="flex-row items-center gap-3 bg-fill rounded-card px-4 py-3.5 mb-6">
+                            <View className="w-9 h-9 rounded-full bg-ink items-center justify-center">
                                 <Clock color="#fff" size={16} />
                             </View>
-                            <Text className="flex-1 text-[13px] font-body text-ink-muted leading-snug">
+                            <Text className="flex-1 text-label font-body text-ink-muted leading-snug">
                                 Arrivée estimée vers <Text className="font-labelbold text-ink">{arrival}</Text>
                             </Text>
                         </View>
@@ -331,11 +331,11 @@ export default function TrackingScreen() {
                     {/* Live Activity hint — shown ONLY when one is really running,
                         so the app never claims a lock-screen tracker it doesn't have. */}
                     {live && Platform.OS === 'ios' && index >= 1 && activityRunning && (
-                        <View className="flex-row items-center gap-3 bg-surface-container-low rounded-2xl px-4 py-3.5 mb-6">
-                            <View className="w-9 h-9 rounded-full bg-[#1c1b1b] items-center justify-center">
+                        <View className="flex-row items-center gap-3 bg-fill rounded-card px-4 py-3.5 mb-6">
+                            <View className="w-9 h-9 rounded-full bg-ink items-center justify-center">
                                 <Smartphone color="#fff" size={16} />
                             </View>
-                            <Text className="flex-1 text-[13px] font-body text-ink-muted leading-snug">
+                            <Text className="flex-1 text-label font-body text-ink-muted leading-snug">
                                 Temps estimé et progression en direct sur votre{' '}
                                 <Text className="font-labelbold text-ink">écran verrouillé</Text> et la{' '}
                                 <Text className="font-labelbold text-ink">Dynamic Island</Text>.
@@ -345,8 +345,8 @@ export default function TrackingScreen() {
 
                     {/* Step tracker */}
                     {!cancelled && (
-                        <View className="bg-white rounded-sheet border border-surface-container-highest p-6 mb-6" style={shadowSoft}>
-                            <Text className="text-[11px] font-label uppercase tracking-[0.08em] text-ink-faint mb-5">
+                        <View className="bg-white rounded-sheet border border-hairline p-6 mb-6" style={shadowSoft}>
+                            <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-5">
                                 Progression
                             </Text>
                             {STATUS_FLOW.map((status, i) => (
@@ -361,28 +361,28 @@ export default function TrackingScreen() {
                     )}
 
                     {/* Route */}
-                    <View className="bg-white rounded-sheet border border-surface-container-highest p-5 mb-6">
-                        <View className="flex-row items-start gap-4 pb-4 border-b border-surface-container-highest">
-                            <View className="w-10 h-10 rounded-full bg-surface-container-low items-center justify-center">
+                    <View className="bg-white rounded-sheet border border-hairline p-5 mb-6">
+                        <View className="flex-row items-start gap-4 pb-4 border-b border-hairline">
+                            <View className="w-10 h-10 rounded-full bg-fill items-center justify-center">
                                 <UtensilsCrossed color="#1c1b1b" size={17} />
                             </View>
                             <View className="flex-1">
-                                <Text className="text-[10px] uppercase tracking-[0.08em] text-ink-faint font-label">Restaurant</Text>
-                                <Text className="text-sm font-heading text-ink mt-0.5" numberOfLines={2}>
+                                <Text className="text-eyebrow uppercase tracking-[0.08em] text-ink-faint font-label">Restaurant</Text>
+                                <Text className="text-body font-heading text-ink mt-0.5" numberOfLines={2}>
                                     {activeOrder.restaurant_name || 'Restaurant'}
                                 </Text>
-                                <Text className="text-[11px] font-body text-ink-faint mt-0.5">
+                                <Text className="text-eyebrow font-body text-ink-faint mt-0.5">
                                     Prépare et livre votre commande
                                 </Text>
                             </View>
                         </View>
                         <View className="flex-row items-start gap-4 pt-4">
-                            <View className="w-10 h-10 rounded-full bg-surface-container-low items-center justify-center">
+                            <View className="w-10 h-10 rounded-full bg-fill items-center justify-center">
                                 <MapPin color="#1c1b1b" size={17} />
                             </View>
                             <View className="flex-1">
-                                <Text className="text-[10px] uppercase tracking-[0.08em] text-ink-faint font-label">Destination</Text>
-                                <Text className="text-sm font-heading text-ink mt-0.5" numberOfLines={2}>
+                                <Text className="text-eyebrow uppercase tracking-[0.08em] text-ink-faint font-label">Destination</Text>
+                                <Text className="text-body font-heading text-ink mt-0.5" numberOfLines={2}>
                                     {neighborhood || activeOrder.delivery_address || 'Votre adresse'}
                                 </Text>
                             </View>
@@ -391,7 +391,7 @@ export default function TrackingScreen() {
 
                     {/* Order summary */}
                     {items && items.length > 0 && (
-                        <View className="bg-white rounded-sheet overflow-hidden border border-surface-container-highest mb-6">
+                        <View className="bg-white rounded-sheet overflow-hidden border border-hairline mb-6">
                             <Pressable
                                 onPress={() => {
                                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -399,16 +399,16 @@ export default function TrackingScreen() {
                                 }}
                                 accessibilityRole="button"
                                 accessibilityState={{ expanded: isOrderDetailsExpanded }}
-                                className="w-full px-5 py-5 flex-row justify-between items-center active:bg-surface-container-low"
+                                className="w-full px-5 py-5 flex-row justify-between items-center active:bg-fill"
                             >
                                 <View className="flex-row items-center gap-3">
                                     <Receipt color="#1c1b1b" size={19} />
-                                    <Text className="font-labelbold text-sm tracking-tight text-ink">
+                                    <Text className="font-labelbold text-body tracking-tight text-ink">
                                         Détails · {items.length} article{items.length > 1 ? 's' : ''}
                                     </Text>
                                 </View>
                                 <View className="flex-row items-center gap-3">
-                                    <Text className="text-sm font-title text-ink">{formatXaf(orderTotal)}</Text>
+                                    <Text className="text-body font-title text-ink">{formatXaf(orderTotal)}</Text>
                                     {isOrderDetailsExpanded
                                         ? <ChevronUp color="#8d8a87" size={19} />
                                         : <ChevronDown color="#8d8a87" size={19} />}
@@ -416,25 +416,25 @@ export default function TrackingScreen() {
                             </Pressable>
 
                             {isOrderDetailsExpanded && (
-                                <View className="px-5 pb-5 pt-1 flex-col gap-3.5 border-t border-surface-container-highest">
+                                <View className="px-5 pb-5 pt-1 flex-col gap-3.5 border-t border-hairline">
                                     <View className="pt-3.5 flex-col gap-3.5">
                                         {items.map((item: any) => (
                                             <View key={item.id} className="flex-row justify-between items-center">
                                                 <View className="flex-row gap-3.5 items-center flex-1 pr-4">
-                                                    <View className="w-7 h-7 bg-surface-container-low rounded-lg items-center justify-center">
-                                                        <Text className="text-xs font-labelbold text-ink">{item.quantity}</Text>
+                                                    <View className="w-7 h-7 bg-fill rounded-chip items-center justify-center">
+                                                        <Text className="text-caption font-labelbold text-ink">{item.quantity}</Text>
                                                     </View>
-                                                    <Text className="text-sm font-label text-ink-muted" numberOfLines={1}>{item.name}</Text>
+                                                    <Text className="text-body font-label text-ink-muted" numberOfLines={1}>{item.name}</Text>
                                                 </View>
-                                                <Text className="text-sm font-labelbold text-ink tracking-tight">
+                                                <Text className="text-body font-labelbold text-ink tracking-tight">
                                                     {formatXaf(item.price * item.quantity)}
                                                 </Text>
                                             </View>
                                         ))}
                                     </View>
-                                    <View className="flex-row justify-between items-center pt-3.5 border-t border-surface-container-highest">
-                                        <Text className="text-sm font-labelbold text-ink uppercase tracking-[0.08em]">Total</Text>
-                                        <Text className="text-lg font-title text-ink tracking-tight">{formatXaf(orderTotal)}</Text>
+                                    <View className="flex-row justify-between items-center pt-3.5 border-t border-hairline">
+                                        <Text className="text-body font-labelbold text-ink uppercase tracking-[0.08em]">Total</Text>
+                                        <Text className="text-h3 font-title text-ink tracking-tight">{formatXaf(orderTotal)}</Text>
                                     </View>
                                 </View>
                             )}
@@ -447,14 +447,14 @@ export default function TrackingScreen() {
                             <Pressable
                                 onPress={handleCancelOrder}
                                 disabled={cancelling}
-                                className="w-full py-4 rounded-full border border-red-500/20 bg-red-500/5 active:scale-[0.98] items-center justify-center"
+                                className="w-full py-4 rounded-full border border-red-500/20 bg-danger-soft active:scale-[0.98] items-center justify-center"
                                 style={{ opacity: cancelling ? 0.6 : 1 }}
                             >
-                                <Text className="text-red-500 font-labelbold text-sm tracking-[0.08em] uppercase">
+                                <Text className="text-danger font-labelbold text-body tracking-[0.08em] uppercase">
                                     {cancelling ? 'Annulation…' : 'Annuler la commande'}
                                 </Text>
                             </Pressable>
-                            <Text className="text-[11px] text-ink-faint font-body text-center mt-2">
+                            <Text className="text-eyebrow text-ink-faint font-body text-center mt-2">
                                 Possible tant que le restaurant n'a pas accepté.
                             </Text>
                         </View>
@@ -464,9 +464,9 @@ export default function TrackingScreen() {
                     {(delivered || cancelled) && (
                         <Pressable
                             onPress={() => router.replace('/home')}
-                            className="mb-10 w-full py-4 rounded-full bg-[#1c1b1b] items-center active:scale-[0.98]"
+                            className="mb-10 w-full py-4 rounded-full bg-ink items-center active:scale-[0.98]"
                         >
-                            <Text className="text-white font-labelbold text-sm">
+                            <Text className="text-white font-labelbold text-body">
                                 {delivered ? 'Commander à nouveau' : "Retour à l'accueil"}
                             </Text>
                         </Pressable>

@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, X } from 'lucide-react-native';
-import { shadowSoft } from '../lib/elevation';
+import { BackButton, TypeText, TOUCH_MIN, SCREEN_GUTTER } from './ui';
 
 /**
  * Shared top app bar.
@@ -13,7 +12,8 @@ import { shadowSoft } from '../lib/elevation';
  * `useHeaderOffset()` returns the matching content offset for the ScrollView.
  */
 
-// Height of the bar content below the status bar / notch.
+// Height of the bar content below the status bar / notch. One value, so every
+// screen's scroll offset and every title baseline agree.
 export const HEADER_CONTENT_HEIGHT = 56;
 
 /** Top inset used by the header, floored so small/no-notch devices still breathe. */
@@ -50,18 +50,6 @@ interface ScreenHeaderProps {
     bordered?: boolean;
 }
 
-function IconButton({ children, onPress }: { children: React.ReactNode; onPress?: () => void }) {
-    return (
-        <Pressable
-            onPress={onPress}
-            hitSlop={8}
-            className="w-10 h-10 items-center justify-center rounded-full bg-surface-container-low active:scale-95"
-        >
-            {children}
-        </Pressable>
-    );
-}
-
 export function ScreenHeader({
     title,
     subtitle,
@@ -76,24 +64,19 @@ export function ScreenHeader({
     const insetTop = useHeaderInsetTop();
 
     const leading =
-        left ??
-        (back ? (
-            <IconButton onPress={onBack}>
-                {back === 'close' ? <X color="#1c1b1b" size={22} /> : <ArrowLeft color="#1c1b1b" size={22} />}
-            </IconButton>
-        ) : null);
+        left ?? (back ? <BackButton variant={back} onPress={() => onBack?.()} /> : null);
 
     const TitleBlock = (
         <View className={centerTitle ? 'items-center' : ''}>
             {subtitle ? (
-                <Text className="text-[11px] font-label uppercase tracking-[0.12em] text-ink-faint">
+                <Text className="text-eyebrow font-label uppercase tracking-[0.12em] text-ink-faint">
                     {subtitle}
                 </Text>
             ) : null}
             {title ? (
                 <Text
                     numberOfLines={1}
-                    className="text-[22px] font-title tracking-[-0.01em] text-ink"
+                    className="text-h2 font-title tracking-[-0.01em] text-ink"
                 >
                     {title}
                 </Text>
@@ -103,14 +86,14 @@ export function ScreenHeader({
 
     const content = (
         <View
-            style={{ paddingTop: insetTop, height: insetTop + HEADER_CONTENT_HEIGHT }}
-            className="flex-row items-center justify-between px-5"
+            style={{ paddingTop: insetTop, height: insetTop + HEADER_CONTENT_HEIGHT, paddingHorizontal: SCREEN_GUTTER }}
+            className="flex-row items-center justify-between"
         >
             {centerTitle ? (
                 <>
-                    <View className="w-10 items-start">{leading}</View>
+                    <View style={{ width: TOUCH_MIN }} className="items-start">{leading}</View>
                     <View className="flex-1 items-center px-2">{TitleBlock}</View>
-                    <View className="w-10 items-end">{right}</View>
+                    <View style={{ width: TOUCH_MIN }} className="items-end">{right}</View>
                 </>
             ) : (
                 <>
@@ -128,15 +111,11 @@ export function ScreenHeader({
         return <View className="absolute top-0 left-0 right-0 z-50">{content}</View>;
     }
 
-    // solid white (default) — opaque header with a hairline + soft shadow.
+    // Solid surface. A hairline separates it from the content — an app bar does
+    // not float above the page, so it casts no shadow.
     return (
-        <View
-            className={`absolute top-0 left-0 right-0 z-50 bg-white ${bordered ? 'border-b border-hairline' : ''}`}
-            style={shadowSoft}
-        >
+        <View className={`absolute top-0 left-0 right-0 z-50 bg-surface ${bordered ? 'border-b border-hairline' : ''}`}>
             {content}
         </View>
     );
 }
-
-export { IconButton };

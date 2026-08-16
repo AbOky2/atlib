@@ -77,8 +77,8 @@ export function MenuManager({ restaurantId }: { restaurantId: string | undefined
         return (
             <View className="items-center justify-center mt-20 px-6">
                 <Utensils color="#444" size={44} />
-                <Text className="text-white font-title text-xl mt-4">Carte vide</Text>
-                <Text className="text-[#a1a1aa] font-body text-center mt-2">
+                <Text className="text-white font-title text-h3 mt-4">Carte vide</Text>
+                <Text className="text-white/60 font-body text-center mt-2">
                     Vos plats apparaîtront ici dès qu'ils seront ajoutés au catalogue.
                 </Text>
             </View>
@@ -87,20 +87,20 @@ export function MenuManager({ restaurantId }: { restaurantId: string | undefined
 
     return (
         <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
-            <View className="bg-[#1c1b1b] rounded-3xl px-5 py-4 mb-6 border border-white/5">
-                <Text className="text-white font-labelbold text-[15px]">
+            <View className="bg-ink rounded-panel px-5 py-4 mb-6 border border-white/5">
+                <Text className="text-white font-labelbold text-body">
                     {unavailableCount === 0
                         ? 'Toute la carte est disponible'
                         : `${unavailableCount} plat${unavailableCount > 1 ? 's' : ''} retiré${unavailableCount > 1 ? 's' : ''} de la carte`}
                 </Text>
-                <Text className="text-[#a1a1aa] font-body text-[13px] mt-1 leading-relaxed">
+                <Text className="text-white/60 font-body text-label mt-1 leading-relaxed">
                     Un plat retiré disparaît immédiatement de l'application, sans toucher au reste de votre carte.
                 </Text>
             </View>
 
             {sections.map(([category, items]) => (
                 <View key={category} className="mb-7">
-                    <Text className="font-label text-[11px] uppercase tracking-[0.12em] text-[#6b6b70] mb-3">
+                    <Text className="font-label text-eyebrow uppercase tracking-[0.12em] text-white/40 mb-3">
                         {category}
                     </Text>
                     <View className="gap-2.5">
@@ -114,11 +114,11 @@ export function MenuManager({ restaurantId }: { restaurantId: string | undefined
                                     accessibilityRole="switch"
                                     accessibilityState={{ checked: available, disabled: busy }}
                                     accessibilityLabel={`${dish.name}, ${available ? 'disponible' : 'retiré de la carte'}`}
-                                    className="flex-row items-center gap-4 bg-[#1c1b1b] rounded-3xl p-3.5 border border-white/5 active:scale-[0.99]"
+                                    className="flex-row items-center gap-4 bg-ink rounded-panel p-3.5 border border-white/5 active:scale-[0.99]"
                                     style={{ opacity: busy ? 0.6 : 1 }}
                                 >
                                     <View
-                                        className="w-14 h-14 rounded-2xl overflow-hidden bg-black/40 items-center justify-center"
+                                        className="w-14 h-14 rounded-card overflow-hidden bg-black/40 items-center justify-center"
                                         style={{ opacity: available ? 1 : 0.35 }}
                                     >
                                         {dish.image_url ? (
@@ -131,12 +131,12 @@ export function MenuManager({ restaurantId }: { restaurantId: string | undefined
                                     <View className="flex-1">
                                         <Text
                                             numberOfLines={1}
-                                            className="font-labelbold text-[15px]"
+                                            className="font-labelbold text-body"
                                             style={{ color: available ? '#ffffff' : '#6b6b70' }}
                                         >
                                             {dish.name}
                                         </Text>
-                                        <Text className="font-body text-[13px] text-[#a1a1aa] mt-0.5">
+                                        <Text className="font-body text-label text-white/60 mt-0.5">
                                             {formatXaf(dish.price_xaf)}
                                         </Text>
                                     </View>

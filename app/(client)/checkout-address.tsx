@@ -11,6 +11,9 @@ import { supabase } from '../../src/lib/supabase';
 import { getEstimatedDeliveryTime } from '../../src/lib/localities';
 import { isValidChadPhone, normalizeChadPhone } from '../../src/lib/phone';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
+import {
+    Button, Card, Divider, Field, TypeText,
+    BottomActionBar, BOTTOM_BAR_CLEARANCE, SCREEN_GUTTER } from '../../src/components/ui';
 import { shadowFloat } from '../../src/lib/elevation';
 import { COLORS } from '../../src/lib/palette';
 
@@ -72,139 +75,110 @@ export default function CheckoutAddressScreen() {
             >
                 <ScrollView
                     className="flex-1"
-                    contentContainerStyle={{ paddingTop: headerOffset + 16, paddingBottom: insets.bottom + 140 }}
+                    contentContainerStyle={{ paddingTop: headerOffset + 16, paddingBottom: insets.bottom + BOTTOM_BAR_CLEARANCE }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View className="px-6">
+                    <View style={{ paddingHorizontal: SCREEN_GUTTER }}>
                         {/* Intro */}
-                        <View className="mb-7">
-                            <Text className="font-title text-3xl tracking-tight text-ink">
-                                Où livrons-nous ?
-                            </Text>
-                            <Text className="text-ink-muted mt-2 text-sm font-body leading-relaxed">
+                        <View className="mb-6">
+                            <TypeText variant="h1">Où livrons-nous ?</TypeText>
+                            <TypeText variant="body" tone="secondary" className="mt-2">
                                 Confirmez le point de livraison. À N'Djamena, une bonne description vaut mieux qu'une rue.
-                            </Text>
+                            </TypeText>
                         </View>
 
                         {selectedAddress ? (
                             <>
-                                {/* Selected address card */}
-                                <View className="bg-white rounded-3xl border border-surface-container-highest overflow-hidden mb-5">
-                                    <View className="p-5 flex-row items-start gap-4">
-                                        <View className="w-12 h-12 rounded-2xl bg-[#FF5733]/10 items-center justify-center">
-                                            <MapPin color="#FF5733" size={22} />
-                                        </View>
-                                        <View className="flex-1">
-                                            <Text className="text-[10px] text-ink-faint uppercase tracking-[0.08em] font-label">
-                                                Livraison à
-                                            </Text>
-                                            <Text className="text-xl font-heading tracking-tight text-ink mt-0.5">
-                                                {selectedAddress.locality}
-                                            </Text>
-                                            <Text className="text-sm text-ink-muted font-body leading-relaxed mt-1">
-                                                {selectedAddress.description}
-                                            </Text>
-                                        </View>
-                                    </View>
+                                {/* Address and ETA are one group: where we go and
+                                    when we arrive. Two cards for four facts was the
+                                    single tallest block of the flow. */}
+                                <Card className="mb-6 overflow-hidden">
                                     <Pressable
                                         onPress={() => {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                             router.push('/addresses');
                                         }}
-                                        className="flex-row items-center justify-center gap-2 py-4 border-t border-surface-container-highest active:bg-surface-container-low"
+                                        accessibilityRole="button"
+                                        accessibilityLabel="Changer d'adresse de livraison"
+                                        className="flex-row items-center gap-3 p-4 active:bg-fill"
                                     >
-                                        <Pencil color="#1c1b1b" size={14} />
-                                        <Text className="text-ink font-labelbold text-xs uppercase tracking-[0.08em]">
-                                            Changer d'adresse
-                                        </Text>
+                                        <View
+                                            className="w-11 h-11 rounded-card items-center justify-center"
+                                            style={{ backgroundColor: COLORS.accentSoft }}
+                                        >
+                                            <MapPin color={COLORS.accent} size={20} />
+                                        </View>
+                                        <View className="flex-1">
+                                            <TypeText variant="eyebrow" tone="tertiary">Livraison à</TypeText>
+                                            <TypeText variant="h3" numberOfLines={1}>{selectedAddress.locality}</TypeText>
+                                            <TypeText variant="caption" tone="secondary" numberOfLines={1} className="mt-0.5">
+                                                {selectedAddress.description}
+                                            </TypeText>
+                                        </View>
+                                        <Pencil color={COLORS.inkFaint} size={17} />
                                     </Pressable>
-                                </View>
 
-                                {/* ETA pill */}
-                                {eta ? (
-                                    <View className="flex-row items-center gap-3 bg-surface-container-low rounded-2xl px-5 py-4 mb-5">
-                                        <Clock color="#1c1b1b" size={18} />
-                                        <Text className="text-sm text-ink-muted font-body flex-1">
-                                            Temps de livraison estimé
-                                        </Text>
-                                        <Text className="text-sm font-heading text-ink">~{eta} min</Text>
-                                    </View>
-                                ) : null}
+                                    {eta ? (
+                                        <>
+                                            <Divider />
+                                            <View className="flex-row items-center gap-3 px-4 py-3">
+                                                <Clock color={COLORS.inkMuted} size={17} />
+                                                <TypeText variant="body" tone="secondary" className="flex-1">
+                                                    Temps estimé
+                                                </TypeText>
+                                                <TypeText variant="body" className="font-labelbold">~{eta} min</TypeText>
+                                            </View>
+                                        </>
+                                    ) : null}
+                                </Card>
 
-                                {/* Contact phone — the restaurant calls this number on arrival */}
-                                <View className="mb-5">
-                                    <View className="flex-row items-center gap-2 mb-3">
-                                        <Phone color="#8d8a87" size={16} />
-                                        <Text className="text-xs uppercase tracking-[0.08em] text-ink-faint font-label">
-                                            Numéro de téléphone
-                                        </Text>
-                                    </View>
-                                    <View
-                                        className="bg-white rounded-2xl border"
-                                        style={{ borderColor: phoneError ? COLORS.red : COLORS.fillStrong }}
-                                    >
-                                        <TextInput
-                                            className="px-4 h-14 text-base font-body text-ink"
-                                            placeholder="Ex : 66 00 00 00"
-                                            placeholderTextColor="#8d8a87"
-                                            keyboardType="phone-pad"
-                                            value={phone}
-                                            onChangeText={(v) => {
-                                                setPhone(v);
-                                                if (phoneError && isValidChadPhone(v)) setPhoneError(null);
-                                            }}
-                                            maxLength={20}
-                                        />
-                                    </View>
-                                    <Text
-                                        className="text-[11px] font-body mt-2"
-                                        style={{ color: phoneError ? COLORS.red : COLORS.inkFaint }}
-                                    >
-                                        {phoneError ?? 'Le restaurant vous appellera à ce numéro en arrivant.'}
-                                    </Text>
-                                </View>
+                                {/* The restaurant calls this number on arrival, so it
+                                    carries the same weight as the address itself. */}
+                                <Field
+                                    label="Numéro de téléphone"
+                                    icon={Phone}
+                                    placeholder="66 12 34 56"
+                                    keyboardType="phone-pad"
+                                    value={phone}
+                                    onChangeText={(v) => {
+                                        setPhone(v);
+                                        if (phoneError && isValidChadPhone(v)) setPhoneError(null);
+                                    }}
+                                    maxLength={20}
+                                    error={phoneError}
+                                    helper="Le restaurant vous appellera à ce numéro en arrivant."
+                                    className="mb-6"
+                                />
 
-                                {/* Courier note */}
-                                <View className="mb-2">
-                                    <View className="flex-row items-center gap-2 mb-3">
-                                        <MessageSquare color="#8d8a87" size={16} />
-                                        <Text className="text-xs uppercase tracking-[0.08em] text-ink-faint font-label">
-                                            Instructions pour le livreur
-                                        </Text>
-                                    </View>
-                                    <View className="bg-white rounded-2xl border border-surface-container-highest">
-                                        <TextInput
-                                            className="px-4 py-4 text-sm font-body text-ink min-h-[88px]"
-                                            placeholder="Ex : Portail bleu face à la pharmacie, appelez en arrivant…"
-                                            placeholderTextColor="#8d8a87"
-                                            multiline
-                                            textAlignVertical="top"
-                                            value={note}
-                                            onChangeText={setNote}
-                                            maxLength={180}
-                                        />
-                                    </View>
-                                    <Text className="text-[10px] text-ink-faint font-body mt-2 text-right">{note.length}/180</Text>
-                                </View>
+                                <Field
+                                    label="Instructions pour le livreur"
+                                    placeholder="Ex : Portail bleu face à la pharmacie, appelez en arrivant…"
+                                    multiline
+                                    value={note}
+                                    onChangeText={setNote}
+                                    maxLength={180}
+                                    counter={`${note.length}/180`}
+                                    helper="Optionnel"
+                                />
                             </>
                         ) : (
                             /* Empty state */
-                            <View className="bg-white rounded-3xl border border-surface-container-highest px-6 py-10 items-center">
-                                <View className="w-16 h-16 rounded-full bg-[#FF5733]/10 items-center justify-center mb-4">
+                            <View className="bg-white rounded-panel border border-hairline px-6 py-10 items-center">
+                                <View className="w-16 h-16 rounded-full bg-accent/10 items-center justify-center mb-4">
                                     <AlertCircle color="#FF5733" size={28} />
                                 </View>
-                                <Text className="font-heading text-lg text-ink text-center">
+                                <Text className="font-heading text-h3 text-ink text-center">
                                     Aucune adresse enregistrée
                                 </Text>
-                                <Text className="text-sm text-center text-ink-muted font-body mt-2 mb-6 leading-relaxed">
+                                <Text className="text-body text-center text-ink-muted font-body mt-2 mb-6 leading-relaxed">
                                     Ajoutez une adresse de livraison pour continuer.
                                 </Text>
                                 <Pressable
                                     onPress={() => router.push('/addresses')}
-                                    className="bg-[#1c1b1b] px-8 py-4 rounded-full active:scale-95"
+                                    className="bg-ink px-8 py-4 rounded-full active:scale-95"
                                 >
-                                    <Text className="text-white font-labelbold text-xs uppercase tracking-[0.08em]">
+                                    <Text className="text-white font-labelbold text-caption uppercase tracking-[0.08em]">
                                         Choisir une adresse
                                     </Text>
                                 </Pressable>
@@ -214,22 +188,14 @@ export default function CheckoutAddressScreen() {
                 </ScrollView>
             </KeyboardAvoidingView>
 
-            {/* Bottom action */}
-            <View
-                className="absolute bottom-0 left-0 right-0 bg-white/95 border-t border-surface-container-highest px-6"
-                style={{ paddingBottom: Math.max(insets.bottom, 20), paddingTop: 18 }}
-            >
-                <Pressable
+            <BottomActionBar>
+                <Button
+                    label={selectedAddress ? 'Vers le paiement' : 'Ajouter une adresse'}
                     onPress={handleContinue}
-                    className="w-full h-[54px] rounded-full flex-row items-center justify-between px-6 active:scale-[0.98] bg-[#1c1b1b]"
-                    style={shadowFloat}
-                >
-                    <Text className="text-sm font-labelbold text-white">
-                        {selectedAddress ? 'Vers le paiement' : 'Ajouter une adresse'}
-                    </Text>
-                    <ArrowRight color="#fff" size={20} />
-                </Pressable>
-            </View>
+                    variant="dark"
+                    trailing={<ArrowRight color="#fff" size={20} />}
+                />
+            </BottomActionBar>
         </View>
     );
 }

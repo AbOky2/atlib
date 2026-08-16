@@ -12,8 +12,7 @@ import {
     updateOrderStatus,
     setRestaurantAcceptingOrders,
     ORDER_ERRORS,
-    AVAILABILITY_ERRORS,
-} from "../../src/hooks/useSupabase";
+    AVAILABILITY_ERRORS } from "../../src/hooks/useSupabase";
 import { statusMeta, isOrderStatus, isLive, type OrderStatus } from "../../src/lib/orderStatus";
 import { isAcceptingOrders } from "../../src/lib/availability";
 import { changeToGive } from "../../src/lib/cash";
@@ -34,7 +33,7 @@ const NEXT_ACTION: Partial<Record<OrderStatus, { to: OrderStatus; label: string;
 };
 
 const TONE_CLASS = {
-    brand: 'bg-[#FF5733]',
+    brand: 'bg-accent',
     light: 'bg-white',
     done: 'bg-green-600',
 } as const;
@@ -129,11 +128,11 @@ export default function RestaurantDashboard() {
 
     return (
         <SafeAreaView className="flex-1 bg-[#0a0a0a]">
-            <View className="px-6 py-6 border-b border-[#1c1b1b]">
+            <View className="px-6 py-6 border-b border-ink">
                 <View className="flex-row items-start justify-between">
                     <View className="flex-1 pr-4">
-                        <Text className="font-display text-3xl text-white tracking-tighter">Tableau de bord</Text>
-                        <Text className="font-body text-[#a1a1aa] mt-1">
+                        <Text className="font-display text-h1 text-white tracking-tighter">Tableau de bord</Text>
+                        <Text className="font-body text-white/60 mt-1">
                             {pendingCount > 0
                                 ? `${pendingCount} commande${pendingCount > 1 ? 's' : ''} à confirmer`
                                 : 'Aucune commande en attente'}
@@ -151,14 +150,14 @@ export default function RestaurantDashboard() {
                         style={{ backgroundColor: open ? 'rgba(34,197,94,0.16)' : 'rgba(255,255,255,0.08)', opacity: togglingOpen ? 0.6 : 1 }}
                     >
                         <Power color={open ? '#22c55e' : '#a1a1aa'} size={15} strokeWidth={2.5} />
-                        <Text className="font-labelbold text-[12px]" style={{ color: open ? '#22c55e' : '#a1a1aa' }}>
+                        <Text className="font-labelbold text-caption" style={{ color: open ? '#22c55e' : '#a1a1aa' }}>
                             {open ? 'Ouvert' : 'Fermé'}
                         </Text>
                     </Pressable>
                 </View>
 
                 {/* Commandes ⇄ Menu */}
-                <View className="flex-row bg-white/[0.06] rounded-2xl p-1 mt-5">
+                <View className="flex-row bg-white/[0.06] rounded-card p-1 mt-5">
                     {([
                         { id: 'orders' as const, label: 'Commandes', Icon: ClipboardList },
                         { id: 'menu' as const, label: 'Menu', Icon: UtensilsCrossed },
@@ -173,17 +172,17 @@ export default function RestaurantDashboard() {
                                 }}
                                 accessibilityRole="tab"
                                 accessibilityState={{ selected }}
-                                className={`flex-1 h-10 rounded-xl items-center justify-center flex-row gap-2 ${
+                                className={`flex-1 h-10 rounded-chip items-center justify-center flex-row gap-2 ${
                                     selected ? 'bg-white/[0.12]' : ''
                                 }`}
                             >
                                 <Icon color={selected ? '#ffffff' : '#6b6b70'} size={15} />
-                                <Text className={`text-[13px] font-labelbold ${selected ? 'text-white' : 'text-[#6b6b70]'}`}>
+                                <Text className={`text-label font-labelbold ${selected ? 'text-white' : 'text-white/40'}`}>
                                     {label}
                                 </Text>
                                 {id === 'orders' && pendingCount > 0 && (
-                                    <View className="bg-[#FF5733] rounded-full px-1.5 min-w-[18px] h-[18px] items-center justify-center">
-                                        <Text className="text-white text-[10px] font-labelbold">{pendingCount}</Text>
+                                    <View className="bg-accent rounded-full px-1.5 min-w-[18px] h-[18px] items-center justify-center">
+                                        <Text className="text-white text-eyebrow font-labelbold">{pendingCount}</Text>
                                     </View>
                                 )}
                             </Pressable>
@@ -209,8 +208,8 @@ export default function RestaurantDashboard() {
                     {queue.length === 0 && history.length === 0 ? (
                         <View className="items-center justify-center mt-20">
                             <Clock color="#444" size={48} />
-                            <Text className="text-white font-title text-xl mt-4">Aucune commande</Text>
-                            <Text className="text-[#a1a1aa] font-body text-center mt-2">Les nouvelles commandes apparaîtront ici.</Text>
+                            <Text className="text-white font-title text-h3 mt-4">Aucune commande</Text>
+                            <Text className="text-white/60 font-body text-center mt-2">Les nouvelles commandes apparaîtront ici.</Text>
                         </View>
                     ) : (
                         <>
@@ -220,7 +219,7 @@ export default function RestaurantDashboard() {
 
                             {history.length > 0 && (
                                 <>
-                                    <Text className="font-label text-[11px] uppercase tracking-[0.12em] text-[#6b6b70] mt-4 mb-4">
+                                    <Text className="font-label text-eyebrow uppercase tracking-[0.12em] text-white/40 mt-4 mb-4">
                                         Terminées
                                     </Text>
                                     {history.map((order) => (
@@ -254,7 +253,7 @@ function OrderCard({
 
     return (
         <View
-            className="bg-[#1c1b1b] rounded-3xl p-6 mb-5"
+            className="bg-ink rounded-panel p-6 mb-5"
             style={{
                 opacity: muted ? 0.55 : 1,
                 borderWidth: urgent ? 1.5 : 1,
@@ -263,23 +262,23 @@ function OrderCard({
         >
             <View className="flex-row justify-between items-start mb-4">
                 <View className="flex-1 pr-3">
-                    <Text className="font-title text-xl text-white tracking-tight">
+                    <Text className="font-title text-h3 text-white tracking-tight">
                         Commande #{order.id.slice(0, 5).toUpperCase()}
                     </Text>
-                    <View className="px-2 py-1 rounded-md self-start mt-2" style={{ backgroundColor: meta.tint }}>
+                    <View className="px-2 py-1 rounded-chip self-start mt-2" style={{ backgroundColor: meta.tint }}>
                         <Text
-                            className="text-[10px] font-labelbold uppercase tracking-[0.08em]"
+                            className="text-eyebrow font-labelbold uppercase tracking-[0.08em]"
                             style={{ color: meta.color }}
                         >{meta.label}</Text>
                     </View>
                 </View>
                 <View className="items-end">
-                    <Text className="font-label text-xs text-[#a1a1aa]">
+                    <Text className="font-label text-caption text-white/60">
                         {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                     {isLive(order.status) && (
                         <Text
-                            className="font-labelbold text-[11px] mt-1"
+                            className="font-labelbold text-eyebrow mt-1"
                             style={{ color: urgent && waitingMins >= 5 ? '#FF5733' : '#6b6b70' }}
                         >
                             depuis {waitingMins} min
@@ -288,12 +287,12 @@ function OrderCard({
                 </View>
             </View>
 
-            <View className="mb-5 bg-black/40 p-4 rounded-2xl border border-white/5">
+            <View className="mb-5 bg-black/40 p-4 rounded-card border border-white/5">
                 {/* Customer + tap-to-call: the last 200 metres are closed by phone here */}
                 <View className="flex-row items-center justify-between mb-3">
                     <View className="flex-1 pr-3">
-                        <Text className="font-body text-[#a1a1aa] text-sm">Client</Text>
-                        <Text className="text-white font-labelbold text-base">{order.customer_name}</Text>
+                        <Text className="font-body text-white/60 text-body">Client</Text>
+                        <Text className="text-white font-labelbold text-bodylg">{order.customer_name}</Text>
                     </View>
                     {order.customer_phone ? (
                         <Pressable
@@ -303,10 +302,10 @@ function OrderCard({
                             }}
                             accessibilityRole="button"
                             accessibilityLabel={`Appeler ${order.customer_name}`}
-                            className="px-4 h-10 rounded-full bg-[#FF5733] flex-row items-center gap-2 active:scale-95"
+                            className="px-4 h-10 rounded-full bg-accent flex-row items-center gap-2 active:scale-95"
                         >
                             <Phone color="#fff" size={14} />
-                            <Text className="text-white font-labelbold text-[12px]">{order.customer_phone}</Text>
+                            <Text className="text-white font-labelbold text-caption">{order.customer_phone}</Text>
                         </Pressable>
                     ) : null}
                 </View>
@@ -316,14 +315,14 @@ function OrderCard({
                 {/* Where, and how to find it */}
                 <View className="flex-row items-start gap-2.5 mb-1">
                     <MapPin color="#6b6b70" size={14} style={{ marginTop: 2 }} />
-                    <Text className="flex-1 font-body text-[#a1a1aa] text-sm leading-relaxed">
+                    <Text className="flex-1 font-body text-white/60 text-body leading-relaxed">
                         {order.delivery_address || order.delivery_zone || 'Adresse non précisée'}
                     </Text>
                 </View>
                 {order.delivery_note ? (
                     <View className="flex-row items-start gap-2.5 mb-3">
                         <MessageSquare color="#6b6b70" size={14} style={{ marginTop: 2 }} />
-                        <Text className="flex-1 font-body text-white/80 text-sm leading-relaxed">
+                        <Text className="flex-1 font-body text-white/80 text-body leading-relaxed">
                             {order.delivery_note}
                         </Text>
                     </View>
@@ -332,31 +331,31 @@ function OrderCard({
                 <View className="h-px bg-white/10 w-full my-3" />
 
                 {order.order_items?.map((item: any) => (
-                    <Text key={item.id} className="font-body text-white text-sm">
-                        {item.qty}x <Text className="text-[#a1a1aa]">{item.name}</Text>
+                    <Text key={item.id} className="font-body text-white text-body">
+                        {item.qty}x <Text className="text-white/60">{item.name}</Text>
                     </Text>
                 ))}
 
                 <View className="h-px bg-white/10 w-full my-3" />
 
                 <View className="flex-row items-center justify-between">
-                    <Text className="font-body text-[#a1a1aa] text-sm">Total à encaisser</Text>
-                    <Text className="text-white font-title text-lg">{formatXaf(order.total_xaf ?? 0)}</Text>
+                    <Text className="font-body text-white/60 text-body">Total à encaisser</Text>
+                    <Text className="text-white font-title text-h3">{formatXaf(order.total_xaf ?? 0)}</Text>
                 </View>
 
                 {/* The change to prepare BEFORE leaving — the doorstep argument, avoided */}
                 {change != null && change > 0 ? (
                     <View className="flex-row items-center gap-2.5 mt-3 pt-3 border-t border-white/10">
                         <Coins color="#FF5733" size={15} />
-                        <Text className="flex-1 font-body text-[#a1a1aa] text-sm">
+                        <Text className="flex-1 font-body text-white/60 text-body">
                             Paie avec {formatXaf(order.cash_paid_with_xaf)} · à rendre
                         </Text>
-                        <Text className="text-[#FF5733] font-title text-base">{formatXaf(change)}</Text>
+                        <Text className="text-accent font-title text-bodylg">{formatXaf(change)}</Text>
                     </View>
                 ) : order.cash_paid_with_xaf == null && isLive(order.status) ? (
                     <View className="flex-row items-center gap-2.5 mt-3 pt-3 border-t border-white/10">
                         <Coins color="#6b6b70" size={15} />
-                        <Text className="flex-1 font-body text-[#6b6b70] text-sm">Le client aura l'appoint</Text>
+                        <Text className="flex-1 font-body text-white/40 text-body">Le client aura l'appoint</Text>
                     </View>
                 ) : null}
             </View>

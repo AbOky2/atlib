@@ -1,49 +1,60 @@
 /**
- * Single source of truth for the JS-side colour palette (icons, inline styles,
- * SVG). Mirrors the Tailwind tokens in tailwind.config.js — change both together.
+ * JS-side mirror of the colour tokens declared in tailwind.config.js.
  *
- * The language is the NOIR one: warm neutrals, near-black ink, ONE signature
- * accent (#FF5733), soft daylight elevation. Nothing else.
+ * Needed because icons, SVG and a handful of animated styles take colours as
+ * values rather than class names. The two files must move together — the audit
+ * that produced this palette found `#1c1b1b` written by hand 74 times and four
+ * greys (#8d8a87, #a1a1aa, #747878, #6b6b70) doing the same job.
+ *
+ * The language stays NOIR: warm neutrals, near-black ink, ONE signature accent.
  */
 export const COLORS = {
-    /** Near-black warm ink — headlines, primary icons, dark cards. */
+    // ---- Neutrals (warm) ---------------------------------------------------
+    /** Near-black warm ink — headlines, primary icons, dark surfaces. */
     ink: '#1c1b1b',
-    /** Secondary content (descriptions, meta lines). */
+    /** Secondary content. Readable, not decorative. */
     inkMuted: '#5f5e5e',
-    /** Tertiary content (placeholders, captions). */
-    inkFaint: '#8d8a87',
-    /** Disabled content. */
-    inkDisabled: '#c4c7c7',
+    /** Tertiary content. Darkened from #8d8a87 so it survives daylight. */
+    inkFaint: '#7d7975',
+    inkDisabled: '#b9b5b1',
 
-    /** Cards / sheets. */
+    // ---- Surfaces ----------------------------------------------------------
     white: '#FFFFFF',
+    surface: '#FFFFFF',
     /** Warm screen background. */
     background: '#fcf9f8',
     /** Soft fill: inputs, chips, steppers. */
     fill: '#f6f3f2',
-    /** Stronger fill (pressed states, avatars). */
-    fillStrong: '#e5e2e1',
-    /** Hairline separators. */
+    /** Stronger fill: pressed states, thumbnails. */
+    fillStrong: '#ebe7e5',
+    /** Default hairline separator. */
     hairline: '#e7e3e1',
+    hairlineSoft: '#f0ecea',
 
-    /** Brand accent — CTAs, live states, the NOIR signature. */
+    // ---- Brand -------------------------------------------------------------
+    /** The one canonical orange. CTA, active selection, brand accent. */
     accent: '#FF5733',
+    accentPressed: '#E04A29',
+    accentSoft: '#FFEDE7',
     /** Accent that holds AA contrast as text on white. */
     accentDark: '#D6431F',
-    /** Accent wash for badges/banners. */
-    accentTint: '#FFEDE7',
 
-    /** Success (delivered). */
-    green: '#22c55e',
-    greenTint: 'rgba(34,197,94,0.1)',
+    // ---- Feedback ----------------------------------------------------------
+    success: '#1E874B',
+    successSoft: '#E4F4EA',
+    danger: '#BA1A1A',
+    dangerSoft: '#FFDAD6',
+    warning: '#B25E00',
+    warningSoft: '#FFF0DF',
 
-    /** Destructive / errors. */
-    red: '#ba1a1a',
-    redTint: '#ffdad6',
-
-    /** Waiting / attention. */
-    amber: '#f59e0b',
-    amberTint: 'rgba(245,158,11,0.1)',
+    // ---- Dark staff surfaces (restaurant dashboard) ------------------------
+    ink900: '#0a0a0a',
+    ink800: '#141313',
+    ink700: '#1c1b1b',
+    /** Text tiers on dark. */
+    onDark: '#FFFFFF',
+    onDarkMuted: 'rgba(255,255,255,0.62)',
+    onDarkFaint: 'rgba(255,255,255,0.40)',
 } as const;
 
 export type PaletteColor = keyof typeof COLORS;

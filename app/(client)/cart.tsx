@@ -8,6 +8,10 @@ import { useCartStore } from '../../src/store/cartStore';
 import { RemoteImage } from '../../src/components/RemoteImage';
 import { useAuthStore } from '../../src/store/authStore';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
+import {
+    Button, Card, Divider, SummaryRow, TypeText, QuantityStepper,
+    BottomActionBar, BOTTOM_BAR_CLEARANCE, SCREEN_GUTTER } from '../../src/components/ui';
+import { COLORS } from '../../src/lib/palette';
 import { DELIVERY_FEE_XAF, SERVICE_FEE_XAF, computeOrderTotal, formatXaf as formatPrice } from '../../src/lib/pricing';
 import { restaurantEtaRange, formatEtaRange } from '../../src/lib/eta';
 import { shadowSoft, shadowFloat } from '../../src/lib/elevation';
@@ -48,7 +52,7 @@ export default function CartScreen() {
                 back="close"
                 onBack={() => router.replace('/home')}
                 right={
-                    <Text className="text-[10px] font-label uppercase tracking-[0.08em] text-ink-faint">
+                    <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint">
                         {cartItemsCount} Article{cartItemsCount > 1 ? 's' : ''}
                     </Text>
                 }
@@ -57,175 +61,154 @@ export default function CartScreen() {
             <ScrollView
                 className="flex-1"
                 contentContainerStyle={{
-                    paddingTop: headerOffset + 12,
-                    paddingBottom: insets.bottom + 120
+                    paddingTop: headerOffset + 16,
+                    paddingBottom: insets.bottom + BOTTOM_BAR_CLEARANCE,
                 }}
                 showsVerticalScrollIndicator={false}
             >
-                <View className="px-6 pb-10">
+                <View style={{ paddingHorizontal: SCREEN_GUTTER }} className="pb-8">
 
                     {cartItemsCount === 0 ? (
                         <View className="py-20 items-center justify-center flex-col gap-4">
-                            <View className="w-20 h-20 bg-surface-container-low rounded-full items-center justify-center mb-2">
+                            <View className="w-20 h-20 bg-fill rounded-full items-center justify-center mb-2">
                                 <ShoppingBag color="#8d8a87" size={32} />
                             </View>
-                            <Text className="text-xl font-title text-ink">Votre panier est vide</Text>
-                            <Text className="text-ink-muted text-center font-body text-sm mb-6">Ajoutez des articles savoureux de nos restaurants.</Text>
+                            <Text className="text-h3 font-title text-ink">Votre panier est vide</Text>
+                            <Text className="text-ink-muted text-center font-body text-body mb-6">Ajoutez des articles savoureux de nos restaurants.</Text>
                             <Pressable
                                 onPress={() => router.back()}
-                                className="bg-[#1c1b1b] px-8 py-4 rounded-full active:scale-95"
+                                className="bg-ink px-8 py-4 rounded-full active:scale-95"
                             >
-                                <Text className="text-white text-xs font-labelbold">Parcourir les plats</Text>
+                                <Text className="text-white text-caption font-labelbold">Parcourir les plats</Text>
                             </Pressable>
                         </View>
                     ) : (
                         <>
-                            {/* Restaurant Group */}
-                            <View className="mb-10">
-                                <View className="flex-row items-center justify-between mb-6">
-                                    <View>
-                                        <Text className="text-xl font-title tracking-tight text-ink">{currentRestaurantName || 'Restaurant'}</Text>
-                                        <Text className="text-xs text-ink-muted font-label">
-                                            Livraison estimée • {currentRestaurantId ? formatEtaRange(restaurantEtaRange(currentRestaurantId)) : '—'}
-                                        </Text>
-                                    </View>
-                                    <ChevronRight color="#5f5e5e" size={24} />
+                            {/* Restaurant group — a compact header, not a card. */}
+                            <View className="flex-row items-center justify-between mb-5">
+                                <View className="flex-1 pr-3">
+                                    <TypeText variant="h3" numberOfLines={1}>{currentRestaurantName || 'Restaurant'}</TypeText>
+                                    <TypeText variant="label" tone="secondary" className="mt-0.5">
+                                        Livraison estimée · {currentRestaurantId ? formatEtaRange(restaurantEtaRange(currentRestaurantId)) : '—'}
+                                    </TypeText>
                                 </View>
-
-                                <View className="flex-col gap-6">
-                                    {items.map((item) => (
-                                        <View key={item.lineId} className="flex-row gap-5 items-start p-4 -mx-4 rounded-3xl bg-white" style={shadowSoft}>
-                                            <View className="w-24 h-24 rounded-2xl overflow-hidden bg-surface-container-highest flex-shrink-0 relative items-center justify-center">
-                                                {item.image_url ? (
-                                                    <RemoteImage
-                                                        uri={item.image_url}
-                                                        displayWidth={96}
-                                                        style={{ width: '100%', height: '100%' }}
-                                                    />
-                                                ) : (
-                                                    <Utensils color="#8d8a87" size={28} />
-                                                )}
-                                            </View>
-                                            <View className="flex-1 flex-col h-24 justify-between">
-                                                <View>
-                                                    <View className="flex-row justify-between items-start">
-                                                        <Text className="font-heading text-base leading-tight text-ink flex-1 pr-2" numberOfLines={1}>{item.name}</Text>
-                                                        <Text className="font-labelbold text-sm text-ink">{formatPrice(item.price * item.quantity)}</Text>
-                                                    </View>
-                                                    <Text className="text-xs text-ink-muted mt-1 font-body leading-relaxed" numberOfLines={1}>{item.note?.trim() ? item.note : 'Portion standard'}</Text>
-                                                </View>
-                                                <View className="flex-row items-center justify-between mt-2">
-                                                    <View className="flex-row items-center bg-surface-container-highest rounded-full p-1 h-9">
-                                                        <Pressable
-                                                            onPress={() => {
-                                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                                                updateQuantity(item.lineId, item.quantity - 1);
-                                                            }}
-                                                            className="w-7 h-7 flex items-center justify-center rounded-full bg-white shadow-sm border border-surface-container-highest active:scale-95 transition-transform"
-                                                        >
-                                                            <Minus color="#1c1b1b" size={16} />
-                                                        </Pressable>
-                                                        <Text className="px-3 text-xs font-labelbold text-ink">{item.quantity}</Text>
-                                                        <Pressable
-                                                            onPress={() => {
-                                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                                                updateQuantity(item.lineId, item.quantity + 1);
-                                                            }}
-                                                            className="w-7 h-7 flex items-center justify-center rounded-full bg-white shadow-sm border border-surface-container-highest active:scale-95 transition-transform"
-                                                        >
-                                                            <Plus color="#1c1b1b" size={16} />
-                                                        </Pressable>
-                                                    </View>
-                                                    <Pressable
-                                                        onPress={() => {
-                                                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                                                            removeItem(item.lineId);
-                                                        }}
-                                                        className="p-2 -mr-2 active:scale-95 transition-transform"
-                                                    >
-                                                        <Text className="text-xs font-labelbold text-[#ba1a1a]">Supprimer</Text>
-                                                    </Pressable>
-                                                </View>
-                                            </View>
-                                        </View>
-                                    ))}
-                                </View>
+                                <ChevronRight color={COLORS.inkFaint} size={20} />
                             </View>
 
-                            {/* Promo Section */}
-                            <View className="mb-10 p-5 bg-surface-container-low rounded-2xl border border-surface-container-highest">
-                                <Text className="text-xs font-label tracking-[0.08em] uppercase text-ink-faint mb-4">Code Promotionnel</Text>
-                                <View className="flex-row gap-3">
-                                    <View className="flex-1 bg-white rounded-xl overflow-hidden border border-surface-variant">
+                            <View className="gap-4 mb-8">
+                                {items.map((item) => (
+                                    <View key={item.lineId} className="flex-row gap-4 items-center">
+                                        <View className="w-[88px] h-[88px] rounded-card overflow-hidden bg-fill-strong items-center justify-center">
+                                            {item.image_url ? (
+                                                <RemoteImage uri={item.image_url} displayWidth={88} className="w-full h-full" />
+                                            ) : (
+                                                <Utensils color={COLORS.inkFaint} size={26} />
+                                            )}
+                                        </View>
+
+                                        <View className="flex-1 justify-center">
+                                            <View className="flex-row items-start justify-between gap-3">
+                                                <TypeText variant="bodylg" numberOfLines={2} className="flex-1 font-heading">
+                                                    {item.name}
+                                                </TypeText>
+                                                <Text className="text-bodylg font-labelbold text-ink">
+                                                    {formatPrice(item.price * item.quantity)}
+                                                </Text>
+                                            </View>
+
+                                            {/* Unit price beside the total removes any ambiguity about
+                                                what the line is charging for. */}
+                                            <TypeText variant="caption" tone="secondary" className="mt-0.5">
+                                                {item.quantity} × {formatPrice(item.price)}
+                                                {item.note?.trim() ? ` · ${item.note}` : ''}
+                                            </TypeText>
+
+                                            <View className="flex-row items-center justify-between mt-2.5">
+                                                <QuantityStepper
+                                                    value={item.quantity}
+                                                    min={0}
+                                                    onChange={(next) => updateQuantity(item.lineId, next)}
+                                                />
+                                                <Pressable
+                                                    onPress={() => {
+                                                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                                                        removeItem(item.lineId);
+                                                    }}
+                                                    hitSlop={10}
+                                                    accessibilityRole="button"
+                                                    accessibilityLabel={`Supprimer ${item.name}`}
+                                                    className="active:opacity-60"
+                                                >
+                                                    <TypeText variant="label" tone="danger">Supprimer</TypeText>
+                                                </Pressable>
+                                            </View>
+                                        </View>
+                                    </View>
+                                ))}
+                            </View>
+
+                            {/* Promo — one row, not a panel. The old block was
+                                three times taller than the information it carried. */}
+                            <View className="mb-8">
+                                <TypeText variant="eyebrow" tone="tertiary" className="mb-2">Code promotionnel</TypeText>
+                                <View className="flex-row gap-2.5">
+                                    <View
+                                        className="flex-1 bg-surface rounded-card border border-hairline px-4 justify-center"
+                                        style={{ height: 52 }}
+                                    >
                                         <TextInput
-                                            className="w-full h-12 px-4 text-sm font-body text-ink"
+                                            className="text-body font-body text-ink"
                                             placeholder="Entrez votre code"
-                                            placeholderTextColor="#8d8a87"
+                                            placeholderTextColor={COLORS.inkFaint}
                                             value={promoCode}
                                             onChangeText={setPromoCode}
+                                            autoCapitalize="characters"
+                                            style={{ paddingVertical: 0 }}
                                         />
                                     </View>
-                                    <Pressable onPress={handleApplyPromo} className="px-6 h-12 bg-[#FF5733] flex items-center justify-center rounded-xl active:scale-95">
-                                        <Text className="text-white text-xs font-labelbold">Appliquer</Text>
+                                    <Pressable
+                                        onPress={handleApplyPromo}
+                                        accessibilityRole="button"
+                                        className="px-5 rounded-card bg-fill items-center justify-center active:bg-fill-strong"
+                                        style={{ height: 52 }}
+                                    >
+                                        <TypeText variant="label" className="font-labelbold">Appliquer</TypeText>
                                     </Pressable>
                                 </View>
                             </View>
 
-                            {/* Summary */}
-                            <View className="mb-4 flex-col gap-4">
-                                <View className="flex-row justify-between items-center">
-                                    <Text className="text-sm text-ink-muted font-body">Sous-total</Text>
-                                    <Text className="text-sm font-label text-ink">{formatPrice(cartTotal)}</Text>
+                            <Card className="p-5">
+                                <View className="gap-3">
+                                    <SummaryRow label="Sous-total" value={formatPrice(cartTotal)} />
+                                    <SummaryRow label="Frais de livraison" value={formatPrice(deliveryFee)} />
+                                    <SummaryRow label="Frais de service" value={formatPrice(serviceFee)} />
                                 </View>
-                                <View className="flex-row justify-between items-center">
-                                    <Text className="text-sm text-ink-muted font-body">Frais de livraison</Text>
-                                    <Text className="text-sm font-label text-ink">{formatPrice(deliveryFee)}</Text>
-                                </View>
-                                <View className="flex-row justify-between items-center">
-                                    <Text className="text-sm text-ink-muted font-body">Frais de service</Text>
-                                    <Text className="text-sm font-label text-ink">{formatPrice(serviceFee)}</Text>
-                                </View>
-
-                                <View className="pt-5 mt-2 border-t border-surface-variant flex-row justify-between items-end">
-                                    <View>
-                                        <Text className="block text-xs font-label text-ink-faint uppercase tracking-[0.08em] mb-1">Total à régler</Text>
-                                        <Text className="text-3xl font-display tracking-tight text-ink">{formatPrice(finalTotal)}</Text>
-                                    </View>
-                                    <View className="pb-1">
-                                        <Text className="text-[10px] text-ink-muted italic font-body">Paiement à la livraison</Text>
-                                    </View>
-                                </View>
-                            </View>
+                                <Divider className="my-4" />
+                                <SummaryRow label="Total à régler" value={formatPrice(finalTotal)} emphasis />
+                                <TypeText variant="caption" tone="tertiary" className="mt-2">
+                                    Paiement à la livraison
+                                </TypeText>
+                            </Card>
                         </>
                     )}
                 </View>
             </ScrollView>
 
-            {/* Bottom Action Area */}
             {cartItemsCount > 0 && (
-                <View
-                    className="absolute bottom-0 left-0 w-full px-6 bg-white/90 border-t border-surface-container-highest"
-                    style={{ paddingBottom: Math.max(insets.bottom, 20), paddingTop: 20 }}
-                >
-                    <Pressable
-                        onPress={() => {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                            if (isAuthenticated) {
-                                router.push('/checkout-address');
-                            } else {
-                                router.push('/login');
-                            }
-                        }}
-                        className="w-full bg-[#1c1b1b] h-[54px] rounded-full flex-row items-center justify-between px-6 active:scale-[0.98]"
-                        style={shadowFloat}
-                    >
-                        <Text className="text-sm font-labelbold text-white">Commander</Text>
-                        <View className="flex-row items-center gap-3">
-                            <Text className="text-lg font-title text-white">{formatPrice(finalTotal)}</Text>
-                            <ArrowRight color="#fff" size={20} />
-                        </View>
-                    </Pressable>
-                </View>
+                <BottomActionBar>
+                    <Button
+                        label="Commander"
+                        onPress={() => router.push(isAuthenticated ? '/checkout-address' : '/login')}
+                        trailing={
+                            <View className="flex-row items-center gap-3">
+                                <Text className="text-bodylg font-title text-white tracking-tight">{formatPrice(finalTotal)}</Text>
+                                <ArrowRight color="#fff" size={20} />
+                            </View>
+                        }
+                        variant="dark"
+                        accessibilityLabel={`Commander, total ${formatPrice(finalTotal)}`}
+                    />
+                </BottomActionBar>
             )}
         </View>
     );

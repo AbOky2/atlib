@@ -49,7 +49,7 @@ export default function ExploreScreen() {
                 className="absolute top-0 left-0 right-0 z-50 px-6 pb-4 bg-white border-b border-hairline"
                 style={{ paddingTop: insetTop + 6, ...shadowSoft }}
             >
-                <Text className="text-[28px] font-title tracking-tight text-ink mb-4">Explorer</Text>
+                <Text className="text-h1 font-title tracking-tight text-ink mb-4">Explorer</Text>
 
                 {/* Search Bar */}
                 <View className="relative justify-center">
@@ -57,7 +57,7 @@ export default function ExploreScreen() {
                         <Search color="#8d8a87" size={20} />
                     </View>
                     <TextInput
-                        className="w-full bg-surface-container-low h-14 pl-12 pr-12 rounded-2xl text-base font-body text-ink"
+                        className="w-full bg-fill h-14 pl-12 pr-12 rounded-card text-bodylg font-body text-ink"
                         placeholder="Rechercher un restaurant, un plat..."
                         placeholderTextColor="#8d8a87"
                         value={searchQuery}
@@ -67,7 +67,7 @@ export default function ExploreScreen() {
                     {searchQuery.length > 0 && (
                         <Pressable
                             onPress={() => setSearchQuery('')}
-                            className="absolute right-4 z-10 w-7 h-7 bg-surface-container-highest rounded-full items-center justify-center"
+                            className="absolute right-4 z-10 w-7 h-7 bg-fill-strong rounded-full items-center justify-center"
                         >
                             <X color="#8d8a87" size={14} />
                         </Pressable>
@@ -106,15 +106,15 @@ export default function ExploreScreen() {
 
                     {!isLoading && filteredRestaurants.length === 0 && (
                         <View className="items-center py-16">
-                            <Text className="text-4xl mb-4">🔍</Text>
-                            <Text className="text-lg font-heading text-ink mb-2">Aucun résultat</Text>
-                            <Text className="text-sm text-ink-faint text-center font-body">Essayez un autre terme ou catégorie.</Text>
+                            <Text className="text-h1 mb-4">🔍</Text>
+                            <Text className="text-h3 font-heading text-ink mb-2">Aucun résultat</Text>
+                            <Text className="text-body text-ink-faint text-center font-body">Essayez un autre terme ou catégorie.</Text>
                         </View>
                     )}
 
                     {!isLoading && filteredRestaurants.length > 0 && (
                         <>
-                            <Text className="text-[11px] font-label tracking-[0.08em] uppercase text-ink-faint mb-4">
+                            <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-ink-faint mb-4">
                                 {filteredRestaurants.length} restaurant{filteredRestaurants.length > 1 ? 's' : ''}
                             </Text>
                             <View className="gap-4">
@@ -126,32 +126,32 @@ export default function ExploreScreen() {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                                             router.push({ pathname: '/restaurant', params: { id: restaurant.id } });
                                         }}
-                                        className="flex-row gap-4 p-4 bg-white rounded-3xl border border-hairline active:scale-[0.99]"
+                                        className="flex-row gap-4 p-4 bg-white rounded-panel border border-hairline active:scale-[0.99]"
                                     >
                                         <View
-                                            className="w-20 h-20 rounded-2xl overflow-hidden bg-black flex-shrink-0"
+                                            className="w-20 h-20 rounded-card overflow-hidden bg-black flex-shrink-0"
                                             style={{ opacity: isAcceptingOrders(restaurant) ? 1 : 0.45 }}
                                         >
                                             <RemoteImage uri={restaurant.image_url} displayWidth={80} className="w-full h-full" />
                                         </View>
                                         <View className="flex-1 justify-center">
                                             <View className="flex-row items-center gap-2">
-                                                <Text className="text-base font-heading tracking-tight text-ink flex-shrink" numberOfLines={1}>{restaurant.name}</Text>
+                                                <Text className="text-bodylg font-heading tracking-tight text-ink flex-shrink" numberOfLines={1}>{restaurant.name}</Text>
                                                 {!isAcceptingOrders(restaurant) && <ClosedBadge tone="onSurface" />}
                                             </View>
-                                            <Text className="text-xs text-ink-faint font-body mt-1" numberOfLines={1}>{restaurant.genre}</Text>
+                                            <Text className="text-caption text-ink-faint font-body mt-1" numberOfLines={1}>{restaurant.genre}</Text>
                                             <View className="flex-row items-center gap-4 mt-2">
                                                 <View className="flex-row items-center gap-1">
                                                     <Star fill="#1c1b1b" color="#1c1b1b" size={12} />
-                                                    <Text className="text-xs font-labelbold text-ink">{restaurant.rating}</Text>
+                                                    <Text className="text-caption font-labelbold text-ink">{restaurant.rating}</Text>
                                                 </View>
                                                 <View className="flex-row items-center gap-1">
                                                     <Clock color="#8d8a87" size={12} />
-                                                    <Text className="text-xs text-ink-faint font-body">{formatEtaRange(restaurantEtaRange(restaurant.id))}</Text>
+                                                    <Text className="text-caption text-ink-faint font-body">{formatEtaRange(restaurantEtaRange(restaurant.id))}</Text>
                                                 </View>
                                                 <View className="flex-row items-center gap-1">
                                                     <Truck color="#8d8a87" size={12} />
-                                                    <Text className="text-xs text-ink-faint font-body">{formatXaf(DELIVERY_FEE_XAF)}</Text>
+                                                    <Text className="text-caption text-ink-faint font-body">{formatXaf(DELIVERY_FEE_XAF)}</Text>
                                                 </View>
                                             </View>
                                         </View>

@@ -10,8 +10,7 @@ import {
     updateDeliveryActivity,
     endDeliveryActivity,
     onLiveActivityPushToken,
-    onLiveActivityError,
-} from '../lib/liveActivity';
+    onLiveActivityError } from '../lib/liveActivity';
 import { postOrderProgress, clearOrderProgress } from '../lib/notifications';
 import { statusMeta } from '../lib/orderStatus';
 import { arrivalTimeLabel } from '../lib/eta';

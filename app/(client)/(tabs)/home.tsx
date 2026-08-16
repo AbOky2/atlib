@@ -96,19 +96,19 @@ export default function ClientHomeScreen() {
 
             {!isLoading && (isError || totalCount === 0) && (
                 <View className="items-center py-16 px-6">
-                    <Text className="text-xl font-title tracking-tight text-ink mb-2">
+                    <Text className="text-h3 font-title tracking-tight text-ink mb-2">
                         {isError ? 'Erreur de connexion' : 'Aucun résultat'}
                     </Text>
-                    <Text className="text-sm text-ink-muted text-center font-body">
+                    <Text className="text-body text-ink-muted text-center font-body">
                         {isError
                             ? 'Vérifiez votre connexion internet et réessayez.'
                             : 'Essayez une autre cuisine.'}
                     </Text>
                     <Pressable
                         onPress={() => (isError ? refetch() : setActiveCategory(ALL_CATEGORY_ID))}
-                        className="mt-6 bg-[#1c1b1b] px-6 py-3 rounded-full active:scale-95"
+                        className="mt-6 bg-ink px-6 py-3 rounded-full active:scale-95"
                     >
-                        <Text className="text-white font-labelbold text-xs">
+                        <Text className="text-white font-labelbold text-caption">
                             {isError ? 'Réessayer' : 'Voir tout'}
                         </Text>
                     </Pressable>
@@ -126,18 +126,18 @@ export default function ClientHomeScreen() {
                         <RemoteImage uri={heroRestaurant.image_url} displayWidth={360} className="w-full h-full" />
                         <View className="absolute inset-0 bg-black/35" />
                         <View className="absolute inset-0 justify-end p-8">
-                            <Text className="text-white/70 font-label text-[10px] tracking-[0.08em] uppercase mb-4">
+                            <Text className="text-white/70 font-label text-eyebrow tracking-[0.08em] uppercase mb-4">
                                 {heroRestaurant.genre ?? 'Recommandé'}
                             </Text>
-                            <Text className="text-[30px] font-title text-white tracking-tight mb-4">
+                            <Text className="text-h1 font-title text-white tracking-tight mb-4">
                                 {heroRestaurant.name}
                             </Text>
                             <View className="flex-row items-center gap-6">
                                 <View className="flex-row items-center gap-1">
                                     <Star fill="#fff" color="#fff" size={12} />
-                                    <Text className="text-white font-labelbold text-sm">{heroRestaurant.rating}</Text>
+                                    <Text className="text-white font-labelbold text-body">{heroRestaurant.rating}</Text>
                                 </View>
-                                <Text className="text-white/80 text-sm font-label">
+                                <Text className="text-white/80 text-body font-label">
                                     {formatEtaRange(restaurantEtaRange(heroRestaurant.id))}
                                 </Text>
                                 {!isAcceptingOrders(heroRestaurant) && <ClosedBadge />}
@@ -151,10 +151,10 @@ export default function ClientHomeScreen() {
             {selectedForYou.length > 0 && (
                 <View className="mb-12">
                     <View className="px-6 mb-5">
-                        <Text className="text-ink-faint font-label text-[11px] tracking-[0.08em] uppercase">
+                        <Text className="text-ink-faint font-label text-eyebrow tracking-[0.08em] uppercase">
                             Soigneusement choisi
                         </Text>
-                        <Text className="text-2xl font-title tracking-tight text-ink">Sélection pour vous</Text>
+                        <Text className="text-h2 font-title tracking-tight text-ink">Sélection pour vous</Text>
                     </View>
                     <ScrollView
                         horizontal
@@ -195,10 +195,10 @@ export default function ClientHomeScreen() {
                                         <View className="absolute bottom-3 left-3"><ClosedBadge /></View>
                                     )}
                                 </View>
-                                <Text numberOfLines={1} className="text-base font-heading tracking-tight text-ink mt-3">
+                                <Text numberOfLines={1} className="text-bodylg font-heading tracking-tight text-ink mt-3">
                                     {item.name}
                                 </Text>
-                                <Text numberOfLines={1} className="text-xs text-ink-muted font-label mt-0.5">
+                                <Text numberOfLines={1} className="text-caption text-ink-muted font-label mt-0.5">
                                     {item.genre} • {formatEtaRange(restaurantEtaRange(item.id))}
                                 </Text>
                             </Pressable>
@@ -210,12 +210,12 @@ export default function ClientHomeScreen() {
             {/* List heading */}
             {totalCount > 0 && (
                 <View className="px-6 mb-2">
-                    <Text className="text-ink-faint font-label text-[11px] tracking-[0.08em] uppercase">
+                    <Text className="text-ink-faint font-label text-eyebrow tracking-[0.08em] uppercase">
                         {activeCategory === ALL_CATEGORY_ID
                             ? `${totalCount} maison${totalCount > 1 ? 's' : ''} à ${BRAND_CITY}`
                             : `${totalCount} résultat${totalCount > 1 ? 's' : ''}`}
                     </Text>
-                    <Text className="text-2xl font-title tracking-tight text-ink">
+                    <Text className="text-h2 font-title tracking-tight text-ink">
                         {activeCategory === ALL_CATEGORY_ID
                             ? 'Tous les restaurants'
                             : FOOD_CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'Résultats'}
@@ -244,15 +244,15 @@ export default function ClientHomeScreen() {
                         }
                         className="flex-row items-center gap-3 flex-1 pr-3 active:opacity-60"
                     >
-                        <View className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: COLORS.accentTint }}>
+                        <View className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: COLORS.accentSoft }}>
                             <MapPin color={COLORS.accent} size={17} strokeWidth={2.2} />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-[9px] font-label uppercase tracking-[0.12em] text-ink-faint">
+                            <Text className="text-eyebrow font-label uppercase tracking-[0.12em] text-ink-faint">
                                 {selectedAddress ? 'Livrer à' : 'Adresse'}
                             </Text>
                             <View className="flex-row items-center gap-1">
-                                <Text numberOfLines={1} className="text-[16px] font-title tracking-tight text-ink flex-shrink">
+                                <Text numberOfLines={1} className="text-bodylg font-title tracking-tight text-ink flex-shrink">
                                     {selectedAddress ? selectedAddress.locality : 'Choisir une adresse'}
                                 </Text>
                                 <ChevronDown color={COLORS.ink} size={16} strokeWidth={2.4} />
@@ -269,8 +269,8 @@ export default function ClientHomeScreen() {
                     >
                         <Bell color={COLORS.ink} size={24} />
                         {unreadCount > 0 && (
-                            <View className="absolute -top-0.5 right-0 min-w-[16px] h-4 px-1 bg-[#FF5733] rounded-full items-center justify-center border border-white">
-                                <Text className="text-white text-[9px] font-labelbold">{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                            <View className="absolute -top-0.5 right-0 min-w-[16px] h-4 px-1 bg-accent rounded-full items-center justify-center border border-white">
+                                <Text className="text-white text-eyebrow font-labelbold">{unreadCount > 9 ? '9+' : unreadCount}</Text>
                             </View>
                         )}
                     </Pressable>

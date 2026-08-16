@@ -10,7 +10,6 @@ import { useCartStore } from '../../src/store/cartStore';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
 import { restaurantEtaRange, formatEtaRange } from '../../src/lib/eta';
 import { DELIVERY_FEE_XAF, formatXaf } from '../../src/lib/pricing';
-import { shadowSoft } from '../../src/lib/elevation';
 
 export default function FavoritesScreen() {
     const headerOffset = useHeaderOffset();
@@ -35,7 +34,7 @@ export default function FavoritesScreen() {
                 right={
                     <View className="flex-row items-center gap-1">
                         <Heart fill="#FF5733" color="#FF5733" size={18} />
-                        <Text className="text-sm font-labelbold text-[#FF5733]">{favorites.length}</Text>
+                        <Text className="text-body font-labelbold text-accent">{favorites.length}</Text>
                     </View>
                 }
             />
@@ -52,13 +51,13 @@ export default function FavoritesScreen() {
                     {favorites.length === 0 ? (
                         <View className="py-20 items-center">
                             <Heart color="#ccc" size={48} />
-                            <Text className="text-xl font-title text-ink mt-6">Aucun favori</Text>
-                            <Text className="text-sm text-ink-muted text-center font-body mt-2">Appuyez sur ♥ sur un restaurant pour le sauvegarder ici.</Text>
+                            <Text className="text-h3 font-title text-ink mt-6">Aucun favori</Text>
+                            <Text className="text-body text-ink-muted text-center font-body mt-2">Appuyez sur ♥ sur un restaurant pour le sauvegarder ici.</Text>
                             <Pressable
                                 onPress={() => router.replace('/home')}
-                                className="bg-[#FF5733] px-8 py-4 rounded-full mt-8 active:scale-95"
+                                className="bg-accent px-8 py-4 rounded-full mt-8 active:scale-95"
                             >
-                                <Text className="text-white text-xs font-labelbold">Explorer</Text>
+                                <Text className="text-white text-caption font-labelbold">Explorer</Text>
                             </Pressable>
                         </View>
                     ) : (
@@ -70,8 +69,8 @@ export default function FavoritesScreen() {
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                                         router.push({ pathname: '/restaurant', params: { id: restaurant.id } });
                                     }}
-                                    className="bg-white rounded-3xl overflow-hidden border border-hairline active:scale-[0.98]"
-                                    style={shadowSoft}
+                                    className="bg-white rounded-panel overflow-hidden border border-hairline active:scale-[0.98]"
+                                   
                                 >
                                     <View className="h-44 relative">
                                         <RemoteImage uri={restaurant.image_url} displayWidth={360} className="w-full h-full" />
@@ -87,22 +86,22 @@ export default function FavoritesScreen() {
                                             <Heart fill="#FF5733" color="#FF5733" size={18} />
                                         </Pressable>
                                         <View className="absolute bottom-0 left-0 right-0 p-5">
-                                            <Text className="text-lg font-heading tracking-tight text-white">{restaurant.name}</Text>
-                                            <Text className="text-xs text-white/70 font-body mt-1">{restaurant.genre}</Text>
+                                            <Text className="text-h3 font-heading tracking-tight text-white">{restaurant.name}</Text>
+                                            <Text className="text-caption text-white/70 font-body mt-1">{restaurant.genre}</Text>
                                         </View>
                                     </View>
                                     <View className="px-5 py-4 flex-row items-center gap-5">
                                         <View className="flex-row items-center gap-1.5">
                                             <Star fill="#1c1b1b" color="#1c1b1b" size={14} />
-                                            <Text className="text-xs font-labelbold text-ink">{restaurant.rating}</Text>
+                                            <Text className="text-caption font-labelbold text-ink">{restaurant.rating}</Text>
                                         </View>
                                         <View className="flex-row items-center gap-1.5">
                                             <Clock color="#8d8a87" size={14} />
-                                            <Text className="text-xs text-ink-faint font-body">{formatEtaRange(restaurantEtaRange(restaurant.id))}</Text>
+                                            <Text className="text-caption text-ink-faint font-body">{formatEtaRange(restaurantEtaRange(restaurant.id))}</Text>
                                         </View>
                                         <View className="flex-row items-center gap-1.5">
                                             <Bike color="#8d8a87" size={14} />
-                                            <Text className="text-xs text-ink-faint font-body">{formatXaf(DELIVERY_FEE_XAF)} livraison</Text>
+                                            <Text className="text-caption text-ink-faint font-body">{formatXaf(DELIVERY_FEE_XAF)} livraison</Text>
                                         </View>
                                     </View>
                                 </Pressable>

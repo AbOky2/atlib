@@ -15,20 +15,20 @@ export default function NotFoundScreen() {
         <>
             <Stack.Screen options={{ headerShown: false }} />
             <View className="flex-1 bg-background items-center justify-center px-10">
-                <View className="w-20 h-20 rounded-full items-center justify-center mb-6" style={{ backgroundColor: COLORS.accentTint }}>
+                <View className="w-20 h-20 rounded-full items-center justify-center mb-6" style={{ backgroundColor: COLORS.accentSoft }}>
                     <Compass color={COLORS.accent} size={32} />
                 </View>
-                <Text className="text-xl font-title tracking-tight text-ink text-center">
+                <Text className="text-h3 font-title tracking-tight text-ink text-center">
                     Cette page n'existe pas
                 </Text>
-                <Text className="text-sm font-body text-ink-muted text-center mt-2 leading-relaxed">
+                <Text className="text-body font-body text-ink-muted text-center mt-2 leading-relaxed">
                     Le lien que vous avez suivi est introuvable ou a expiré.
                 </Text>
                 <Pressable
                     onPress={() => router.replace('/home')}
-                    className="bg-[#1c1b1b] px-8 py-4 rounded-full mt-8 active:scale-95"
+                    className="bg-ink px-8 py-4 rounded-full mt-8 active:scale-95"
                 >
-                    <Text className="text-white text-xs font-labelbold">Retour à l'accueil</Text>
+                    <Text className="text-white text-caption font-labelbold">Retour à l'accueil</Text>
                 </Pressable>
             </View>
         </>

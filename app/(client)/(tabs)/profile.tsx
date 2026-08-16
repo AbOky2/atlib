@@ -11,7 +11,6 @@ import { useUserOrders, useMyRestaurantId } from '../../../src/hooks/useSupabase
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { ScreenHeader, useHeaderOffset } from '../../../src/components/ScreenHeader';
-import { shadowSoft } from '../../../src/lib/elevation';
 import { BRAND, BRAND_FULL, BRAND_CITY } from '../../../src/lib/brand';
 import { openSupportChat } from '../../../src/lib/support';
 
@@ -82,7 +81,7 @@ export default function ProfileScreen() {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                             router.push('/notifications');
                         }}
-                        className="w-10 h-10 items-center justify-center bg-surface-container-low rounded-full active:scale-95"
+                        className="w-10 h-10 items-center justify-center bg-fill rounded-full active:scale-95"
                     >
                         <Bell color="#1c1b1b" size={20} />
                     </Pressable>
@@ -101,14 +100,14 @@ export default function ProfileScreen() {
                     {/* Profile Header Section */}
                     <View className="flex-row items-center justify-between mb-11">
                         <View className="flex-row items-center gap-4 flex-1">
-                            <View className="w-14 h-14 rounded-full bg-[#1c1b1b] items-center justify-center">
-                                <Text className="text-2xl font-title text-white">{initial}</Text>
+                            <View className="w-14 h-14 rounded-full bg-ink items-center justify-center">
+                                <Text className="text-h2 font-title text-white">{initial}</Text>
                             </View>
                             <View className="flex-1">
-                                <Text className="text-4xl font-display tracking-tight text-ink">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Utilisateur'}</Text>
-                                <View className="flex-row items-center px-3 py-1 bg-[#1c1b1b] rounded-full gap-1.5 self-start mt-2">
+                                <Text className="text-h1 font-display tracking-tight text-ink">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Utilisateur'}</Text>
+                                <View className="flex-row items-center px-3 py-1 bg-ink rounded-full gap-1.5 self-start mt-2">
                                     <Award color="#fff" size={14} />
-                                    <Text className="text-[10px] font-label tracking-[0.08em] uppercase text-white">Membre {BRAND}</Text>
+                                    <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-white">Membre {BRAND}</Text>
                                 </View>
                             </View>
                         </View>
@@ -116,23 +115,23 @@ export default function ProfileScreen() {
 
                     {/* Stats Grid (Bento Style) — real numbers only */}
                     <View className="flex-row gap-4 mb-11">
-                        <View className="flex-1 bg-white p-6 rounded-sheet flex-col justify-between h-32 border border-hairline" style={shadowSoft}>
-                            <Text className="text-[10px] font-label tracking-[0.08em] text-ink-faint uppercase">Commandes</Text>
-                            <Text className="text-3xl font-title text-ink">{orderCount}</Text>
+                        <View className="flex-1 bg-white p-6 rounded-sheet flex-col justify-between h-32 border border-hairline">
+                            <Text className="text-eyebrow font-label tracking-[0.08em] text-ink-faint uppercase">Commandes</Text>
+                            <Text className="text-h1 font-title text-ink">{orderCount}</Text>
                         </View>
-                        <View className="flex-1 bg-white p-6 rounded-sheet flex-col justify-between h-32 border border-hairline" style={shadowSoft}>
-                            <Text className="text-[10px] font-label tracking-[0.08em] text-ink-faint uppercase">Favoris</Text>
-                            <Text className="text-3xl font-title text-ink">{favoritesCount}</Text>
+                        <View className="flex-1 bg-white p-6 rounded-sheet flex-col justify-between h-32 border border-hairline">
+                            <Text className="text-eyebrow font-label tracking-[0.08em] text-ink-faint uppercase">Favoris</Text>
+                            <Text className="text-h1 font-title text-ink">{favoritesCount}</Text>
                         </View>
                     </View>
 
                     {/* Share Banner — a real share sheet, no invented referral rewards */}
-                    <View className="mb-11 relative bg-[#FF5733] p-8 rounded-sheet overflow-hidden">
+                    <View className="mb-11 relative bg-accent p-8 rounded-sheet overflow-hidden">
                         <View className="relative z-10 w-2/3">
-                            <Text className="text-2xl font-title tracking-tight mb-2 leading-tight text-white">Partagez l'expérience</Text>
-                            <Text className="text-sm font-label opacity-90 mb-5 text-white">Faites découvrir {BRAND_FULL} à vos proches.</Text>
+                            <Text className="text-h2 font-title tracking-tight mb-2 leading-tight text-white">Partagez l'expérience</Text>
+                            <Text className="text-body font-label opacity-90 mb-5 text-white">Faites découvrir {BRAND_FULL} à vos proches.</Text>
                             <Pressable onPress={handleShareApp} className="bg-white px-6 py-3 rounded-full active:scale-95 self-start">
-                                <Text className="text-[#FF5733] text-[10px] font-labelbold tracking-[0.08em] uppercase">Inviter des amis</Text>
+                                <Text className="text-accent text-eyebrow font-labelbold tracking-[0.08em] uppercase">Inviter des amis</Text>
                             </Pressable>
                         </View>
                         {/* Abstract Graphic */}
@@ -144,7 +143,7 @@ export default function ProfileScreen() {
 
                     {/* Settings List */}
                     <View className="mb-12">
-                        <Text className="px-2 text-[10px] font-label tracking-[0.08em] text-ink-faint uppercase mb-4">Compte</Text>
+                        <Text className="px-2 text-eyebrow font-label tracking-[0.08em] text-ink-faint uppercase mb-4">Compte</Text>
 
                         <View className="flex-col gap-2">
                             {/* Staff entry point.
@@ -175,9 +174,9 @@ export default function ProfileScreen() {
                     {/* Logout Section */}
                     <View className="items-center pb-8">
                         <Pressable onPress={handleLogout} className="active:opacity-50 transition-opacity">
-                            <Text className="text-[10px] font-label tracking-[0.08em] text-ink-faint uppercase">Se déconnecter</Text>
+                            <Text className="text-eyebrow font-label tracking-[0.08em] text-ink-faint uppercase">Se déconnecter</Text>
                         </Pressable>
-                        <Text className="mt-4 text-[9px] text-ink-faint font-label">Version {APP_VERSION}</Text>
+                        <Text className="mt-4 text-eyebrow text-ink-faint font-label">Version {APP_VERSION}</Text>
                     </View>
                 </View>
             </ScrollView>
@@ -189,12 +188,12 @@ export default function ProfileScreen() {
 
 function SettingItem({ icon, label, onPress }: { icon: React.ReactNode, label: string, onPress?: () => void }) {
     return (
-        <Pressable onPress={onPress} className="flex-row items-center justify-between p-5 bg-surface-container-low active:bg-surface-container-highest rounded-3xl transition-colors">
+        <Pressable onPress={onPress} className="flex-row items-center justify-between p-5 bg-fill active:bg-fill-strong rounded-panel transition-colors">
             <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-white flex items-center justify-center" style={shadowSoft}>
+                <View className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
                     {icon}
                 </View>
-                <Text className="font-labelbold text-ink text-base">{label}</Text>
+                <Text className="font-labelbold text-ink text-bodylg">{label}</Text>
             </View>
             <ChevronRight color="#8d8a87" size={20} />
         </Pressable>

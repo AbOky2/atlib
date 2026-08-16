@@ -152,27 +152,27 @@ export default function LoginScreen() {
                 >
                     {/* Header Section */}
                     <View
-                        className="px-8"
+                        className="px-6"
                         style={{ paddingTop: Math.max(insets.top + 60, 80) }}
                     >
                         {/* Brand */}
                         <View className="flex-row items-center gap-3 mb-6">
-                            <View className="w-12 h-12 bg-[#FF5733] rounded-2xl items-center justify-center" style={shadowSoft}>
+                            <View className="w-12 h-12 bg-accent rounded-card items-center justify-center" style={shadowSoft}>
                                 <Sparkles color="#fff" size={22} />
                             </View>
                             <View>
-                                <Text className="text-2xl font-title tracking-tight text-ink">{BRAND}</Text>
-                                <Text className="text-[9px] font-label tracking-[0.08em] uppercase text-ink-faint">{BRAND_TAGLINE}</Text>
+                                <Text className="text-h2 font-title tracking-tight text-ink">{BRAND}</Text>
+                                <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-ink-faint">{BRAND_TAGLINE}</Text>
                             </View>
                         </View>
 
                         {/* Title */}
-                        <Text className="text-5xl font-title tracking-tight text-ink leading-tight mb-3">
+                        <Text className="text-display font-title tracking-tight text-ink leading-tight mb-3">
                             {mode === 'phone'
                                 ? (codeSent ? 'Votre code\nde connexion' : 'Votre\nnuméro')
                                 : isSignUp ? 'Créez votre\ncompte' : 'Bon retour\nparmi nous'}
                         </Text>
-                        <Text className="text-base text-ink-muted font-body leading-relaxed">
+                        <Text className="text-bodylg text-ink-muted font-body leading-relaxed">
                             {mode === 'phone'
                                 ? (codeSent
                                     ? `Entrez le code à 6 chiffres envoyé au ${formatChadPhone(phone)}.`
@@ -185,23 +185,23 @@ export default function LoginScreen() {
                     </View>
 
                     {/* Form Section */}
-                    <View className="px-8 mt-10 flex-1">
+                    <View className="px-6 mt-10 flex-1">
                         {/* Method switch — phone first, email kept for existing accounts */}
-                        <View className="flex-row bg-fill rounded-2xl p-1 mb-7">
+                        <View className="flex-row bg-fill rounded-card p-1 mb-7">
                             {(['phone', 'email'] as AuthMode[]).map((m) => (
                                 <Pressable
                                     key={m}
                                     onPress={() => switchMode(m)}
                                     accessibilityRole="tab"
                                     accessibilityState={{ selected: mode === m }}
-                                    className={`flex-1 h-11 rounded-xl items-center justify-center flex-row gap-2 ${
+                                    className={`flex-1 h-11 rounded-chip items-center justify-center flex-row gap-2 ${
                                         mode === m ? 'bg-white' : ''
                                     }`}
                                 >
                                     {m === 'phone'
                                         ? <Phone color={mode === m ? '#1c1b1b' : '#8d8a87'} size={15} />
                                         : <Mail color={mode === m ? '#1c1b1b' : '#8d8a87'} size={15} />}
-                                    <Text className={`text-[13px] font-labelbold ${mode === m ? 'text-ink' : 'text-ink-faint'}`}>
+                                    <Text className={`text-label font-labelbold ${mode === m ? 'text-ink' : 'text-ink-faint'}`}>
                                         {m === 'phone' ? 'Téléphone' : 'Email'}
                                     </Text>
                                 </Pressable>
@@ -212,14 +212,14 @@ export default function LoginScreen() {
                         {mode === 'phone' && (
                             <>
                                 <View className="mb-5">
-                                    <Text className="text-[10px] font-label tracking-[0.08em] uppercase text-ink-faint mb-3">
+                                    <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-ink-faint mb-3">
                                         Numéro de téléphone
                                     </Text>
-                                    <View className="bg-white rounded-2xl border border-surface-container-highest px-5 h-16 flex-row items-center gap-3">
-                                        <Text className="text-ink-muted text-base font-labelbold">+235</Text>
+                                    <View className="bg-white rounded-card border border-hairline px-5 h-16 flex-row items-center gap-3">
+                                        <Text className="text-ink-muted text-bodylg font-labelbold">+235</Text>
                                         <View className="w-px h-6 bg-hairline" />
                                         <TextInput
-                                            className="flex-1 text-ink text-base font-body"
+                                            className="flex-1 text-ink text-bodylg font-body"
                                             placeholder="66 12 34 56"
                                             placeholderTextColor="#8d8a87"
                                             value={phone}
@@ -231,7 +231,7 @@ export default function LoginScreen() {
                                         />
                                         {codeSent && (
                                             <Pressable onPress={() => { setCodeSent(false); setCode(''); }} hitSlop={10}>
-                                                <Text className="text-[#FF5733] text-xs font-labelbold">Modifier</Text>
+                                                <Text className="text-accent text-caption font-labelbold">Modifier</Text>
                                             </Pressable>
                                         )}
                                     </View>
@@ -239,13 +239,13 @@ export default function LoginScreen() {
 
                                 {codeSent && (
                                     <View className="mb-5">
-                                        <Text className="text-[10px] font-label tracking-[0.08em] uppercase text-ink-faint mb-3">
+                                        <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-ink-faint mb-3">
                                             Code reçu par SMS
                                         </Text>
-                                        <View className="bg-white rounded-2xl border border-surface-container-highest px-5 h-16 flex-row items-center gap-4">
+                                        <View className="bg-white rounded-card border border-hairline px-5 h-16 flex-row items-center gap-4">
                                             <KeyRound color="#8d8a87" size={20} />
                                             <TextInput
-                                                className="flex-1 text-ink text-2xl font-title"
+                                                className="flex-1 text-ink text-h2 font-title"
                                                 placeholder="––––––"
                                                 placeholderTextColor="#8d8a87"
                                                 value={code}
@@ -257,7 +257,7 @@ export default function LoginScreen() {
                                             />
                                         </View>
                                         <Pressable onPress={handleSendCode} className="self-end mt-3" hitSlop={8}>
-                                            <Text className="text-xs font-labelbold text-[#FF5733]">Renvoyer le code</Text>
+                                            <Text className="text-caption font-labelbold text-accent">Renvoyer le code</Text>
                                         </Pressable>
                                     </View>
                                 )}
@@ -265,13 +265,13 @@ export default function LoginScreen() {
                                 {/* Name asked only on the step where an account is actually created */}
                                 {codeSent && (
                                     <View className="mb-5">
-                                        <Text className="text-[10px] font-label tracking-[0.08em] uppercase text-ink-faint mb-3">
+                                        <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-ink-faint mb-3">
                                             Votre nom (optionnel)
                                         </Text>
-                                        <View className="bg-white rounded-2xl border border-surface-container-highest px-5 h-16 flex-row items-center gap-4">
+                                        <View className="bg-white rounded-card border border-hairline px-5 h-16 flex-row items-center gap-4">
                                             <User color="#8d8a87" size={20} />
                                             <TextInput
-                                                className="flex-1 text-ink text-base font-body"
+                                                className="flex-1 text-ink text-bodylg font-body"
                                                 placeholder="Comment vous appeler ?"
                                                 placeholderTextColor="#8d8a87"
                                                 value={fullName}
@@ -288,11 +288,11 @@ export default function LoginScreen() {
                         {/* ---- Email / password ---- */}
                         {mode === 'email' && isSignUp && (
                             <View className="mb-5">
-                                <Text className="text-[10px] font-label tracking-[0.08em] uppercase text-ink-faint mb-3">Nom complet</Text>
-                                <View className="bg-white rounded-2xl border border-surface-container-highest px-5 h-16 flex-row items-center gap-4">
+                                <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-ink-faint mb-3">Nom complet</Text>
+                                <View className="bg-white rounded-card border border-hairline px-5 h-16 flex-row items-center gap-4">
                                     <User color="#8d8a87" size={20} />
                                     <TextInput
-                                        className="flex-1 text-ink text-base font-body"
+                                        className="flex-1 text-ink text-bodylg font-body"
                                         placeholder="Moustapha Abdallah"
                                         placeholderTextColor="#8d8a87"
                                         value={fullName}
@@ -307,11 +307,11 @@ export default function LoginScreen() {
                         {/* Email */}
                         {mode === 'email' && (
                         <View className="mb-5">
-                            <Text className="text-[10px] font-label tracking-[0.08em] uppercase text-ink-faint mb-3">Adresse email</Text>
-                            <View className="bg-white rounded-2xl border border-surface-container-highest px-5 h-16 flex-row items-center gap-4">
+                            <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-ink-faint mb-3">Adresse email</Text>
+                            <View className="bg-white rounded-card border border-hairline px-5 h-16 flex-row items-center gap-4">
                                 <Mail color="#8d8a87" size={20} />
                                 <TextInput
-                                    className="flex-1 text-ink text-base font-body"
+                                    className="flex-1 text-ink text-bodylg font-body"
                                     placeholder="votre@email.com"
                                     placeholderTextColor="#8d8a87"
                                     value={email}
@@ -328,11 +328,11 @@ export default function LoginScreen() {
                         {/* Password */}
                         {mode === 'email' && (
                         <View className="mb-5">
-                            <Text className="text-[10px] font-label tracking-[0.08em] uppercase text-ink-faint mb-3">Mot de passe</Text>
-                            <View className="bg-white rounded-2xl border border-surface-container-highest px-5 h-16 flex-row items-center gap-4">
+                            <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-ink-faint mb-3">Mot de passe</Text>
+                            <View className="bg-white rounded-card border border-hairline px-5 h-16 flex-row items-center gap-4">
                                 <Lock color="#8d8a87" size={20} />
                                 <TextInput
-                                    className="flex-1 text-ink text-base font-body"
+                                    className="flex-1 text-ink text-bodylg font-body"
                                     placeholder="••••••••"
                                     placeholderTextColor="#8d8a87"
                                     value={password}
@@ -360,25 +360,25 @@ export default function LoginScreen() {
                         {/* Forgot password */}
                         {mode === 'email' && !isSignUp && (
                             <Pressable className="self-end mb-8" onPress={handleForgotPassword} hitSlop={8}>
-                                <Text className="text-xs font-labelbold text-[#FF5733]">Mot de passe oublié ?</Text>
+                                <Text className="text-caption font-labelbold text-accent">Mot de passe oublié ?</Text>
                             </Pressable>
                         )}
 
                         {/* Error (server or client-side validation) */}
                         {(error || formError) && (
                             <View
-                                className="bg-danger-tint rounded-2xl px-5 py-4 mb-6"
+                                className="bg-danger-soft rounded-card px-5 py-4 mb-6"
                                 style={{ borderWidth: 1, borderColor: 'rgba(186,26,26,0.2)' }}
                             >
-                                <Text className="text-danger text-sm font-body">{error || formError}</Text>
+                                <Text className="text-danger text-body font-body">{error || formError}</Text>
                             </View>
                         )}
 
                         {/* Positive notice (email sent, account created…) */}
                         {notice && (
-                            <View className="bg-white border border-hairline rounded-2xl px-5 py-4 mb-6 flex-row items-center gap-3">
+                            <View className="bg-white border border-hairline rounded-card px-5 py-4 mb-6 flex-row items-center gap-3">
                                 <MailCheck color="#22c55e" size={18} />
-                                <Text className="flex-1 text-ink-muted text-sm font-body leading-relaxed">{notice}</Text>
+                                <Text className="flex-1 text-ink-muted text-body font-body leading-relaxed">{notice}</Text>
                             </View>
                         )}
 
@@ -386,14 +386,14 @@ export default function LoginScreen() {
                         <Pressable
                             onPress={mode === 'phone' ? (codeSent ? handleVerifyCode : handleSendCode) : handleAuth}
                             disabled={loading}
-                            className="bg-[#FF5733] h-16 rounded-2xl flex-row items-center justify-center active:scale-[0.98] mb-6"
+                            className="bg-accent h-16 rounded-card flex-row items-center justify-center active:scale-[0.98] mb-6"
                             style={{ ...shadowFloat, opacity: loading ? 0.7 : 1 }}
                         >
                             {loading ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
                                 <View className="flex-row items-center gap-3">
-                                    <Text className="text-white font-labelbold text-sm">
+                                    <Text className="text-white font-labelbold text-body">
                                         {mode === 'phone'
                                             ? (codeSent ? 'Vérifier le code' : 'Recevoir le code')
                                             : isSignUp ? 'Créer le compte' : 'Se connecter'}
@@ -410,7 +410,7 @@ export default function LoginScreen() {
                             <>
                                 <View className="flex-row items-center gap-4 my-4">
                                     <View className="flex-1 h-px bg-hairline" />
-                                    <Text className="text-[10px] font-label tracking-[0.08em] uppercase text-ink-faint">ou</Text>
+                                    <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-ink-faint">ou</Text>
                                     <View className="flex-1 h-px bg-hairline" />
                                 </View>
 
@@ -422,9 +422,9 @@ export default function LoginScreen() {
                                     }}
                                     className="py-4 items-center"
                                 >
-                                    <Text className="text-ink-muted text-sm font-body">
+                                    <Text className="text-ink-muted text-body font-body">
                                         {isSignUp ? 'Déjà un compte ? ' : 'Pas encore de compte ? '}
-                                        <Text className="text-[#FF5733] font-labelbold">{isSignUp ? 'Se connecter' : "S'inscrire"}</Text>
+                                        <Text className="text-accent font-labelbold">{isSignUp ? 'Se connecter' : "S'inscrire"}</Text>
                                     </Text>
                                 </Pressable>
                             </>
@@ -438,7 +438,7 @@ export default function LoginScreen() {
                             }}
                             className="py-3 items-center mb-8"
                         >
-                            <Text className="text-ink-faint text-xs font-label">Continuer sans compte →</Text>
+                            <Text className="text-ink-faint text-caption font-label">Continuer sans compte →</Text>
                         </Pressable>
                     </View>
                 </ScrollView>

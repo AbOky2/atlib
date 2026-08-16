@@ -49,7 +49,7 @@ export function RestaurantRow({
             style={{ height: RESTAURANT_ROW_HEIGHT }}
         >
             <View
-                className="w-[84px] h-[84px] rounded-2xl overflow-hidden bg-surface-container-highest"
+                className="w-[84px] h-[84px] rounded-card overflow-hidden bg-fill-strong"
                 style={{ opacity: open ? 1 : 0.45 }}
             >
                 <RemoteImage uri={restaurant.image_url} displayWidth={84} className="w-full h-full" />
@@ -57,30 +57,30 @@ export function RestaurantRow({
 
             <View className="flex-1 justify-center">
                 <View className="flex-row items-center gap-2">
-                    <Text numberOfLines={1} className="text-[17px] font-heading tracking-tight text-ink flex-shrink">
+                    <Text numberOfLines={1} className="text-bodylg font-heading tracking-tight text-ink flex-shrink">
                         {restaurant.name}
                     </Text>
                     {!open && <ClosedBadge tone="onSurface" />}
                 </View>
 
-                <Text numberOfLines={1} className="text-[13px] text-ink-muted font-body mt-0.5">
+                <Text numberOfLines={1} className="text-label text-ink-muted font-body mt-0.5">
                     {restaurant.genre}
                 </Text>
 
                 <View className="flex-row items-center gap-4 mt-2">
                     <View className="flex-row items-center gap-1.5">
                         <Star fill={COLORS.ink} color={COLORS.ink} size={12} />
-                        <Text className="text-xs font-labelbold text-ink">{restaurant.rating}</Text>
+                        <Text className="text-caption font-labelbold text-ink">{restaurant.rating}</Text>
                     </View>
                     <View className="flex-row items-center gap-1.5">
                         <Clock color={COLORS.inkFaint} size={12} />
-                        <Text className="text-xs text-ink-muted font-body">
+                        <Text className="text-caption text-ink-muted font-body">
                             {formatEtaRange(restaurantEtaRange(restaurant.id))}
                         </Text>
                     </View>
                     <View className="flex-row items-center gap-1.5">
                         <Truck color={COLORS.inkFaint} size={12} />
-                        <Text className="text-xs text-ink-muted font-body">{formatXaf(DELIVERY_FEE_XAF)}</Text>
+                        <Text className="text-caption text-ink-muted font-body">{formatXaf(DELIVERY_FEE_XAF)}</Text>
                     </View>
                 </View>
             </View>

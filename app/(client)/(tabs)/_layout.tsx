@@ -47,7 +47,7 @@ function NavCircle({
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             accessibilityLabel={badge ? `${label}, ${badge} article${badge > 1 ? 's' : ''}` : label}
-            className={`items-center justify-center rounded-full active:scale-90 ${active ? 'bg-[#1c1b1b]' : ''}`}
+            className={`items-center justify-center rounded-full active:scale-90 ${active ? 'bg-ink' : ''}`}
             style={{ width: ITEM_SIZE, height: ITEM_SIZE }}
         >
             <Icon
@@ -58,10 +58,10 @@ function NavCircle({
             />
             {badge ? (
                 <View
-                    className="absolute bg-[#FF5733] rounded-full items-center justify-center border-2 border-white"
+                    className="absolute bg-accent rounded-full items-center justify-center border-2 border-white"
                     style={{ top: 1, right: 0, minWidth: BADGE_SIZE, height: BADGE_SIZE, paddingHorizontal: 3 }}
                 >
-                    <Text className="text-white text-[9px] font-labelbold">{badge > 9 ? '9+' : badge}</Text>
+                    <Text className="text-white text-eyebrow font-labelbold">{badge > 9 ? '9+' : badge}</Text>
                 </View>
             ) : null}
         </Pressable>

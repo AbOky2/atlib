@@ -14,6 +14,7 @@ import { restaurantEtaRange, formatEtaRange } from '../../src/lib/eta';
 import { DELIVERY_FEE_XAF, formatXaf as formatPrice } from '../../src/lib/pricing';
 import { shadowSoft, shadowFloat } from '../../src/lib/elevation';
 import { isAcceptingOrders, CLOSED_NOTICE } from '../../src/lib/availability';
+import { Button, SCREEN_GUTTER } from '../../src/components/ui';
 
 export default function RestaurantDetailsScreen() {
     const insets = useSafeAreaInsets();
@@ -133,12 +134,12 @@ export default function RestaurantDetailsScreen() {
                 <View className="flex-row items-center gap-3">
                     <Pressable
                         onPress={() => router.back()}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low active:scale-95"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-fill active:scale-95"
                     >
                         <ArrowLeft color="#1c1b1b" size={24} />
                     </Pressable>
                 </View>
-                <Text className="text-2xl font-title tracking-tight text-ink">{BRAND}</Text>
+                <Text className="text-h2 font-title tracking-tight text-ink">{BRAND}</Text>
                 <View className="flex-row items-center gap-2">
                     <Pressable
                         onPress={() => {
@@ -146,7 +147,7 @@ export default function RestaurantDetailsScreen() {
                             const added = toggleFavorite(id ?? '');
                             showToast(added ? 'Ajouté aux favoris !' : 'Retiré des favoris');
                         }}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low active:scale-95"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-fill active:scale-95"
                     >
                         <Heart fill={isFav ? "#FF5733" : "transparent"} color={isFav ? "#FF5733" : "#1c1b1b"} size={20} />
                     </Pressable>
@@ -155,7 +156,7 @@ export default function RestaurantDetailsScreen() {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                             Share.share({ message: `Découvre ${restaurant.name} sur NOIR Delivery !` }).catch(() => {});
                         }}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low active:scale-95"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-fill active:scale-95"
                     >
                         <Share2 color="#1c1b1b" size={20} />
                     </Pressable>
@@ -178,9 +179,9 @@ export default function RestaurantDetailsScreen() {
 
                     <View className="absolute bottom-0 left-0 w-full px-6 pb-8">
                         <View className="self-start flex-row items-center gap-2 mb-3">
-                            <View className="flex-row items-center gap-2 bg-[#FF5733] px-3 py-1.5 rounded-full" style={shadowSoft}>
+                            <View className="flex-row items-center gap-2 bg-accent px-3 py-1.5 rounded-full" style={shadowSoft}>
                                 <Star fill="#fff" color="#fff" size={14} />
-                                <Text className="text-white text-[11px] font-heading tracking-[0.05em] uppercase">
+                                <Text className="text-white text-eyebrow font-heading tracking-[0.05em] uppercase">
                                     {restaurant.genre?.split(',')[0] ?? 'Recommandé'}
                                 </Text>
                             </View>
@@ -189,22 +190,22 @@ export default function RestaurantDetailsScreen() {
                             numberOfLines={2}
                             adjustsFontSizeToFit
                             minimumFontScale={0.75}
-                            className="text-[34px] font-display tracking-tight text-white leading-[1.05]"
+                            className="text-h1 font-display tracking-tight text-white leading-[1.05]"
                         >
                             {restaurant.name}
                         </Text>
                         <View className="flex-row flex-wrap items-center gap-x-6 gap-y-2 mt-4">
                             <View className="flex-row items-center gap-1.5">
                                 <Star fill="#fff" color="#fff" size={18} />
-                                <Text className="text-white text-sm font-label">{restaurant.rating}</Text>
+                                <Text className="text-white text-body font-label">{restaurant.rating}</Text>
                             </View>
                             <View className="flex-row items-center gap-1.5">
                                 <Clock color="#fff" size={18} />
-                                <Text className="text-white text-sm font-label">{eta}</Text>
+                                <Text className="text-white text-body font-label">{eta}</Text>
                             </View>
                             <View className="flex-row items-center gap-1.5">
                                 <CreditCard color="#fff" size={18} />
-                                <Text className="text-white text-sm font-label">{formatPrice(DELIVERY_FEE_XAF)} livraison</Text>
+                                <Text className="text-white text-body font-label">{formatPrice(DELIVERY_FEE_XAF)} livraison</Text>
                             </View>
                         </View>
                     </View>
@@ -212,11 +213,11 @@ export default function RestaurantDetailsScreen() {
 
                 {/* Closed notice — stated once, plainly, before the menu */}
                 {!isOpen && (
-                    <View className="mx-6 mt-6 mb-2 flex-row items-center gap-3 rounded-3xl border border-surface-container-highest bg-white px-5 py-4">
-                        <View className="w-9 h-9 rounded-full bg-surface-container-low items-center justify-center">
+                    <View className="mx-6 mt-6 mb-2 flex-row items-center gap-3 rounded-panel border border-hairline bg-white px-5 py-4">
+                        <View className="w-9 h-9 rounded-full bg-fill items-center justify-center">
                             <Clock color="#1c1b1b" size={17} />
                         </View>
-                        <Text className="flex-1 text-[13px] font-body text-ink-muted leading-relaxed">
+                        <Text className="flex-1 text-label font-body text-ink-muted leading-relaxed">
                             {CLOSED_NOTICE} Vous pouvez consulter la carte en attendant.
                         </Text>
                     </View>
@@ -233,7 +234,7 @@ export default function RestaurantDetailsScreen() {
                                     setActiveCategory(cat);
                                 }}
                             >
-                                <Text className={`text-[11px] font-heading tracking-[0.05em] uppercase ${index === categories.length - 1 ? 'pr-8' : 'mr-8'} ${activeCategory === cat ? 'text-[#FF5733]' : 'text-ink-muted'}`}>
+                                <Text className={`text-eyebrow font-heading tracking-[0.05em] uppercase ${index === categories.length - 1 ? 'pr-8' : 'mr-8'} ${activeCategory === cat ? 'text-accent' : 'text-ink-muted'}`}>
                                     {cat}
                                 </Text>
                             </Pressable>
@@ -261,7 +262,7 @@ export default function RestaurantDetailsScreen() {
                         return (
                             <View key={`section-${category}`}>
                                 <View className="flex-row items-center gap-4 mb-6">
-                                    <Text className="text-xl font-title tracking-[0.04em] uppercase text-ink">{category}</Text>
+                                    <Text className="text-h3 font-title tracking-[0.04em] uppercase text-ink">{category}</Text>
                                     <View className="h-px flex-1 bg-hairline" />
                                 </View>
 
@@ -273,14 +274,14 @@ export default function RestaurantDetailsScreen() {
                                             className="flex-row gap-4 items-start active:opacity-70"
                                         >
                                             <View className="flex-1 pt-0.5">
-                                                <Text numberOfLines={2} className="font-heading tracking-[-0.01em] text-lg text-ink leading-snug">{item.name}</Text>
-                                                <Text numberOfLines={2} className="text-ink-muted text-xs font-body leading-relaxed mt-1.5 mb-2.5" style={{ minHeight: 34 }}>
+                                                <Text numberOfLines={2} className="font-heading tracking-[-0.01em] text-h3 text-ink leading-snug">{item.name}</Text>
+                                                <Text numberOfLines={2} className="text-ink-muted text-caption font-body leading-relaxed mt-1.5 mb-2.5" style={{ minHeight: 34 }}>
                                                     {item.short_description || 'Spécialité de la maison'}
                                                 </Text>
-                                                <Text className="font-title text-base text-ink">{formatPrice(item.price_xaf)}</Text>
+                                                <Text className="font-title text-bodylg text-ink">{formatPrice(item.price_xaf)}</Text>
                                             </View>
                                             <View className="w-[104px] h-[104px]">
-                                                <View className="w-full h-full rounded-2xl overflow-hidden bg-surface-container-highest items-center justify-center">
+                                                <View className="w-full h-full rounded-card overflow-hidden bg-fill-strong items-center justify-center">
                                                     {item.image_url ? (
                                                         <RemoteImage uri={item.image_url} displayWidth={104} className="w-full h-full" />
                                                     ) : (
@@ -293,7 +294,7 @@ export default function RestaurantDetailsScreen() {
                                                         openDish(item);
                                                     }}
                                                     hitSlop={8}
-                                                    className="absolute -bottom-2.5 -right-2.5 w-9 h-9 bg-[#1c1b1b] rounded-full items-center justify-center active:scale-90"
+                                                    className="absolute -bottom-2.5 -right-2.5 w-9 h-9 bg-ink rounded-full items-center justify-center active:scale-90"
                                                     style={shadowFloat}
                                                 >
                                                     <Plus color="#ffffff" size={20} />
@@ -314,22 +315,17 @@ export default function RestaurantDetailsScreen() {
                     style={{ bottom: Math.max(insets.bottom, 16) }}
                     pointerEvents="box-none"
                 >
-                    <Pressable
-                        onPress={() => {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                            router.push('/cart');
-                        }}
-                        className="w-full bg-[#FF5733] h-[54px] rounded-full flex-row items-center justify-between px-6 active:scale-[0.98]"
-                        style={shadowFloat}
-                    >
-                        <View className="flex-row items-center gap-3">
-                            <View className="min-w-[26px] h-6 px-1.5 rounded-full bg-white/25 items-center justify-center">
-                                <Text className="text-white font-labelbold text-xs">{cartItems}</Text>
+                    <Button
+                        label="Voir le panier"
+                        onPress={() => router.push('/cart')}
+                        leading={
+                            <View className="min-w-[26px] h-6 px-1.5 rounded-full bg-white/25 items-center justify-center mr-1">
+                                <Text className="text-white font-labelbold text-caption">{cartItems}</Text>
                             </View>
-                            <Text className="text-white font-labelbold text-sm tracking-wide">Voir le panier</Text>
-                        </View>
-                        <Text className="text-white font-title tracking-tight text-lg">{formatPrice(cartTotal)}</Text>
-                    </Pressable>
+                        }
+                        trailing={<Text className="text-bodylg font-title text-white tracking-tight">{formatPrice(cartTotal)}</Text>}
+                        accessibilityLabel={`Voir le panier, ${cartItems} articles, ${formatPrice(cartTotal)}`}
+                    />
                 </View>
             )}
 

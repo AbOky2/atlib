@@ -11,6 +11,9 @@ import { useAuthStore } from '../../src/store/authStore';
 import { createOrder, ORDER_ERRORS } from '../../src/hooks/useSupabase';
 import { getEstimatedDeliveryTime } from '../../src/lib/localities';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
+import {
+    Button, Card, Chip, Divider, SummaryRow, TypeText,
+    BottomActionBar, BOTTOM_BAR_CLEARANCE, SCREEN_GUTTER } from '../../src/components/ui';
 import { DELIVERY_FEE_XAF, SERVICE_FEE_XAF, computeOrderTotal, formatXaf as formatPrice } from '../../src/lib/pricing';
 import { shadowSoft, shadowFloat } from '../../src/lib/elevation';
 import { COLORS } from '../../src/lib/palette';
@@ -19,7 +22,7 @@ import { suggestedCashAmounts, changeToGive } from '../../src/lib/cash';
 
 function SectionLabel({ children }: { children: string }) {
     return (
-        <Text className="text-[11px] font-label uppercase tracking-[0.08em] text-ink-faint mb-3">
+        <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-3">
             {children}
         </Text>
     );
@@ -29,7 +32,7 @@ function Radio({ selected }: { selected: boolean }) {
     return (
         <View
             className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
-                selected ? 'border-[#1c1b1b] bg-[#1c1b1b]' : 'border-[#d8d4d2]'
+                selected ? 'border-ink bg-ink' : 'border-hairline'
             }`}
         >
             {selected && <View className="w-2 h-2 rounded-full bg-white" />}
@@ -142,22 +145,22 @@ export default function PaymentMethodScreen() {
                 className="flex-1"
                 contentContainerStyle={{
                     paddingTop: headerOffset + 16,
-                    paddingBottom: insets.bottom + 130
+                    paddingBottom: insets.bottom + BOTTOM_BAR_CLEARANCE,
                 }}
                 showsVerticalScrollIndicator={false}
             >
-                <View className="px-6 pb-10">
+                <View style={{ paddingHorizontal: SCREEN_GUTTER }} className="pb-8">
                     {/* Intro */}
                     <View className="mb-7">
-                        <Text className="font-title text-3xl tracking-tight text-ink">Dernière étape</Text>
-                        <Text className="text-ink-muted mt-2 text-sm font-body leading-relaxed">
+                        <Text className="font-title text-h1 tracking-tight text-ink">Dernière étape</Text>
+                        <Text className="text-ink-muted mt-2 text-body font-body leading-relaxed">
                             Vérifiez votre commande, elle part en cuisine dès la confirmation.
                         </Text>
                     </View>
 
                     {/* Delivery block */}
                     <SectionLabel>Livraison</SectionLabel>
-                    <View className="bg-white rounded-sheet border border-surface-container-highest mb-8 overflow-hidden" style={shadowSoft}>
+                    <View className="bg-white rounded-sheet border border-hairline mb-8 overflow-hidden" style={shadowSoft}>
                         <Pressable
                             onPress={() => {
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -165,17 +168,17 @@ export default function PaymentMethodScreen() {
                             }}
                             accessibilityRole="button"
                             accessibilityLabel="Modifier l'adresse de livraison"
-                            className="p-5 flex-row items-start gap-4 active:bg-surface-container-low"
+                            className="p-5 flex-row items-start gap-4 active:bg-fill"
                         >
-                            <View className="w-11 h-11 rounded-2xl items-center justify-center" style={{ backgroundColor: COLORS.accentTint }}>
+                            <View className="w-11 h-11 rounded-card items-center justify-center" style={{ backgroundColor: COLORS.accentSoft }}>
                                 <MapPin color={COLORS.accent} size={20} />
                             </View>
                             <View className="flex-1">
-                                <Text className="text-base font-heading tracking-tight text-ink">
+                                <Text className="text-bodylg font-heading tracking-tight text-ink">
                                     {deliveryAddress?.locality ?? 'Adresse à confirmer'}
                                 </Text>
                                 {deliveryAddress?.description ? (
-                                    <Text className="text-sm text-ink-muted font-body leading-relaxed mt-0.5" numberOfLines={2}>
+                                    <Text className="text-body text-ink-muted font-body leading-relaxed mt-0.5" numberOfLines={2}>
                                         {deliveryAddress.description}
                                     </Text>
                                 ) : null}
@@ -186,7 +189,7 @@ export default function PaymentMethodScreen() {
                         {deliveryAddress?.phone ? (
                             <View className="px-5 pb-3 -mt-1 flex-row items-center gap-2.5 pl-[76px]">
                                 <Phone color={COLORS.inkFaint} size={13} />
-                                <Text className="flex-1 text-[12px] font-body text-ink-faint" numberOfLines={1}>
+                                <Text className="flex-1 text-caption font-body text-ink-faint" numberOfLines={1}>
                                     {deliveryAddress.phone}
                                 </Text>
                             </View>
@@ -195,24 +198,24 @@ export default function PaymentMethodScreen() {
                         {deliveryAddress?.note ? (
                             <View className="px-5 pb-4 -mt-1 flex-row items-center gap-2.5 pl-[76px]">
                                 <MessageSquare color={COLORS.inkFaint} size={13} />
-                                <Text className="flex-1 text-[12px] font-body text-ink-faint" numberOfLines={2}>
+                                <Text className="flex-1 text-caption font-body text-ink-faint" numberOfLines={2}>
                                     {deliveryAddress.note}
                                 </Text>
                             </View>
                         ) : null}
 
                         {eta ? (
-                            <View className="flex-row items-center gap-2.5 px-5 py-3.5 border-t border-surface-container-highest bg-surface-container-low">
+                            <View className="flex-row items-center gap-2.5 px-5 py-3.5 border-t border-hairline bg-fill">
                                 <Clock color={COLORS.ink} size={15} />
-                                <Text className="text-[13px] font-label text-ink-muted flex-1">Arrivée estimée</Text>
-                                <Text className="text-[13px] font-labelbold text-ink">~{eta} min</Text>
+                                <Text className="text-label font-label text-ink-muted flex-1">Arrivée estimée</Text>
+                                <Text className="text-label font-labelbold text-ink">~{eta} min</Text>
                             </View>
                         ) : null}
                     </View>
 
                     {/* Payment methods */}
                     <SectionLabel>Méthode de paiement</SectionLabel>
-                    <View className="bg-white rounded-sheet border border-surface-container-highest mb-8 overflow-hidden" style={shadowSoft}>
+                    <View className="bg-white rounded-sheet border border-hairline mb-8 overflow-hidden" style={shadowSoft}>
                         {/* Cash — active */}
                         <Pressable
                             onPress={() => {
@@ -221,14 +224,14 @@ export default function PaymentMethodScreen() {
                             }}
                             accessibilityRole="radio"
                             accessibilityState={{ checked: selectedMethod === 'cash' }}
-                            className="p-5 flex-row items-center gap-4 active:bg-surface-container-low"
+                            className="p-5 flex-row items-center gap-4 active:bg-fill"
                         >
-                            <View className="w-11 h-11 rounded-2xl items-center justify-center" style={{ backgroundColor: COLORS.accentTint }}>
+                            <View className="w-11 h-11 rounded-card items-center justify-center" style={{ backgroundColor: COLORS.accentSoft }}>
                                 <Banknote color={COLORS.accent} size={20} />
                             </View>
                             <View className="flex-1">
-                                <Text className="font-heading text-base text-ink">Espèces à la livraison</Text>
-                                <Text className="text-ink-faint text-xs mt-0.5 leading-relaxed font-body">
+                                <Text className="font-heading text-bodylg text-ink">Espèces à la livraison</Text>
+                                <Text className="text-ink-faint text-caption mt-0.5 leading-relaxed font-body">
                                     Réglez directement à la réception.
                                 </Text>
                             </View>
@@ -243,21 +246,21 @@ export default function PaymentMethodScreen() {
                             }}
                             accessibilityRole="radio"
                             accessibilityState={{ checked: false, disabled: true }}
-                            className="p-5 flex-row items-center gap-4 border-t border-surface-container-highest opacity-50"
+                            className="p-5 flex-row items-center gap-4 border-t border-hairline opacity-50"
                         >
-                            <View className="w-11 h-11 rounded-2xl bg-surface-container-low items-center justify-center">
+                            <View className="w-11 h-11 rounded-card bg-fill items-center justify-center">
                                 <CreditCard color={COLORS.inkMuted} size={20} />
                             </View>
                             <View className="flex-1">
                                 <View className="flex-row items-center gap-2">
-                                    <Text className="font-heading text-base text-ink">Carte bancaire</Text>
-                                    <View className="bg-surface-container-low px-2 py-0.5 rounded-full">
-                                        <Text className="text-[9px] font-labelbold uppercase tracking-[0.08em] text-ink-muted">
+                                    <Text className="font-heading text-bodylg text-ink">Carte bancaire</Text>
+                                    <View className="bg-fill px-2 py-0.5 rounded-full">
+                                        <Text className="text-eyebrow font-labelbold uppercase tracking-[0.08em] text-ink-muted">
                                             Bientôt
                                         </Text>
                                     </View>
                                 </View>
-                                <Text className="text-ink-faint text-xs mt-0.5 leading-relaxed font-body">
+                                <Text className="text-ink-faint text-caption mt-0.5 leading-relaxed font-body">
                                     Visa, Mastercard — paiement sécurisé.
                                 </Text>
                             </View>
@@ -265,142 +268,94 @@ export default function PaymentMethodScreen() {
                         </Pressable>
                     </View>
 
-                    {/* Change — the question that saves the doorstep conversation */}
-                    <SectionLabel>Vous payez avec</SectionLabel>
-                    <View className="bg-white rounded-sheet border border-surface-container-highest mb-8 p-5" style={shadowSoft}>
-                        <Text className="text-[13px] font-body text-ink-muted leading-relaxed mb-4">
-                            Indiquez le billet que vous aurez, pour que le restaurant prépare votre monnaie.
-                        </Text>
+                    {/* Change — the question that saves the doorstep conversation.
+                        Kept prominent because it is a real local advantage, not a
+                        settings detail. */}
+                    <SectionLabel>Avec quel billet paierez-vous ?</SectionLabel>
+                    <Card className="mb-8 p-5">
+                        <TypeText variant="body" tone="secondary" className="mb-4">
+                            Cela aide le restaurant à préparer votre monnaie.
+                        </TypeText>
 
                         <View className="flex-row flex-wrap gap-2.5">
-                            <Pressable
-                                onPress={() => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                    setCashPaidWith(null);
-                                }}
-                                accessibilityRole="radio"
-                                accessibilityState={{ checked: cashPaidWith === null }}
-                                className={`px-4 h-11 rounded-full items-center justify-center border active:scale-[0.97] ${
-                                    cashPaidWith === null
-                                        ? 'bg-[#1c1b1b] border-[#1c1b1b]'
-                                        : 'bg-white border-surface-container-highest'
-                                }`}
-                            >
-                                <Text className={`text-[13px] font-labelbold ${cashPaidWith === null ? 'text-white' : 'text-ink'}`}>
-                                    J'ai l'appoint
-                                </Text>
-                            </Pressable>
-
-                            {cashOptions.map((amount) => {
-                                const selected = cashPaidWith === amount;
-                                return (
-                                    <Pressable
-                                        key={amount}
-                                        onPress={() => {
-                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                            setCashPaidWith(amount);
-                                        }}
-                                        accessibilityRole="radio"
-                                        accessibilityState={{ checked: selected }}
-                                        className={`px-4 h-11 rounded-full items-center justify-center border active:scale-[0.97] ${
-                                            selected
-                                                ? 'bg-[#1c1b1b] border-[#1c1b1b]'
-                                                : 'bg-white border-surface-container-highest'
-                                        }`}
-                                    >
-                                        <Text className={`text-[13px] font-labelbold ${selected ? 'text-white' : 'text-ink'}`}>
-                                            {formatPrice(amount)}
-                                        </Text>
-                                    </Pressable>
-                                );
-                            })}
+                            <Chip
+                                label="J'ai l'appoint"
+                                selected={cashPaidWith === null}
+                                onPress={() => setCashPaidWith(null)}
+                            />
+                            {cashOptions.map((amount) => (
+                                <Chip
+                                    key={amount}
+                                    label={formatPrice(amount)}
+                                    selected={cashPaidWith === amount}
+                                    onPress={() => setCashPaidWith(amount)}
+                                />
+                            ))}
                         </View>
 
                         {change != null && change > 0 ? (
-                            <View className="flex-row items-center gap-2.5 mt-4 pt-4 border-t border-surface-container-highest">
-                                <Coins color={COLORS.accent} size={16} />
-                                <Text className="flex-1 text-[13px] font-body text-ink-muted">
-                                    Le restaurant vous rendra
-                                </Text>
-                                <Text className="text-[15px] font-title text-ink">{formatPrice(change)}</Text>
-                            </View>
+                            <>
+                                <Divider className="my-4" />
+                                <View className="flex-row items-center gap-3">
+                                    <Coins color={COLORS.accent} size={18} />
+                                    <TypeText variant="body" tone="secondary" className="flex-1">
+                                        Le restaurant vous rendra
+                                    </TypeText>
+                                    <Text className="text-bodylg font-title text-ink">{formatPrice(change)}</Text>
+                                </View>
+                            </>
                         ) : null}
-                    </View>
+                    </Card>
 
                     {/* Order summary */}
                     <SectionLabel>{`Récapitulatif · ${currentRestaurantName ?? 'votre commande'}`}</SectionLabel>
-                    <View className="bg-white rounded-sheet border border-surface-container-highest p-5 mb-6" style={shadowSoft}>
-                        <View className="flex-col gap-3.5 mb-5">
+                    <Card className="p-5 mb-6">
+                        <View className="gap-3">
                             {items.map(item => (
                                 <View key={item.lineId} className="flex-row justify-between items-center">
-                                    <View className="flex-row items-center gap-3.5 flex-1 pr-4">
-                                        <View className="w-7 h-7 bg-surface-container-low rounded-lg items-center justify-center">
-                                            <Text className="text-[11px] font-labelbold text-ink">{item.quantity}</Text>
+                                    <View className="flex-row items-center gap-3 flex-1 pr-4">
+                                        <View className="w-7 h-7 bg-fill rounded-chip items-center justify-center">
+                                            <Text className="text-caption font-labelbold text-ink">{item.quantity}</Text>
                                         </View>
-                                        <Text className="text-sm font-label text-ink flex-1" numberOfLines={1}>{item.name}</Text>
+                                        <TypeText variant="body" numberOfLines={1} className="flex-1">{item.name}</TypeText>
                                     </View>
-                                    <Text className="text-sm font-labelbold text-ink">{formatPrice(item.price * item.quantity)}</Text>
+                                    <Text className="text-body font-labelbold text-ink">{formatPrice(item.price * item.quantity)}</Text>
                                 </View>
                             ))}
                         </View>
 
-                        <View className="flex-col gap-2.5 pt-4 border-t border-surface-container-highest">
-                            <View className="flex-row justify-between">
-                                <Text className="text-[13px] text-ink-faint font-body">Sous-total</Text>
-                                <Text className="text-[13px] font-label text-ink">{formatPrice(cartTotal)}</Text>
-                            </View>
-                            <View className="flex-row justify-between">
-                                <Text className="text-[13px] text-ink-faint font-body">Livraison</Text>
-                                <Text className="text-[13px] font-label text-ink">{formatPrice(DELIVERY_FEE_XAF)}</Text>
-                            </View>
-                            <View className="flex-row justify-between">
-                                <Text className="text-[13px] text-ink-faint font-body">Service</Text>
-                                <Text className="text-[13px] font-label text-ink">{formatPrice(SERVICE_FEE_XAF)}</Text>
-                            </View>
+                        <Divider className="my-4" />
+
+                        <View className="gap-3">
+                            <SummaryRow label="Sous-total" value={formatPrice(cartTotal)} />
+                            <SummaryRow label="Livraison" value={formatPrice(DELIVERY_FEE_XAF)} />
+                            <SummaryRow label="Service" value={formatPrice(SERVICE_FEE_XAF)} />
                         </View>
 
-                        <View className="flex-row justify-between items-end pt-4 mt-4 border-t border-surface-container-highest">
-                            <Text className="text-sm font-labelbold uppercase tracking-[0.08em] text-ink">Total</Text>
-                            <Text className="text-[26px] font-display tracking-tight text-ink">{formatPrice(finalTotal)}</Text>
-                        </View>
-                    </View>
+                        <Divider className="my-4" />
+
+                        <SummaryRow label="Total" value={formatPrice(finalTotal)} emphasis />
+                    </Card>
 
                     {/* Trust note */}
-                    <View className="flex-row items-center gap-3 px-1">
-                        <ShieldCheck color={COLORS.inkFaint} size={16} />
-                        <Text className="flex-1 text-[12px] font-body text-ink-faint leading-relaxed">
+                    <View className="flex-row items-start gap-3 px-1">
+                        <ShieldCheck color={COLORS.inkMuted} size={16} style={{ marginTop: 1 }} />
+                        <TypeText variant="caption" tone="secondary" className="flex-1">
                             Aucun prélèvement en ligne — vous réglez à la réception de votre commande.
-                        </Text>
+                        </TypeText>
                     </View>
                 </View>
             </ScrollView>
 
-            {/* Bottom action bar */}
-            <View
-                className="absolute bottom-0 left-0 w-full bg-white/95 border-t border-surface-container-highest px-6 z-50"
-                style={{ paddingBottom: Math.max(insets.bottom, 20), paddingTop: 16 }}
-            >
-                <Pressable
+            <BottomActionBar>
+                <Button
+                    label="Confirmer la commande"
                     onPress={handleConfirmOrder}
-                    disabled={isSubmitting}
-                    accessibilityRole="button"
+                    loading={isSubmitting}
+                    trailing={<Text className="text-bodylg font-title text-white tracking-tight">{formatPrice(finalTotal)}</Text>}
                     accessibilityLabel={`Confirmer la commande, total ${formatPrice(finalTotal)}`}
-                    className="w-full bg-[#FF5733] h-14 rounded-full flex-row items-center justify-between px-7 active:scale-[0.98]"
-                    style={[shadowFloat, { opacity: isSubmitting ? 0.75 : 1 }]}
-                >
-                    {isSubmitting ? (
-                        <View className="flex-1 flex-row items-center justify-center gap-3">
-                            <ActivityIndicator color="#fff" />
-                            <Text className="text-white font-labelbold text-sm">Confirmation…</Text>
-                        </View>
-                    ) : (
-                        <>
-                            <Text className="text-white font-labelbold text-sm">Confirmer la commande</Text>
-                            <Text className="text-white font-title text-lg tracking-tight">{formatPrice(finalTotal)}</Text>
-                        </>
-                    )}
-                </Pressable>
-            </View>
+                />
+            </BottomActionBar>
         </View>
     );
 }

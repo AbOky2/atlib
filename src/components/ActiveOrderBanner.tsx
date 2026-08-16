@@ -44,19 +44,19 @@ export function ActiveOrderBanner() {
         <Pressable
             onPress={() => router.push('/tracking')}
             style={[{ bottom: Math.max(insets.bottom, 12) + 66 }, shadowFloat]}
-            className="absolute left-4 right-4 z-40 bg-[#1c1b1b] rounded-3xl flex-row items-center justify-between p-4"
+            className="absolute left-4 right-4 z-40 bg-ink rounded-panel flex-row items-center justify-between p-4"
         >
             <View className="flex-row items-center gap-4">
-                <View className="w-12 h-12 rounded-full bg-[#FF5733] items-center justify-center">
+                <View className="w-12 h-12 rounded-full bg-accent items-center justify-center">
                     {icon}
                 </View>
                 <View>
-                    <Text className="text-white font-title text-[15px] tracking-tight">{text}</Text>
-                    <Text className="text-white/50 font-label text-[10px] uppercase tracking-[0.12em] mt-1">Appuyez pour le suivi</Text>
+                    <Text className="text-white font-title text-body tracking-tight">{text}</Text>
+                    <Text className="text-white/50 font-label text-eyebrow uppercase tracking-[0.12em] mt-1">Appuyez pour le suivi</Text>
                 </View>
             </View>
             <View className="w-8 h-8 rounded-full bg-white/10 items-center justify-center">
-                <View className="w-2 h-2 bg-[#FF5733] rounded-full" />
+                <View className="w-2 h-2 bg-accent rounded-full" />
             </View>
         </Pressable>
     );

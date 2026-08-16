@@ -9,7 +9,7 @@ import { NDJAMENA_LOCALITIES, getEstimatedDeliveryTime, type Locality } from '..
 import { useAddressStore, type SavedAddress } from '../../src/store/addressStore';
 import { useCartStore } from '../../src/store/cartStore';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
-import { shadowSoft, shadowFloat } from '../../src/lib/elevation';
+import { shadowFloat } from '../../src/lib/elevation';
 import { COLORS } from '../../src/lib/palette';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -42,33 +42,33 @@ function AddressCard({
             onPress={onSelect}
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            className={`bg-white rounded-3xl p-5 active:scale-[0.99] ${
-                selected ? 'border-2 border-[#1c1b1b]' : 'border border-surface-container-highest'
+            className={`bg-white rounded-panel p-5 active:scale-[0.99] ${
+                selected ? 'border-2 border-ink' : 'border border-hairline'
             }`}
-            style={shadowSoft}
+           
         >
             <View className="flex-row items-start gap-4">
                 <View
-                    className="w-11 h-11 rounded-2xl items-center justify-center"
-                    style={{ backgroundColor: selected ? COLORS.accentTint : COLORS.fill }}
+                    className="w-11 h-11 rounded-card items-center justify-center"
+                    style={{ backgroundColor: selected ? COLORS.accentSoft : COLORS.fill }}
                 >
                     <MapPin color={selected ? COLORS.accent : COLORS.ink} size={20} />
                 </View>
                 <View className="flex-1">
                     <View className="flex-row items-center gap-2">
-                        <Text className="text-base font-heading tracking-tight text-ink">{address.locality}</Text>
+                        <Text className="text-bodylg font-heading tracking-tight text-ink">{address.locality}</Text>
                         {selected && (
-                            <View className="w-5 h-5 rounded-full bg-[#1c1b1b] items-center justify-center">
+                            <View className="w-5 h-5 rounded-full bg-ink items-center justify-center">
                                 <Check color="#fff" size={12} strokeWidth={3} />
                             </View>
                         )}
                     </View>
-                    <Text className="text-sm text-ink-muted font-body leading-relaxed mt-1" numberOfLines={2}>
+                    <Text className="text-body text-ink-muted font-body leading-relaxed mt-1" numberOfLines={2}>
                         {address.description}
                     </Text>
                     <View className="flex-row items-center gap-1.5 mt-2.5">
                         <Clock color={COLORS.inkFaint} size={12} />
-                        <Text className="text-[11px] font-label text-ink-faint">Livraison ~{eta} min</Text>
+                        <Text className="text-eyebrow font-label text-ink-faint">Livraison ~{eta} min</Text>
                     </View>
                 </View>
                 <Pressable
@@ -79,7 +79,7 @@ function AddressCard({
                     hitSlop={8}
                     accessibilityRole="button"
                     accessibilityLabel={`Supprimer l'adresse ${address.locality}`}
-                    className="w-9 h-9 rounded-full items-center justify-center active:bg-surface-container-low"
+                    className="w-9 h-9 rounded-full items-center justify-center active:bg-fill"
                 >
                     <Trash2 color={COLORS.inkFaint} size={16} />
                 </Pressable>
@@ -178,17 +178,17 @@ export default function AddressesScreen() {
                         <View className="px-6">
                             {/* Intro */}
                             <View className="mb-6">
-                                <Text className="font-title text-3xl tracking-tight text-ink">Où vous livrer ?</Text>
-                                <Text className="text-ink-muted mt-2 text-sm font-body leading-relaxed">
+                                <Text className="font-title text-h1 tracking-tight text-ink">Où vous livrer ?</Text>
+                                <Text className="text-ink-muted mt-2 text-body font-body leading-relaxed">
                                     Vos points de livraison enregistrés, prêts en un geste.
                                 </Text>
                             </View>
 
                             {/* Search */}
-                            <View className="bg-white rounded-full border border-surface-container-highest flex-row items-center px-5 h-13 mb-6" style={{ height: 52 }}>
+                            <View className="bg-white rounded-full border border-hairline flex-row items-center px-5 h-13 mb-6" style={{ height: 52 }}>
                                 <Search color={COLORS.inkFaint} size={19} />
                                 <TextInput
-                                    className="flex-1 ml-3 font-body text-[15px] text-ink"
+                                    className="flex-1 ml-3 font-body text-body text-ink"
                                     placeholder="Rechercher une adresse"
                                     placeholderTextColor={COLORS.inkFaint}
                                     value={searchQuery}
@@ -199,14 +199,14 @@ export default function AddressesScreen() {
 
                             {/* Saved addresses */}
                             {visibleSaved.length === 0 ? (
-                                <View className="bg-white rounded-sheet border border-surface-container-highest px-6 py-12 items-center">
-                                    <View className="w-16 h-16 rounded-full bg-[#FF5733]/10 items-center justify-center mb-4">
+                                <View className="bg-white rounded-sheet border border-hairline px-6 py-12 items-center">
+                                    <View className="w-16 h-16 rounded-full bg-accent/10 items-center justify-center mb-4">
                                         <MapPin color={COLORS.accent} size={26} />
                                     </View>
-                                    <Text className="font-heading text-lg text-ink text-center">
+                                    <Text className="font-heading text-h3 text-ink text-center">
                                         {searchQuery ? 'Aucun résultat' : 'Aucune adresse enregistrée'}
                                     </Text>
-                                    <Text className="text-sm text-center text-ink-muted font-body mt-2 leading-relaxed">
+                                    <Text className="text-body text-center text-ink-muted font-body mt-2 leading-relaxed">
                                         {searchQuery
                                             ? 'Essayez un autre terme.'
                                             : 'Ajoutez votre premier point de livraison.'}
@@ -232,18 +232,18 @@ export default function AddressesScreen() {
                                 <>
                                     {/* Step 1 — pick the quartier */}
                                     <View className="mb-6">
-                                        <Text className="text-[11px] font-label uppercase tracking-[0.08em] text-ink-faint mb-1">
+                                        <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-1">
                                             Étape 1 sur 2
                                         </Text>
-                                        <Text className="font-title text-3xl tracking-tight text-ink">
+                                        <Text className="font-title text-h1 tracking-tight text-ink">
                                             Votre quartier
                                         </Text>
                                     </View>
 
-                                    <View className="bg-white rounded-full border border-surface-container-highest flex-row items-center px-5 mb-5" style={{ height: 52 }}>
+                                    <View className="bg-white rounded-full border border-hairline flex-row items-center px-5 mb-5" style={{ height: 52 }}>
                                         <Search color={COLORS.inkFaint} size={19} />
                                         <TextInput
-                                            className="flex-1 ml-3 font-body text-[15px] text-ink"
+                                            className="flex-1 ml-3 font-body text-body text-ink"
                                             placeholder="Rechercher un quartier…"
                                             placeholderTextColor={COLORS.inkFaint}
                                             value={searchQuery}
@@ -253,10 +253,10 @@ export default function AddressesScreen() {
                                         />
                                     </View>
 
-                                    <View className="bg-white rounded-sheet border border-surface-container-highest overflow-hidden">
+                                    <View className="bg-white rounded-sheet border border-hairline overflow-hidden">
                                         {filteredLocalities.length === 0 && (
                                             <View className="items-center py-10">
-                                                <Text className="text-ink-faint text-sm font-body">Aucun quartier trouvé.</Text>
+                                                <Text className="text-ink-faint text-body font-body">Aucun quartier trouvé.</Text>
                                             </View>
                                         )}
                                         {filteredLocalities.map((loc, i) => (
@@ -268,16 +268,16 @@ export default function AddressesScreen() {
                                                     setNewLocality(loc);
                                                     setSearchQuery('');
                                                 }}
-                                                className={`flex-row items-center px-5 py-4 active:bg-surface-container-low ${
-                                                    i < filteredLocalities.length - 1 ? 'border-b border-surface-container-highest' : ''
+                                                className={`flex-row items-center px-5 py-4 active:bg-fill ${
+                                                    i < filteredLocalities.length - 1 ? 'border-b border-hairline' : ''
                                                 }`}
                                             >
-                                                <View className="w-10 h-10 rounded-full bg-surface-container-low items-center justify-center mr-4">
+                                                <View className="w-10 h-10 rounded-full bg-fill items-center justify-center mr-4">
                                                     <MapPin color={COLORS.ink} size={18} />
                                                 </View>
                                                 <View className="flex-1">
-                                                    <Text className="font-heading text-[15px] text-ink">{loc.name}</Text>
-                                                    <Text className="text-[11px] font-label text-ink-faint mt-0.5">
+                                                    <Text className="font-heading text-body text-ink">{loc.name}</Text>
+                                                    <Text className="text-eyebrow font-label text-ink-faint mt-0.5">
                                                         Livraison ~{loc.baseDeliveryTimeMins} min
                                                     </Text>
                                                 </View>
@@ -290,22 +290,22 @@ export default function AddressesScreen() {
                                 <>
                                     {/* Step 2 — describe the spot */}
                                     <View className="mb-6">
-                                        <Text className="text-[11px] font-label uppercase tracking-[0.08em] text-ink-faint mb-1">
+                                        <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-1">
                                             Étape 2 sur 2
                                         </Text>
-                                        <Text className="font-title text-3xl tracking-tight text-ink">
+                                        <Text className="font-title text-h1 tracking-tight text-ink">
                                             Décrivez le point exact
                                         </Text>
                                     </View>
 
                                     {/* Chosen quartier */}
-                                    <View className="bg-white rounded-3xl border border-surface-container-highest p-4 flex-row items-center gap-4 mb-5">
-                                        <View className="w-11 h-11 rounded-2xl items-center justify-center" style={{ backgroundColor: COLORS.accentTint }}>
+                                    <View className="bg-white rounded-panel border border-hairline p-4 flex-row items-center gap-4 mb-5">
+                                        <View className="w-11 h-11 rounded-card items-center justify-center" style={{ backgroundColor: COLORS.accentSoft }}>
                                             <MapPin color={COLORS.accent} size={20} />
                                         </View>
                                         <View className="flex-1">
-                                            <Text className="font-heading text-base text-ink">{newLocality.name}</Text>
-                                            <Text className="text-[11px] font-label text-ink-faint mt-0.5">
+                                            <Text className="font-heading text-bodylg text-ink">{newLocality.name}</Text>
+                                            <Text className="text-eyebrow font-label text-ink-faint mt-0.5">
                                                 Livraison ~{newLocality.baseDeliveryTimeMins} min
                                             </Text>
                                         </View>
@@ -317,14 +317,14 @@ export default function AddressesScreen() {
                                             }}
                                             hitSlop={8}
                                         >
-                                            <Text className="text-xs font-labelbold text-ink underline">Changer</Text>
+                                            <Text className="text-caption font-labelbold text-ink underline">Changer</Text>
                                         </Pressable>
                                     </View>
 
                                     {/* Description */}
-                                    <View className="bg-white rounded-3xl border border-surface-container-highest mb-3">
+                                    <View className="bg-white rounded-panel border border-hairline mb-3">
                                         <TextInput
-                                            className="px-5 py-4 text-[15px] font-body text-ink min-h-[110px]"
+                                            className="px-5 py-4 text-body font-body text-ink min-h-[110px]"
                                             placeholder="Ex : Portail bleu face à la pharmacie centrale, 2ᵉ rue après le rond-point…"
                                             placeholderTextColor={COLORS.inkFaint}
                                             multiline
@@ -334,15 +334,15 @@ export default function AddressesScreen() {
                                             maxLength={180}
                                             autoFocus
                                         />
-                                        <Text className="text-[10px] text-ink-faint font-body text-right px-5 pb-3">
+                                        <Text className="text-eyebrow text-ink-faint font-body text-right px-5 pb-3">
                                             {newDescription.length}/180
                                         </Text>
                                     </View>
 
                                     {/* Tip */}
-                                    <View className="flex-row items-start gap-3 bg-surface-container-low rounded-2xl px-4 py-3.5">
+                                    <View className="flex-row items-start gap-3 bg-fill rounded-card px-4 py-3.5">
                                         <Lightbulb color={COLORS.accent} size={16} style={{ marginTop: 1 }} />
-                                        <Text className="flex-1 text-[12px] font-body text-ink-muted leading-relaxed">
+                                        <Text className="flex-1 text-caption font-body text-ink-muted leading-relaxed">
                                             À N'Djamena, un bon repère vaut mieux qu'un nom de rue : portail,
                                             couleur du mur, commerce voisin…
                                         </Text>
@@ -356,18 +356,18 @@ export default function AddressesScreen() {
 
             {/* Bottom action */}
             <View
-                className="absolute bottom-0 left-0 right-0 bg-white/95 border-t border-surface-container-highest px-6"
+                className="absolute bottom-0 left-0 right-0 bg-white/95 border-t border-hairline px-6"
                 style={{ paddingBottom: Math.max(insets.bottom, 20), paddingTop: 16 }}
             >
                 {!isAddingNew ? (
                     <Pressable
                         onPress={() => enterAddMode(true)}
                         accessibilityRole="button"
-                        className="w-full h-14 rounded-full flex-row items-center justify-center gap-2.5 bg-[#1c1b1b] active:scale-[0.98]"
+                        className="w-full h-14 rounded-full flex-row items-center justify-center gap-2.5 bg-ink active:scale-[0.98]"
                         style={shadowFloat}
                     >
                         <Plus color="#fff" size={18} strokeWidth={2.5} />
-                        <Text className="text-sm font-labelbold text-white">Ajouter une adresse</Text>
+                        <Text className="text-body font-labelbold text-white">Ajouter une adresse</Text>
                     </Pressable>
                 ) : (
                     <Pressable
@@ -375,11 +375,11 @@ export default function AddressesScreen() {
                         disabled={!canSave}
                         accessibilityRole="button"
                         className={`w-full h-14 rounded-full items-center justify-center active:scale-[0.98] ${
-                            canSave ? 'bg-[#1c1b1b]' : 'bg-surface-container-highest'
+                            canSave ? 'bg-ink' : 'bg-fill-strong'
                         }`}
                         style={canSave ? shadowFloat : undefined}
                     >
-                        <Text className={`text-sm font-labelbold ${canSave ? 'text-white' : 'text-ink-faint'}`}>
+                        <Text className={`text-body font-labelbold ${canSave ? 'text-white' : 'text-ink-faint'}`}>
                             {newLocality ? "Enregistrer l'adresse" : 'Choisissez un quartier'}
                         </Text>
                     </Pressable>

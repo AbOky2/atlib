@@ -66,7 +66,7 @@ export function OfflineBanner() {
             <View className="bg-ink" style={{ paddingTop: insets.top }}>
                 <View className="flex-row items-center justify-center gap-2 py-2">
                     <WifiOff color="#fff" size={14} />
-                    <Text className="text-white text-[12px] font-labelbold">
+                    <Text className="text-white text-caption font-labelbold">
                         Vous êtes hors ligne — reconnexion automatique
                     </Text>
                 </View>
