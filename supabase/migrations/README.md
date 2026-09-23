@@ -26,7 +26,8 @@ Le second lot ajoute une file durable, ses reprises et les reçus Expo dans `202
 4. `202609230001_order_lifecycle.sql` — `cancellation_reason`, `accepted_at`, réception confirmée par le client,
    `expire_stale_orders(pending_after, abandoned_after)`, jobs `pg_cron` créés si l’extension est active.
 5. `202609230002_access_hardening.sql` — droits par colonne sur `restaurants`, aucune lecture anonyme des commandes.
-6. `202609230003_tchadien_not_africain.sql` — donnée : « Africain » devient « Tchadien » dans le genre des
-   restaurants et les catégories de carte (on est au Tchad). Idempotente, sans effet si le mot est absent.
+6. `202609230003_local_not_africain.sql` — donnée : « Africain » devient « Cuisine locale » dans le genre des
+   restaurants et « Plats locaux » dans les catégories de carte (on est au Tchad). Idempotente, sans effet si
+   le mot est absent.
 
 `npm run test:sql` rejoue tout sur un PostgreSQL 14 jetable (initdb requis) ; la CI le fait sur un service Postgres.

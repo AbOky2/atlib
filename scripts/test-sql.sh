@@ -28,4 +28,6 @@ PSQL -d t -f supabase/migrations/202609140001_notification_resilience.sql -f tes
 echo "OK  résilience des notifications"
 PSQL -d t -f tests/sql/account_fixture.sql -f supabase/migrations/202609220001_account_deletion.sql -f tests/sql/account_deletion.sql >/dev/null
 echo "OK  suppression de compte"
+PSQL -d t -f tests/sql/local_fixture.sql -f supabase/migrations/202609230003_local_not_africain.sql -f tests/sql/local_not_africain.sql -f supabase/migrations/202609230003_local_not_africain.sql -f tests/sql/local_not_africain.sql >/dev/null
+echo "OK  donnée : « Africain » devient « local » (idempotent)"
 echo "Tous les scénarios SQL passent."
