@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, FlatList, Pressable, RefreshControl, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
-import { Bell, ChevronDown, MapPin, Search, Store, WifiOff } from 'lucide-react-native';
+import { Bell, ChevronDown, MapPin, Store, WifiOff } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -106,20 +106,8 @@ export default function ClientHomeScreen() {
                 <Text className="text-display font-display tracking-tighter text-ink" accessibilityRole="header">{greeting.question}</Text>
             </View>
 
-            {/* Search lives on Explore; this is its door. */}
-            <Pressable
-                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.navigate('/explore'); }}
-                accessibilityRole="search"
-                accessibilityLabel="Rechercher un restaurant ou une cuisine"
-                className="flex-row items-center bg-fill rounded-card px-4 mt-6 active:bg-fill-strong"
-                style={{ marginHorizontal: SCREEN_GUTTER, height: 52 }}
-            >
-                <Search color={COLORS.inkFaint} size={20} strokeWidth={2} />
-                <Text className="text-bodylg font-body text-ink-faint ml-3">Un restaurant, une cuisine…</Text>
-            </Pressable>
-
-            {/* Cuisines */}
-            <View className="mt-6 mb-6">
+            {/* Cuisines — search has its own tab; the home only asks the question. */}
+            <View className="mt-6 mb-5">
                 <CategoryRail
                     items={FOOD_CATEGORIES}
                     activeId={activeCategory}

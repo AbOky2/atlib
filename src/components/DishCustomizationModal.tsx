@@ -40,6 +40,9 @@ export interface DishOptionGroup {
     options: DishOption[];
 }
 
+/** The photo is the argument: tall enough to make the dish wanted, not a thumbnail. */
+const DISH_PHOTO_HEIGHT = 236;
+
 interface DishCustomizationModalProps {
     dish: (Dish & { optionGroups?: DishOptionGroup[] }) | null;
     restaurantName?: string;
@@ -168,7 +171,8 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                             and it lives OUTSIDE the ScrollView so the pan never fights scrolling. */}
                         <View
                             {...panResponder.panHandlers}
-                            className="relative w-full h-44 bg-fill-strong items-center justify-center"
+                            className="relative w-full bg-fill-strong items-center justify-center"
+                            style={{ height: DISH_PHOTO_HEIGHT }}
                         >
                             {dish.image_url ? (
                                 <RemoteImage uri={dish.image_url} displayWidth={430} className="w-full h-full" />
@@ -197,19 +201,22 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                             keyboardShouldPersistTaps="handled"
                             bounces={false}
                         >
-                            <View className="pt-6" style={{ paddingHorizontal: SCREEN_GUTTER }}>
+                            <View className="pt-5" style={{ paddingHorizontal: SCREEN_GUTTER }}>
                                 {restaurantName ? (
                                     <TypeText variant="eyebrow" tone="tertiary" className="mb-2">{restaurantName}</TypeText>
                                 ) : null}
-                                <Text className="text-h1 font-display tracking-tight text-ink" accessibilityRole="header">
-                                    {dish.name}
-                                </Text>
+                                {/* Name and price on one line: the two things a sheet must answer first. */}
+                                <View className="flex-row items-start" style={{ gap: 16 }}>
+                                    <Text className="flex-1 text-h2 font-title tracking-tight text-ink" accessibilityRole="header">
+                                        {dish.name}
+                                    </Text>
+                                    <Text className="text-h3 font-title text-ink" style={{ paddingTop: 2 }}>
+                                        {formatPrice(dish.price_xaf)}
+                                    </Text>
+                                </View>
                                 {dish.short_description ? (
                                     <TypeText tone="secondary" className="mt-2">{dish.short_description}</TypeText>
                                 ) : null}
-                                <Text className="text-h3 font-title text-ink mt-3">
-                                    {formatPrice(dish.price_xaf)}
-                                </Text>
 
                                 {/* Option groups (rendered only if the dish actually has them) */}
                                 {groups.map((group) => (
@@ -278,7 +285,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                     onChangeText={setNote}
                                     maxLength={160}
                                     counter={`${note.length}/160`}
-                                    className="mt-8"
+                                    className="mt-6"
                                 />
 
                             </View>

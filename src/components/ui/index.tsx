@@ -453,32 +453,32 @@ export function QuantityStepper({
         onChange(next);
     };
 
-    // The visual control is 44 pt tall; hitSlop carries each button to the full
-    // touch target without inflating the bar.
+    // The visual control is 40 pt tall and 104 pt wide — a quantity, not a
+    // toolbar; hitSlop carries each button to the full touch target.
     return (
-        <View className="flex-row items-center bg-fill rounded-full" style={{ height: 44, padding: 4 }}>
+        <View className="flex-row items-center bg-fill rounded-full" style={{ height: 40, padding: 4 }}>
             <Pressable
                 onPress={() => step(-1)}
-                hitSlop={{ top: 8, bottom: 8, left: 10, right: 4 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 4 }}
                 accessibilityRole="button"
                 accessibilityLabel="Réduire la quantité"
                 disabled={value <= min}
-                className="w-9 h-9 rounded-full bg-surface items-center justify-center active:scale-95"
+                className="w-8 h-8 rounded-full bg-surface items-center justify-center active:scale-95"
             >
-                <Minus color={value <= min ? COLORS.inkDisabled : COLORS.ink} size={17} strokeWidth={2.4} />
+                <Minus color={value <= min ? COLORS.inkDisabled : COLORS.ink} size={16} strokeWidth={2.4} />
             </Pressable>
 
-            <Text className="w-8 text-center text-bodylg font-title text-ink">{value}</Text>
+            <Text className="w-8 text-center text-body font-title text-ink">{value}</Text>
 
             <Pressable
                 onPress={() => step(1)}
-                hitSlop={{ top: 8, bottom: 8, left: 4, right: 10 }}
+                hitSlop={{ top: 10, bottom: 10, left: 4, right: 10 }}
                 accessibilityRole="button"
                 accessibilityLabel="Augmenter la quantité"
                 disabled={value >= max}
-                className="w-9 h-9 rounded-full bg-surface items-center justify-center active:scale-95"
+                className="w-8 h-8 rounded-full bg-surface items-center justify-center active:scale-95"
             >
-                <Plus color={value >= max ? COLORS.inkDisabled : COLORS.ink} size={17} strokeWidth={2.4} />
+                <Plus color={value >= max ? COLORS.inkDisabled : COLORS.ink} size={16} strokeWidth={2.4} />
             </Pressable>
         </View>
     );

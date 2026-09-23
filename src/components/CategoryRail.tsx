@@ -5,7 +5,9 @@ import { CategoryIcon } from './CategoryIcon';
 import { COLORS } from '../lib/palette';
 import { SCREEN_GUTTER } from './ui';
 
-const ITEM_WIDTH = 76;
+/** 60 pt per cuisine: the glyph, its word, nothing to spare — a rail, not a grid. */
+const ITEM_WIDTH = 60;
+const GLYPH = 32;
 
 /**
  * The cuisine rail — Uber Eats' shape, NOIR's typography, our own drawings.
@@ -28,7 +30,7 @@ export function CategoryRail({
             horizontal
             showsHorizontalScrollIndicator={false}
             contentInsetAdjustmentBehavior="never"
-            contentContainerStyle={{ paddingHorizontal: SCREEN_GUTTER - 8, gap: 4 }}
+            contentContainerStyle={{ paddingHorizontal: SCREEN_GUTTER - (ITEM_WIDTH - GLYPH) / 2, gap: 2 }}
         >
             {items.map(({ id, label }) => {
                 const active = activeId === id;
@@ -43,8 +45,8 @@ export function CategoryRail({
                         style={{ width: ITEM_WIDTH, paddingVertical: 4 }}
                     >
                         {/* Unselected cuisines step back without going grey. */}
-                        <View style={{ opacity: active ? 1 : 0.72, height: 40, justifyContent: 'center' }}>
-                            <CategoryIcon id={id} size={38} />
+                        <View style={{ opacity: active ? 1 : 0.8, height: GLYPH + 4, justifyContent: 'center' }}>
+                            <CategoryIcon id={id} size={GLYPH} />
                         </View>
                         <Text
                             numberOfLines={1}
@@ -55,9 +57,9 @@ export function CategoryRail({
                         <View
                             style={{
                                 height: 2,
-                                width: 24,
+                                width: 20,
                                 borderRadius: 1,
-                                marginTop: 8,
+                                marginTop: 6,
                                 backgroundColor: active ? COLORS.accent : 'transparent',
                             }}
                         />

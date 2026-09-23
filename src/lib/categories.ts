@@ -8,9 +8,10 @@
  * genre in the catalogue only produces an empty screen; tests/categories.test.cjs
  * keeps this list honest against the genres actually in use.
  *
- * We are in Chad: the cooking of the country is « Tchadien », never
- * « Africain » — an outsider's word for the whole continent, which the first
- * catalogue used and which the keywords still recognise for that legacy data.
+ * We are in Chad: the cooking of the country is simply « Local » — the word
+ * people use — never « Africain », an outsider's word for the whole continent,
+ * which the first catalogue used and which the keywords still recognise for
+ * that legacy data.
  *
  * Deliberately free of any visual: this is the filtering rule, loadable and
  * testable outside React Native. Drawings live in src/components/CategoryIcon.tsx.
@@ -26,7 +27,7 @@ export const ALL_CATEGORY_ID = 'all';
 
 export const FOOD_CATEGORIES: readonly FoodCategory[] = [
     { id: ALL_CATEGORY_ID, label: 'Tout', keywords: [] },
-    { id: 'tchadien', label: 'Tchadien', keywords: ['tchad', 'tradition', 'local', 'maison', 'africain'] },
+    { id: 'local', label: 'Local', keywords: ['local', 'tchad', 'tradition', 'maison', 'pays', 'africain'] },
     { id: 'grillades', label: 'Grillades', keywords: ['grill', 'braise', 'brochette', 'barbecue', 'bbq', 'roti'] },
     { id: 'pizza', label: 'Pizza', keywords: ['pizza', 'italien'] },
     { id: 'burger', label: 'Burgers', keywords: ['burger', 'fast food', 'fast-food', 'sandwich', 'snack'] },

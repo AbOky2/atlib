@@ -39,9 +39,9 @@ test('les genres réels du catalogue tombent dans la bonne catégorie', () => {
     assert.ok(matchesCategory('Fast Food & Grill', 'grillades'), 'Le Grilladin doit apparaître sous Grillades');
     assert.ok(matchesCategory('Fast Food & Grill', 'burger'), 'un fast-food est aussi un burger');
     assert.ok(matchesCategory('Pizza', 'pizza'));
-    assert.ok(matchesCategory('Africain', 'tchadien'), 'la donnée historique « Africain » reste trouvable sous Tchadien');
-    assert.ok(matchesCategory('Cuisine tchadienne', 'tchadien'));
-    assert.ok(matchesCategory('Plats Traditionnels', 'tchadien'));
+    assert.ok(matchesCategory('Africain', 'local'), 'la donnée historique « Africain » reste trouvable sous Local');
+    assert.ok(matchesCategory('Cuisine tchadienne', 'local'));
+    assert.ok(matchesCategory('Plats Traditionnels', 'local'));
     assert.ok(matchesCategory('Brochettes & Rôtisserie', 'grillades'), 'accents ignorés');
 });
 
