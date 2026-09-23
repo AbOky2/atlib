@@ -154,6 +154,7 @@ export default function LoginScreen() {
                     className="flex-1"
                     contentContainerStyle={{ flexGrow: 1, paddingHorizontal: SCREEN_GUTTER, paddingTop: Math.max(insets.top + 48, 72), paddingBottom: Math.max(insets.bottom, 24) }}
                     keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
                     showsVerticalScrollIndicator={false}
                 >
                     {/* Brand */}

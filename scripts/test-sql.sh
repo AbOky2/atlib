@@ -30,4 +30,6 @@ PSQL -d t -f tests/sql/account_fixture.sql -f supabase/migrations/202609220001_a
 echo "OK  suppression de compte"
 PSQL -d t -f tests/sql/local_fixture.sql -f supabase/migrations/202609230003_local_not_africain.sql -f tests/sql/local_not_africain.sql -f supabase/migrations/202609230003_local_not_africain.sql -f tests/sql/local_not_africain.sql >/dev/null
 echo "OK  donnée : « Africain » devient « local » (idempotent)"
+PSQL -d t -f tests/sql/customer_update_setup.sql -f supabase/migrations/202609230004_customer_order_updates.sql -f tests/sql/customer_order_updates.sql >/dev/null
+echo "OK  politique client : annuler en attente, confirmer la réception, rien d'autre"
 echo "Tous les scénarios SQL passent."

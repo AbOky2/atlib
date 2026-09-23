@@ -75,6 +75,7 @@ export default function CheckoutAddressScreen() {
                     contentContainerStyle={{ paddingTop: headerOffset + 16, paddingBottom: insets.bottom + BOTTOM_BAR_CLEARANCE }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
                 >
                     <View style={{ paddingHorizontal: SCREEN_GUTTER }}>
                         {/* Intro */}

@@ -29,5 +29,8 @@ Le second lot ajoute une file durable, ses reprises et les reçus Expo dans `202
 6. `202609230003_local_not_africain.sql` — donnée : « Africain » devient « Cuisine locale » dans le genre des
    restaurants et « Plats locaux » dans les catégories de carte (on est au Tchad). Idempotente, sans effet si
    le mot est absent.
+7. `202609230004_customer_order_updates.sql` — politique RLS permissive `orders_customer_update` : le client annule sa
+   commande en attente et confirme sa réception (sans elle, PostgREST ne modifiait aucune ligne et l'app annonçait
+   un conflit). Le déclencheur et les droits par colonne bornent le reste.
 
 `npm run test:sql` rejoue tout sur un PostgreSQL 14 jetable (initdb requis) ; la CI le fait sur un service Postgres.

@@ -249,8 +249,13 @@ export default function TrackingScreen() {
         } catch (error: any) {
             if (useAuthStore.getState().user?.id !== user.id) return;
             if (error?.message === ORDER_ERRORS.STATUS_CONFLICT) {
-                showToast('La commande a changé entre-temps. Suivi actualisé.', 'info');
-                void queryClient.invalidateQueries({ queryKey: ['orders', user.id] });
+                // PostgREST answers « no row » both when the status moved and when a
+                // policy refused the write. Re-read before choosing the sentence: a
+                // status that has NOT moved is a refusal, not a race.
+                const fresh = await refetch();
+                const current = fresh.data?.find((o) => o.id === activeOrder.id)?.status;
+                if (current === from) showToast('Modification refusée. Contactez l’assistance si cela persiste.', 'error');
+                else showToast('La commande a changé entre-temps. Suivi actualisé.', 'info');
             } else {
                 showToast('Action impossible pour le moment. Vérifiez votre connexion et réessayez.', 'error');
             }

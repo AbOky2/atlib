@@ -199,6 +199,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                         <ScrollView
                             showsVerticalScrollIndicator={false}
                             keyboardShouldPersistTaps="handled"
+                            keyboardDismissMode="on-drag"
                             bounces={false}
                         >
                             <View className="pt-5" style={{ paddingHorizontal: SCREEN_GUTTER }}>
