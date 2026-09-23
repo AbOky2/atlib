@@ -1,4 +1,6 @@
-import { Platform, NativeModules, TurboModuleRegistry } from 'react-native';
+import { Platform } from 'react-native';
+import { COLORS } from './palette';
+import { requireOptionalNativeModule } from 'expo-modules-core';
 
 /**
  * Safe access to expo-notifications.
@@ -16,10 +18,7 @@ let cached: any | null | undefined;
 function getNotificationsSafe(): any | null {
     if (cached !== undefined) return cached;
     try {
-        const native =
-            (TurboModuleRegistry as any)?.get?.('ExpoNotificationsEmitter') ??
-            (NativeModules as any)?.ExpoNotificationsEmitter ??
-            (NativeModules as any)?.ExpoNotificationPresenter;
+        const native = requireOptionalNativeModule('ExpoNotificationsEmitter');
         if (!native) {
             console.warn(
                 '[notifications] module natif absent — notifications désactivées jusqu\'au prochain build natif.',
@@ -68,13 +67,13 @@ export function setupNotifications(): void {
                 name: 'Suivi de commande',
                 importance: N.AndroidImportance.HIGH,
                 vibrationPattern: [0, 200, 100, 200],
-                lightColor: '#FF5733',
+                lightColor: COLORS.accent,
             });
             N.setNotificationChannelAsync(NEW_ORDER_CHANNEL_ID, {
                 name: 'Nouvelles commandes',
                 importance: N.AndroidImportance.MAX,
                 vibrationPattern: [0, 400, 200, 400, 200, 400],
-                lightColor: '#FF5733',
+                lightColor: COLORS.accent,
                 // Bypasses Do Not Disturb-style muting on most OEMs.
                 bypassDnd: true,
             });
@@ -112,12 +111,15 @@ export async function registerForPushToken(projectId?: string): Promise<string |
 export async function notifyNow(
     title: string,
     body: string,
-    options?: { channelId?: string; data?: Record<string, unknown> },
+    options?: { channelId?: string; data?: Record<string, unknown>; identifier?: string },
 ): Promise<void> {
     const N = getNotificationsSafe();
     if (!N) return;
     try {
         await N.scheduleNotificationAsync({
+            // A stable identifier REPLACES the previous notification instead of
+            // stacking one per reminder.
+            ...(options?.identifier ? { identifier: options.identifier } : {}),
             content: {
                 title,
                 body,
@@ -191,10 +193,22 @@ export function onNotificationTap(handler: (data: Record<string, any>) => void):
     const N = getNotificationsSafe();
     if (!N) return () => {};
     try {
-        const sub = N.addNotificationResponseReceivedListener((response: any) => {
-            handler(response?.notification?.request?.content?.data ?? {});
-        });
-        return () => sub?.remove?.();
+        let disposed = false;
+        let lastResponse: string | null = null;
+        const receive = (response: any) => {
+            const id = response?.notification?.request?.identifier;
+            const data = response?.notification?.request?.content?.data ?? {};
+            // Android replaces one persistent identifier across status updates
+            // and orders. Deduplicate the response, not that shared identifier.
+            const key = JSON.stringify([id, response?.notification?.date, response?.actionIdentifier, data.orderId, data.updatedAt]);
+            if (disposed || !id || key === lastResponse) return;
+            lastResponse = key;
+            handler(data);
+            void N.clearLastNotificationResponseAsync?.();
+        };
+        const sub = N.addNotificationResponseReceivedListener(receive);
+        Promise.resolve(N.getLastNotificationResponseAsync?.()).then(receive).catch(() => {});
+        return () => { disposed = true; sub?.remove?.(); };
     } catch (e) {
         console.warn('[notifications] écoute impossible', e);
         return () => {};
@@ -205,4 +219,11 @@ export function onNotificationTap(handler: (data: Record<string, any>) => void):
 export interface OrderNotificationData {
     orderId?: string;
     kind?: 'order-status' | 'new-order';
+}
+
+/** Refresh cached orders when a push arrives while the app is visible. */
+export function onOrderNotificationReceived(handler: () => void): () => void {
+    const N = getNotificationsSafe();
+    const sub = N?.addNotificationReceivedListener?.(handler);
+    return () => sub?.remove?.();
 }

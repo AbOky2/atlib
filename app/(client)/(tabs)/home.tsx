@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, FlatList, Pressable, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-import { Bell, ChevronDown, Star, Heart, MapPin } from 'lucide-react-native';
+import { Bell, ChevronDown, Star, Heart, MapPin, Store, WifiOff } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -17,12 +17,13 @@ import { CategoryRail } from '../../../src/components/CategoryRail';
 import { RemoteImage } from '../../../src/components/RemoteImage';
 import { ClosedBadge } from '../../../src/components/ClosedBadge';
 import { RestaurantRow, RESTAURANT_ROW_HEIGHT } from '../../../src/components/RestaurantRow';
+import { useBottomClearance } from '../../../src/components/ActiveOrderBanner';
+import { Button, EmptyState, SectionTitle, SCREEN_GUTTER, TOUCH_MIN } from '../../../src/components/ui';
 import { isAcceptingOrders } from '../../../src/lib/availability';
 import { FOOD_CATEGORIES, ALL_CATEGORY_ID, matchesCategory } from '../../../src/lib/categories';
+import { getEstimatedDeliveryTime } from '../../../src/lib/localities';
 import { BRAND_CITY } from '../../../src/lib/brand';
 import { useNotifications } from '../../../src/hooks/useNotifications';
-import { restaurantEtaRange, formatEtaRange } from '../../../src/lib/eta';
-import { shadowSoft } from '../../../src/lib/elevation';
 import { COLORS } from '../../../src/lib/palette';
 
 export default function ClientHomeScreen() {
@@ -35,7 +36,12 @@ export default function ClientHomeScreen() {
     const { isFavorite, toggleFavorite } = useFavoritesStore();
     const selectedAddress = useAddressStore(state => state.currentAddress);
     const insetTop = useHeaderInsetTop();
+    const bottomClearance = useBottomClearance();
     const { unreadCount } = useNotifications();
+
+    // A real number from the locality table once an address is known — never a
+    // per-restaurant delay invented from its id.
+    const estimate = selectedAddress ? `~${getEstimatedDeliveryTime(selectedAddress.locality)} min` : null;
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
@@ -54,8 +60,7 @@ export default function ClientHomeScreen() {
     }, [restaurants, activeCategory]);
 
     // One featured restaurant and an optional rail sit in the header; the list
-    // below carries the WHOLE catalogue, virtualised. The editorial cards used to
-    // be the list itself — gorgeous at three restaurants, unusable at fifty.
+    // below carries the WHOLE catalogue, virtualised.
     const heroRestaurant = filteredRestaurants[0];
     const selectedForYou = filteredRestaurants.length >= 5 ? filteredRestaurants.slice(1, 4) : [];
     const totalCount = filteredRestaurants.length;
@@ -69,17 +74,18 @@ export default function ClientHomeScreen() {
         ({ item }: { item: Restaurant }) => (
             <RestaurantRow
                 restaurant={item}
+                estimate={estimate}
                 onPressIn={() => prefetchRestaurant(queryClient, item.id)}
                 onPress={() => openRestaurant(item.id)}
             />
         ),
-        [queryClient, openRestaurant],
+        [queryClient, openRestaurant, estimate],
     );
 
     const header = (
         <>
             {/* Cuisines */}
-            <View className="mt-3 mb-8">
+            <View className="mt-2 mb-8">
                 <CategoryRail
                     items={FOOD_CATEGORIES}
                     activeId={activeCategory}
@@ -92,56 +98,58 @@ export default function ClientHomeScreen() {
 
             {isLoading && (
                 <View className="items-center py-20">
-                    <ActivityIndicator size="large" color={COLORS.accent} />
+                    <ActivityIndicator size="large" color={COLORS.ink} />
                 </View>
             )}
 
-            {!isLoading && (isError || totalCount === 0) && (
-                <View className="items-center py-16 px-6">
-                    <Text className="text-h3 font-title tracking-tight text-ink mb-2">
-                        {isError ? 'Erreur de connexion' : 'Aucun résultat'}
-                    </Text>
-                    <Text className="text-body text-ink-muted text-center font-body">
-                        {isError
-                            ? 'Vérifiez votre connexion internet et réessayez.'
-                            : 'Essayez une autre cuisine.'}
-                    </Text>
-                    <Pressable
-                        onPress={() => (isError ? refetch() : setActiveCategory(ALL_CATEGORY_ID))}
-                        className="mt-6 bg-ink px-6 py-3 rounded-full active:scale-95"
-                    >
-                        <Text className="text-white font-labelbold text-caption">
-                            {isError ? 'Réessayer' : 'Voir tout'}
-                        </Text>
-                    </Pressable>
-                </View>
+            {!isLoading && isError && (
+                <EmptyState
+                    icon={WifiOff}
+                    title="Connexion impossible"
+                    message="Vérifiez votre connexion internet et réessayez."
+                    action={<Button label="Réessayer" variant="secondary" onPress={() => { void refetch(); }} />}
+                    className="py-12"
+                />
+            )}
+
+            {!isLoading && !isError && totalCount === 0 && (
+                <EmptyState
+                    icon={Store}
+                    title="Aucun restaurant"
+                    message={activeCategory === ALL_CATEGORY_ID ? 'Les restaurants partenaires apparaîtront ici.' : 'Aucune maison dans cette cuisine pour le moment.'}
+                    action={activeCategory === ALL_CATEGORY_ID ? undefined : <Button label="Voir toutes les cuisines" variant="secondary" onPress={() => setActiveCategory(ALL_CATEGORY_ID)} />}
+                    className="py-12"
+                />
             )}
 
             {/* Featured */}
             {heroRestaurant && (
-                <View className="mb-12 px-6">
+                <View className="mb-10" style={{ paddingHorizontal: SCREEN_GUTTER }}>
                     <Pressable
                         onPressIn={() => prefetchRestaurant(queryClient, heroRestaurant.id)}
                         onPress={() => openRestaurant(heroRestaurant.id)}
-                        className="relative w-full aspect-[4/5] rounded-sheet overflow-hidden bg-black active:scale-[0.98]"
+                        accessibilityRole="button"
+                        accessibilityLabel={`À la une : ${heroRestaurant.name}`}
+                        className="relative w-full aspect-[4/3] rounded-sheet overflow-hidden bg-ink active:scale-[0.98]"
                     >
                         <RemoteImage uri={heroRestaurant.image_url} displayWidth={360} className="w-full h-full" />
-                        <View className="absolute inset-0 bg-black/35" />
-                        <View className="absolute inset-0 justify-end p-8">
-                            <Text className="text-white/70 font-label text-eyebrow tracking-[0.08em] uppercase mb-4">
-                                {heroRestaurant.genre ?? 'Recommandé'}
+                        {/* 40 % is a Tailwind step; 35 % was not, and the veil never rendered. */}
+                        <View className="absolute inset-0 bg-black/40" />
+                        <View className="absolute inset-0 justify-end p-6">
+                            <Text className="text-white/70 font-label text-eyebrow tracking-eyebrow uppercase mb-3">
+                                {heroRestaurant.genre ?? 'À la une'}
                             </Text>
-                            <Text className="text-h1 font-title text-white tracking-tight mb-4">
+                            <Text className="text-h1 font-title text-white tracking-tight mb-3" numberOfLines={2}>
                                 {heroRestaurant.name}
                             </Text>
                             <View className="flex-row items-center gap-6">
-                                <View className="flex-row items-center gap-1">
-                                    <Star fill="#fff" color="#fff" size={12} />
-                                    <Text className="text-white font-labelbold text-body">{heroRestaurant.rating}</Text>
-                                </View>
-                                <Text className="text-white/80 text-body font-label">
-                                    {formatEtaRange(restaurantEtaRange(heroRestaurant.id))}
-                                </Text>
+                                {heroRestaurant.rating != null ? (
+                                    <View className="flex-row items-center gap-1">
+                                        <Star fill={COLORS.white} color={COLORS.white} size={14} strokeWidth={2} />
+                                        <Text className="text-white font-labelbold text-body">{heroRestaurant.rating}</Text>
+                                    </View>
+                                ) : null}
+                                {estimate ? <Text className="text-white/80 text-body font-label">{estimate}</Text> : null}
                                 {!isAcceptingOrders(heroRestaurant) && <ClosedBadge />}
                             </View>
                         </View>
@@ -151,89 +159,94 @@ export default function ClientHomeScreen() {
 
             {/* Selection rail */}
             {selectedForYou.length > 0 && (
-                <View className="mb-12">
-                    <View className="px-6 mb-5">
-                        <Text className="text-ink-faint font-label text-eyebrow tracking-[0.08em] uppercase">
-                            Soigneusement choisi
-                        </Text>
-                        <Text className="text-h2 font-title tracking-tight text-ink">Sélection pour vous</Text>
-                    </View>
+                <View className="mb-10">
+                    <SectionTitle eyebrow="Soigneusement choisi" title="Sélection pour vous" className="mb-5" style={{ paddingHorizontal: SCREEN_GUTTER }} />
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ gap: 16, paddingHorizontal: 24, paddingRight: 40 }}
+                        contentContainerStyle={{ gap: 16, paddingHorizontal: SCREEN_GUTTER }}
                     >
-                        {selectedForYou.map((item) => (
-                            <Pressable
-                                key={item.id}
-                                onPressIn={() => prefetchRestaurant(queryClient, item.id)}
-                                onPress={() => openRestaurant(item.id)}
-                                className="w-[240px] active:scale-[0.98]"
-                            >
-                                <View className="h-40 rounded-sheet overflow-hidden relative bg-black">
-                                    <RemoteImage
-                                        uri={item.image_url}
-                                        displayWidth={240}
-                                        className="w-full h-full"
-                                        style={{ opacity: isAcceptingOrders(item) ? 0.9 : 0.4 }}
-                                    />
-                                    <Pressable
-                                        onPress={(e) => {
-                                            e.stopPropagation?.();
-                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                            const added = toggleFavorite(item.id);
-                                            showToast(added ? `${item.name} ajouté aux favoris !` : `${item.name} retiré des favoris`);
-                                        }}
-                                        hitSlop={8}
-                                        className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/40 items-center justify-center active:scale-90"
-                                    >
-                                        <Heart
-                                            fill={isFavorite(item.id) ? COLORS.accent : 'transparent'}
-                                            color={isFavorite(item.id) ? COLORS.accent : '#fff'}
-                                            size={18}
+                        {selectedForYou.map((item) => {
+                            const favourite = isFavorite(item.id);
+                            return (
+                                <Pressable
+                                    key={item.id}
+                                    onPressIn={() => prefetchRestaurant(queryClient, item.id)}
+                                    onPress={() => openRestaurant(item.id)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={item.name}
+                                    className="active:scale-[0.98]"
+                                    style={{ width: 240 }}
+                                >
+                                    <View className="h-40 rounded-panel overflow-hidden relative bg-ink">
+                                        <RemoteImage
+                                            uri={item.image_url}
+                                            displayWidth={240}
+                                            className="w-full h-full"
+                                            style={{ opacity: isAcceptingOrders(item) ? 0.9 : 0.4 }}
                                         />
-                                    </Pressable>
-                                    {!isAcceptingOrders(item) && (
-                                        <View className="absolute bottom-3 left-3"><ClosedBadge /></View>
-                                    )}
-                                </View>
-                                <Text numberOfLines={1} className="text-bodylg font-heading tracking-tight text-ink mt-3">
-                                    {item.name}
-                                </Text>
-                                <Text numberOfLines={1} className="text-caption text-ink-muted font-label mt-0.5">
-                                    {item.genre} • {formatEtaRange(restaurantEtaRange(item.id))}
-                                </Text>
-                            </Pressable>
-                        ))}
+                                        <Pressable
+                                            onPress={(e) => {
+                                                e.stopPropagation?.();
+                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                                const added = toggleFavorite(item.id);
+                                                showToast(added ? `${item.name} ajouté aux favoris` : `${item.name} retiré des favoris`);
+                                            }}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={favourite ? `Retirer ${item.name} des favoris` : `Ajouter ${item.name} aux favoris`}
+                                            accessibilityState={{ selected: favourite }}
+                                            className="absolute top-2 right-2 items-center justify-center active:scale-90"
+                                            style={{ width: TOUCH_MIN, height: TOUCH_MIN }}
+                                        >
+                                            <View className="w-9 h-9 rounded-full bg-black/40 items-center justify-center">
+                                                <Heart
+                                                    fill={favourite ? COLORS.accent : 'transparent'}
+                                                    color={favourite ? COLORS.accent : COLORS.white}
+                                                    size={18}
+                                                    strokeWidth={2}
+                                                />
+                                            </View>
+                                        </Pressable>
+                                        {!isAcceptingOrders(item) && (
+                                            <View className="absolute bottom-3 left-3"><ClosedBadge /></View>
+                                        )}
+                                    </View>
+                                    <Text numberOfLines={1} className="text-bodylg font-heading tracking-tight text-ink mt-3">
+                                        {item.name}
+                                    </Text>
+                                    <Text numberOfLines={1} className="text-caption text-ink-muted font-label mt-1">
+                                        {item.genre}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
                     </ScrollView>
                 </View>
             )}
 
             {/* List heading */}
             {totalCount > 0 && (
-                <View className="px-6 mb-2">
-                    <Text className="text-ink-faint font-label text-eyebrow tracking-[0.08em] uppercase">
-                        {activeCategory === ALL_CATEGORY_ID
-                            ? `${totalCount} maison${totalCount > 1 ? 's' : ''} à ${BRAND_CITY}`
-                            : `${totalCount} résultat${totalCount > 1 ? 's' : ''}`}
-                    </Text>
-                    <Text className="text-h2 font-title tracking-tight text-ink">
-                        {activeCategory === ALL_CATEGORY_ID
-                            ? 'Tous les restaurants'
-                            : FOOD_CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'Résultats'}
-                    </Text>
-                </View>
+                <SectionTitle
+                    eyebrow={activeCategory === ALL_CATEGORY_ID
+                        ? `${totalCount} maison${totalCount > 1 ? 's' : ''} à ${BRAND_CITY}`
+                        : `${totalCount} résultat${totalCount > 1 ? 's' : ''}`}
+                    title={activeCategory === ALL_CATEGORY_ID
+                        ? 'Tous les restaurants'
+                        : FOOD_CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'Résultats'}
+                    className="mb-2"
+                    style={{ paddingHorizontal: SCREEN_GUTTER }}
+                />
             )}
         </>
     );
 
     return (
         <View className="flex-1 bg-background">
-            {/* TopAppBar */}
-            <View className="absolute top-0 left-0 right-0 z-50 bg-white border-b border-hairline" style={shadowSoft}>
+            {/* Top app bar: address on the left, inbox on the right. */}
+            <View className="absolute top-0 left-0 right-0 z-50 bg-surface border-b border-hairline">
                 <View
-                    style={{ paddingTop: insetTop, height: insetTop + HEADER_CONTENT_HEIGHT }}
-                    className="flex-row justify-between items-center px-6"
+                    style={{ paddingTop: insetTop, height: insetTop + HEADER_CONTENT_HEIGHT, paddingHorizontal: SCREEN_GUTTER }}
+                    className="flex-row justify-between items-center"
                 >
                     <Pressable
                         onPress={() => {
@@ -245,12 +258,13 @@ export default function ClientHomeScreen() {
                             selectedAddress ? `Livrer à ${selectedAddress.locality}, changer d'adresse` : 'Choisir une adresse de livraison'
                         }
                         className="flex-row items-center gap-3 flex-1 pr-3 active:opacity-60"
+                        style={{ minHeight: TOUCH_MIN }}
                     >
-                        <View className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: COLORS.accentSoft }}>
-                            <MapPin color={COLORS.accent} size={17} strokeWidth={2.2} />
+                        <View className="w-9 h-9 rounded-full items-center justify-center bg-accent-soft">
+                            <MapPin color={COLORS.accentDark} size={18} strokeWidth={2.2} />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-eyebrow font-label uppercase tracking-[0.12em] text-ink-faint">
+                            <Text className="text-eyebrow font-label uppercase tracking-eyebrow text-ink-faint">
                                 {selectedAddress ? 'Livrer à' : 'Adresse'}
                             </Text>
                             <View className="flex-row items-center gap-1">
@@ -267,12 +281,15 @@ export default function ClientHomeScreen() {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                             router.push('/notifications');
                         }}
-                        className="relative w-10 h-10 items-center justify-end active:opacity-60"
+                        accessibilityRole="button"
+                        accessibilityLabel={unreadCount > 0 ? `Notifications, ${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Notifications'}
+                        className="items-center justify-center rounded-full bg-fill active:scale-95"
+                        style={{ width: TOUCH_MIN, height: TOUCH_MIN }}
                     >
-                        <Bell color={COLORS.ink} size={24} />
+                        <Bell color={COLORS.ink} size={22} strokeWidth={2} />
                         {unreadCount > 0 && (
-                            <View className="absolute -top-0.5 right-0 min-w-[16px] h-4 px-1 bg-accent rounded-full items-center justify-center border border-white">
-                                <Text className="text-white text-eyebrow font-labelbold">{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                            <View className="absolute bg-accent rounded-full items-center justify-center border-2 border-surface" style={{ top: 2, right: 2, minWidth: 18, height: 18, paddingHorizontal: 3 }}>
+                                <Text className="text-ink text-eyebrow font-labelbold">{unreadCount > 9 ? '9+' : unreadCount}</Text>
                             </View>
                         )}
                     </Pressable>
@@ -296,14 +313,14 @@ export default function ClientHomeScreen() {
                 removeClippedSubviews
                 contentContainerStyle={{
                     paddingTop: insetTop + HEADER_CONTENT_HEIGHT + 16,
-                    paddingBottom: 140,
+                    paddingBottom: bottomClearance,
                 }}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        tintColor={COLORS.accent}
+                        tintColor={COLORS.ink}
                         progressViewOffset={insetTop + HEADER_CONTENT_HEIGHT}
                     />
                 }

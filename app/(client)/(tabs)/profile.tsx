@@ -1,73 +1,115 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Share } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Bell, Award, Heart, Wallet, HelpCircle, Settings, Tag, Gift, ChevronRight, Package, MessageSquare, Store } from 'lucide-react-native';
+import { Bell, Award, Heart, HelpCircle, Gift, ChevronRight, Package, Store, ShieldCheck, Trash2, type LucideIcon } from 'lucide-react-native';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
+import { verifiedAccountPhone } from '../../../src/lib/phoneAuth';
+import { formatChadPhone } from '../../../src/lib/phone';
 import { useAuthStore } from '../../../src/store/authStore';
 import { useCartStore } from '../../../src/store/cartStore';
 import { useFavoritesStore } from '../../../src/store/favoritesStore';
 import { useUserOrders } from '../../../src/data/orders';
 import { useMyRestaurantId } from '../../../src/data/restaurantAdmin';
-import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { ACCOUNT_ERRORS } from '../../../src/data/account';
 import { ScreenHeader, useHeaderOffset } from '../../../src/components/ScreenHeader';
+import { useBottomClearance } from '../../../src/components/ActiveOrderBanner';
+import { Button, TypeText, SCREEN_GUTTER, TOUCH_MIN } from '../../../src/components/ui';
 import { BRAND, BRAND_FULL, BRAND_CITY } from '../../../src/lib/brand';
 import { openSupportChat } from '../../../src/lib/support';
+import { COLORS } from '../../../src/lib/palette';
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
 export default function ProfileScreen() {
-    const insets = useSafeAreaInsets();
     const headerOffset = useHeaderOffset();
+    const bottomClearance = useBottomClearance();
     const signOut = useAuthStore(state => state.signOut);
+    const deleteAccount = useAuthStore(state => state.deleteAccount);
     const user = useAuthStore(state => state.user);
     const showToast = useCartStore(state => state.showToast);
     const showDialog = useCartStore(state => state.showDialog);
     const favoritesCount = useFavoritesStore(state => state.favoriteIds.length);
+    const [busy, setBusy] = useState<'signout' | 'delete' | null>(null);
 
-    // Fetch orders count for dynamic stats
     const { data: userOrders } = useUserOrders(user?.id);
     // null for a normal customer — the staff entry point stays hidden.
     const { data: myRestaurantId } = useMyRestaurantId(!!user);
     const orderCount = userOrders?.length || 0;
-    const initial = (user?.user_metadata?.full_name || user?.email || 'U').charAt(0).toUpperCase();
+    const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Utilisateur';
+    const initial = displayName.charAt(0).toUpperCase();
+    const phone = verifiedAccountPhone(user);
 
     const handleShareApp = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         Share.share({
-            message: `Découvre ${BRAND_FULL} — les meilleures tables de ${BRAND_CITY}, livrées chez toi. 🍽️`,
+            message: `Découvrez ${BRAND_FULL} : les meilleures tables de ${BRAND_CITY}, livrées chez vous.`,
         }).catch(() => {});
     };
 
     const handleLogout = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         showDialog({
-            title: "Déconnexion",
-            message: "Êtes-vous sûr de vouloir vous déconnecter ?",
-            confirmText: "Déconnexion",
-            cancelText: "Annuler",
+            title: 'Se déconnecter ?',
+            message: 'Vous pourrez vous reconnecter à tout moment avec votre email.',
+            confirmText: 'Se déconnecter',
+            cancelText: 'Annuler',
             destructive: true,
-            onConfirm: () => {
-                signOut();
-                router.replace('/home');
-            }
+            onConfirm: async () => {
+                setBusy('signout');
+                await signOut();
+                setBusy(null);
+                // Only leave once the server really signed us out; the store
+                // keeps the session (and explains) otherwise.
+                if (!useAuthStore.getState().user) router.replace('/home');
+                else showToast(useAuthStore.getState().error ?? 'Déconnexion impossible pour le moment.', 'error');
+            },
         });
     };
 
-    const handleFeatureAlert = (feature: string) => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        showToast(`La fonctionnalité "${feature}" sera bientôt ajoutée.`, 'info');
+    const handleDeleteAccount = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        showDialog({
+            title: 'Supprimer votre compte ?',
+            message: 'Vos coordonnées, adresses et favoris seront effacés définitivement. Vos commandes passées sont conservées anonymisées pour la comptabilité des restaurants.',
+            confirmText: 'Supprimer définitivement',
+            cancelText: 'Garder mon compte',
+            destructive: true,
+            onConfirm: async () => {
+                setBusy('delete');
+                const result = await deleteAccount();
+                setBusy(null);
+                if (result === 'ok') {
+                    showToast('Votre compte a été supprimé.', 'success');
+                    router.replace('/home');
+                } else if (result === ACCOUNT_ERRORS.ACTIVE_ORDER) {
+                    showDialog({
+                        title: 'Commande en cours',
+                        message: 'Votre compte pourra être supprimé une fois votre commande en cours livrée ou annulée.',
+                        confirmText: 'Voir ma commande',
+                        cancelText: 'Fermer',
+                        onConfirm: () => router.push('/tracking'),
+                    });
+                } else if (result === ACCOUNT_ERRORS.STAFF_ACCOUNT) {
+                    showToast('Ce compte gère un restaurant : contactez l’assistance pour le fermer.', 'error');
+                } else if (result === ACCOUNT_ERRORS.SCHEMA_REQUIRED) {
+                    showToast('La suppression n’est pas encore disponible. Contactez l’assistance.', 'error');
+                } else {
+                    showToast(useAuthStore.getState().error ?? 'Suppression impossible pour le moment. Réessayez.', 'error');
+                }
+            },
+        });
     };
 
     const handleHelp = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         showDialog({
-            title: "Service Client",
-            message: "Appuyez sur Confirmer pour nous écrire sur WhatsApp.",
-            confirmText: "Ouvrir WhatsApp",
-            cancelText: "Annuler",
-            onConfirm: () => openSupportChat(),
+            title: 'Assistance',
+            message: 'Notre équipe vous répond sur WhatsApp.',
+            confirmText: 'Ouvrir WhatsApp',
+            cancelText: 'Annuler',
+            onConfirm: () => { void openSupportChat(); },
         });
     };
 
@@ -82,121 +124,123 @@ export default function ProfileScreen() {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                             router.push('/notifications');
                         }}
-                        className="w-10 h-10 items-center justify-center bg-fill rounded-full active:scale-95"
+                        accessibilityRole="button"
+                        accessibilityLabel="Notifications"
+                        className="items-center justify-center bg-fill rounded-full active:scale-95"
+                        style={{ width: TOUCH_MIN, height: TOUCH_MIN }}
                     >
-                        <Bell color="#1c1b1b" size={20} />
+                        <Bell color={COLORS.ink} size={22} strokeWidth={2} />
                     </Pressable>
                 }
             />
 
             <ScrollView
                 className="flex-1"
-                contentContainerStyle={{
-                    paddingTop: headerOffset + 12,
-                    paddingBottom: insets.bottom + 120
-                }}
+                contentContainerStyle={{ paddingHorizontal: SCREEN_GUTTER, paddingTop: headerOffset + 12, paddingBottom: bottomClearance }}
                 showsVerticalScrollIndicator={false}
             >
-                <View className="px-6">
-                    {/* Profile Header Section */}
-                    <View className="flex-row items-center justify-between mb-11">
-                        <View className="flex-row items-center gap-4 flex-1">
-                            <View className="w-14 h-14 rounded-full bg-ink items-center justify-center">
-                                <Text className="text-h2 font-title text-white">{initial}</Text>
-                            </View>
-                            <View className="flex-1">
-                                <Text className="text-h1 font-display tracking-tight text-ink">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Utilisateur'}</Text>
-                                <View className="flex-row items-center px-3 py-1 bg-ink rounded-full gap-1.5 self-start mt-2">
-                                    <Award color="#fff" size={14} />
-                                    <Text className="text-eyebrow font-label tracking-[0.08em] uppercase text-white">Membre {BRAND}</Text>
-                                </View>
-                            </View>
-                        </View>
+                {/* Identity */}
+                <View className="flex-row items-center gap-4 mb-10">
+                    <View className="w-14 h-14 rounded-full bg-ink items-center justify-center">
+                        <Text className="text-h2 font-title text-white">{initial}</Text>
                     </View>
-
-                    {/* Stats Grid (Bento Style) — real numbers only */}
-                    <View className="flex-row gap-4 mb-11">
-                        <View className="flex-1 bg-white p-6 rounded-sheet flex-col justify-between h-32 border border-hairline">
-                            <Text className="text-eyebrow font-label tracking-[0.08em] text-ink-faint uppercase">Commandes</Text>
-                            <Text className="text-h1 font-title text-ink">{orderCount}</Text>
+                    <View className="flex-1">
+                        <Text className="text-h1 font-display tracking-tight text-ink" numberOfLines={1}>{displayName}</Text>
+                        {phone ? <TypeText variant="caption" tone="secondary" className="mt-1">{formatChadPhone(phone)} · Numéro vérifié</TypeText> : null}
+                        <View className="flex-row items-center px-3 bg-ink rounded-full gap-2 self-start mt-2" style={{ height: 24 }}>
+                            <Award color={COLORS.white} size={14} strokeWidth={2} />
+                            <Text className="text-eyebrow font-label tracking-eyebrow uppercase text-white">Membre {BRAND}</Text>
                         </View>
-                        <View className="flex-1 bg-white p-6 rounded-sheet flex-col justify-between h-32 border border-hairline">
-                            <Text className="text-eyebrow font-label tracking-[0.08em] text-ink-faint uppercase">Favoris</Text>
-                            <Text className="text-h1 font-title text-ink">{favoritesCount}</Text>
-                        </View>
-                    </View>
-
-                    {/* Share Banner — a real share sheet, no invented referral rewards */}
-                    <View className="mb-11 relative bg-accent p-8 rounded-sheet overflow-hidden">
-                        <View className="relative z-10 w-2/3">
-                            <Text className="text-h2 font-title tracking-tight mb-2 leading-tight text-white">Partagez l'expérience</Text>
-                            <Text className="text-body font-label opacity-90 mb-5 text-white">Faites découvrir {BRAND_FULL} à vos proches.</Text>
-                            <Pressable onPress={handleShareApp} className="bg-white px-6 py-3 rounded-full active:scale-95 self-start">
-                                <Text className="text-accent text-eyebrow font-labelbold tracking-[0.08em] uppercase">Inviter des amis</Text>
-                            </Pressable>
-                        </View>
-                        {/* Abstract Graphic */}
-                        <View className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full" />
-                        <View className="absolute right-6 top-1/2 -translate-y-1/2 opacity-20">
-                            <Gift color="#fff" size={100} />
-                        </View>
-                    </View>
-
-                    {/* Settings List */}
-                    <View className="mb-12">
-                        <Text className="px-2 text-eyebrow font-label tracking-[0.08em] text-ink-faint uppercase mb-4">Compte</Text>
-
-                        <View className="flex-col gap-2">
-                            {/* Staff entry point.
-                                The dashboard existed but nothing in the app led to it:
-                                a restaurant owner could sign in and still have no way
-                                to reach their own orders. Shown only when the account
-                                is actually linked to a restaurant. */}
-                            {myRestaurantId ? (
-                                <SettingItem
-                                    icon={<Store color="#FF5733" size={20} />}
-                                    label="Espace restaurant"
-                                    onPress={() => {
-                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                                        router.push('/(restaurant)/dashboard');
-                                    }}
-                                />
-                            ) : null}
-                            <SettingItem icon={<Heart color="#1c1b1b" size={20} />} label="Favoris" onPress={() => router.push('/favorites')} />
-                            <SettingItem icon={<Package color="#1c1b1b" size={20} />} label="Mes commandes" onPress={() => router.push('/orders')} />
-                            <SettingItem icon={<MessageSquare color="#1c1b1b" size={20} />} label="Avis" onPress={() => handleFeatureAlert('Avis')} />
-                            <SettingItem icon={<Wallet color="#1c1b1b" size={20} />} label="Portefeuille" onPress={() => handleFeatureAlert('Portefeuille')} />
-                            <SettingItem icon={<Tag color="#1c1b1b" size={20} />} label="Promotions" onPress={() => router.push('/promotions')} />
-                            <SettingItem icon={<HelpCircle color="#1c1b1b" size={20} />} label="Aide" onPress={handleHelp} />
-                            <SettingItem icon={<Settings color="#1c1b1b" size={20} />} label="Paramètres" onPress={() => handleFeatureAlert('Paramètres')} />
-                        </View>
-                    </View>
-
-                    {/* Logout Section */}
-                    <View className="items-center pb-8">
-                        <Pressable onPress={handleLogout} className="active:opacity-50 transition-opacity">
-                            <Text className="text-eyebrow font-label tracking-[0.08em] text-ink-faint uppercase">Se déconnecter</Text>
-                        </Pressable>
-                        <Text className="mt-4 text-eyebrow text-ink-faint font-label">Version {APP_VERSION}</Text>
                     </View>
                 </View>
+
+                {/* Real numbers only */}
+                <View className="flex-row gap-4 mb-10">
+                    <StatTile label="Commandes" value={orderCount} />
+                    <StatTile label="Favoris" value={favoritesCount} />
+                </View>
+
+                {/* Share — a real share sheet, no invented referral reward */}
+                <View className="mb-10 relative bg-accent p-6 rounded-panel overflow-hidden">
+                    <View className="relative z-10">
+                        <Text className="text-h2 font-title tracking-tight mb-2 text-ink">Partagez l’expérience</Text>
+                        <TypeText className="mb-5 font-label">Faites découvrir {BRAND_FULL} à vos proches.</TypeText>
+                        <Pressable
+                            onPress={handleShareApp}
+                            accessibilityRole="button"
+                            accessibilityLabel="Inviter des amis"
+                            className="bg-surface px-6 rounded-full active:scale-95 self-start items-center justify-center"
+                            style={{ height: TOUCH_MIN }}
+                        >
+                            <Text className="text-ink text-eyebrow font-labelbold tracking-eyebrow uppercase">Inviter des amis</Text>
+                        </Pressable>
+                    </View>
+                    <View pointerEvents="none" className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full" />
+                    <View pointerEvents="none" className="absolute right-6 opacity-10" style={{ top: 30 }}>
+                        <Gift color={COLORS.white} size={100} />
+                    </View>
+                </View>
+
+                {/* Account */}
+                <TypeText variant="eyebrow" tone="tertiary" className="px-2 mb-4">Compte</TypeText>
+                <View className="gap-2 mb-10">
+                    {/* Staff entry point — shown only when the account is linked to a restaurant. */}
+                    {myRestaurantId ? (
+                        <SettingItem icon={Store} accent label="Espace restaurant" onPress={() => router.push('/(restaurant)/dashboard')} />
+                    ) : null}
+                    <SettingItem icon={Heart} label="Favoris" onPress={() => router.push('/favorites')} />
+                    <SettingItem icon={Package} label="Mes commandes" onPress={() => router.push('/orders')} />
+                    <SettingItem icon={HelpCircle} label="Aide" onPress={handleHelp} />
+                </View>
+
+                {/* Privacy — the two things the stores require to be reachable in-app. */}
+                <TypeText variant="eyebrow" tone="tertiary" className="px-2 mb-4">Confidentialité</TypeText>
+                <View className="gap-2 mb-10">
+                    <SettingItem icon={ShieldCheck} label="Politique de confidentialité" onPress={() => router.push('/privacy')} />
+                    {user ? <SettingItem icon={Trash2} label="Supprimer mon compte" destructive onPress={handleDeleteAccount} /> : null}
+                </View>
+
+                <View className="items-center">
+                    {user ? (
+                        <Button label="Se déconnecter" variant="ghost" size="control" loading={busy === 'signout'} onPress={handleLogout} />
+                    ) : (
+                        <Button label="Se connecter" onPress={() => router.push('/login')} className="self-stretch" />
+                    )}
+                    <TypeText variant="caption" tone="tertiary" className="mt-4">Version {APP_VERSION}</TypeText>
+                </View>
             </ScrollView>
-
-
         </View>
     );
 }
 
-function SettingItem({ icon, label, onPress }: { icon: React.ReactNode, label: string, onPress?: () => void }) {
+function StatTile({ label, value }: { label: string; value: number }) {
     return (
-        <Pressable onPress={onPress} className="flex-row items-center justify-between p-5 bg-fill active:bg-fill-strong rounded-panel transition-colors">
-            <View className="flex-row items-center gap-4">
-                <View className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                    {icon}
+        <View className="flex-1 bg-surface p-5 rounded-panel justify-between border border-hairline" style={{ height: 112 }}>
+            <TypeText variant="eyebrow" tone="tertiary">{label}</TypeText>
+            <Text className="text-h1 font-title text-ink">{value}</Text>
+        </View>
+    );
+}
+
+function SettingItem({ icon: Icon, label, onPress, accent = false, destructive = false }: {
+    icon: LucideIcon; label: string; onPress: () => void; accent?: boolean; destructive?: boolean;
+}) {
+    const color = destructive ? COLORS.danger : accent ? COLORS.accentDark : COLORS.ink;
+    return (
+        <Pressable
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onPress(); }}
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            className="flex-row items-center justify-between px-4 bg-fill active:bg-fill-strong rounded-panel"
+            style={{ height: 64 }}
+        >
+            <View className="flex-row items-center gap-4 flex-1">
+                <View className="w-10 h-10 rounded-full bg-surface items-center justify-center">
+                    <Icon color={color} size={20} strokeWidth={2} />
                 </View>
-                <Text className="font-labelbold text-ink text-bodylg">{label}</Text>
+                <Text className={`font-labelbold text-bodylg ${destructive ? 'text-danger' : 'text-ink'}`} numberOfLines={1}>{label}</Text>
             </View>
-            <ChevronRight color="#8d8a87" size={20} />
+            <ChevronRight color={COLORS.inkFaint} size={20} strokeWidth={2} />
         </Pressable>
     );
 }

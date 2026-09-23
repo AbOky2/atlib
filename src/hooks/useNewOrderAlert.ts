@@ -63,7 +63,7 @@ export function useNewOrderAlert(orders: { id: string; status: string; customer_
             notifyNow(
                 'Commande en attente',
                 `${pendingCount} commande${pendingCount > 1 ? 's' : ''} à confirmer.`,
-                { channelId: NEW_ORDER_CHANNEL_ID, data: { kind: 'new-order' } },
+                { channelId: NEW_ORDER_CHANNEL_ID, data: { kind: 'new-order' }, identifier: 'new-order-reminder' },
             );
         }, REMINDER_MS);
         return () => clearInterval(tick);

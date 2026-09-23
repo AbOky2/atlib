@@ -1,5 +1,6 @@
+-- LEGACY BOOTSTRAP: always apply supabase/migrations/202609050001_order_integrity.sql AFTER this file.
 -- ============================================================================
--- NOIR Delivery — durcissement production (SCALABILITE.md §2, §4)
+-- Naakul — durcissement production (SCALABILITE.md §2, §4)
 --
 -- À exécuter dans le SQL Editor Supabase (ou via migration). Idempotent :
 -- chaque bloc peut être rejoué sans danger.

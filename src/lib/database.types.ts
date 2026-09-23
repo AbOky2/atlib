@@ -111,6 +111,7 @@ export type Database = {
           created_at: string | null
           dish_id: string | null
           id: string
+          note?: string | null
           name: string
           order_id: string | null
           price_xaf: number
@@ -120,6 +121,7 @@ export type Database = {
           created_at?: string | null
           dish_id?: string | null
           id?: string
+          note?: string | null
           name: string
           order_id?: string | null
           price_xaf: number
@@ -129,6 +131,7 @@ export type Database = {
           created_at?: string | null
           dish_id?: string | null
           id?: string
+          note?: string | null
           name?: string
           order_id?: string | null
           price_xaf?: number
@@ -172,6 +175,8 @@ export type Database = {
           status: string
           cash_paid_with_xaf: number | null
           eta_minutes: number | null
+          cancellation_reason: string | null
+          accepted_at: string | null
           subtotal_xaf: number
           total_xaf: number
           updated_at: string | null
@@ -196,6 +201,8 @@ export type Database = {
           status?: string
           cash_paid_with_xaf?: number | null
           eta_minutes?: number | null
+          cancellation_reason?: string | null
+          accepted_at?: string | null
           subtotal_xaf?: number
           total_xaf?: number
           updated_at?: string | null
@@ -220,6 +227,8 @@ export type Database = {
           status?: string
           cash_paid_with_xaf?: number | null
           eta_minutes?: number | null
+          cancellation_reason?: string | null
+          accepted_at?: string | null
           subtotal_xaf?: number
           total_xaf?: number
           updated_at?: string | null

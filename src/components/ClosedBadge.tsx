@@ -11,10 +11,10 @@ export function ClosedBadge({ tone = 'onPhoto' }: { tone?: 'onPhoto' | 'onSurfac
     const onPhoto = tone === 'onPhoto';
     return (
         <View
-            className={`px-2.5 py-1 rounded-full ${onPhoto ? 'bg-black/70' : 'bg-fill-strong'}`}
+            className={`px-2 py-1 rounded-full ${onPhoto ? 'bg-black/70' : 'bg-fill-strong'}`}
         >
             <Text
-                className={`text-eyebrow font-labelbold uppercase tracking-[0.08em] ${
+                className={`text-eyebrow font-labelbold uppercase tracking-eyebrow ${
                     onPhoto ? 'text-white' : 'text-ink-muted'
                 }`}
             >

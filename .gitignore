@@ -52,3 +52,6 @@ yarn-error.*
 .gradle/
 modules/**/build/
 **/.cxx/
+
+# Supabase CLI link cache (machine-specific)
+supabase/.temp/

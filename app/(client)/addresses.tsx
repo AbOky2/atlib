@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, Pressable, TextInput, KeyboardAvoidingView, Platform, LayoutAnimation, UIManager } from 'react-native';
+import { View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform, LayoutAnimation, UIManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MapPin, Search, Plus, Check, Clock, Trash2, Lightbulb, ChevronRight } from 'lucide-react-native';
+import { MapPin, Plus, Check, Clock, Trash2, Lightbulb, ChevronRight } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -9,7 +9,7 @@ import { NDJAMENA_LOCALITIES, getEstimatedDeliveryTime, type Locality } from '..
 import { useAddressStore, type SavedAddress } from '../../src/store/addressStore';
 import { useCartStore } from '../../src/store/cartStore';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
-import { shadowFloat } from '../../src/lib/elevation';
+import { Button, Card, EmptyState, Field, SearchField, TypeText, BottomActionBar, BOTTOM_BAR_CLEARANCE, SCREEN_GUTTER, TOUCH_MIN } from '../../src/components/ui';
 import { COLORS } from '../../src/lib/palette';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -25,16 +25,8 @@ const animateNext = () =>
     });
 
 /** One saved address — selectable card with quiet delete. */
-function AddressCard({
-    address,
-    selected,
-    onSelect,
-    onRemove,
-}: {
-    address: SavedAddress;
-    selected: boolean;
-    onSelect: () => void;
-    onRemove: () => void;
+function AddressCard({ address, selected, onSelect, onRemove }: {
+    address: SavedAddress; selected: boolean; onSelect: () => void; onRemove: () => void;
 }) {
     const eta = getEstimatedDeliveryTime(address.locality);
     return (
@@ -42,46 +34,36 @@ function AddressCard({
             onPress={onSelect}
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            className={`bg-white rounded-panel p-5 active:scale-[0.99] ${
-                selected ? 'border-2 border-ink' : 'border border-hairline'
-            }`}
-           
+            accessibilityLabel={`${address.locality}, ${address.description}${selected ? ', adresse actuelle' : ''}`}
+            className={`bg-surface rounded-panel p-4 active:scale-[0.99] ${selected ? 'border-2 border-ink' : 'border border-hairline'}`}
         >
             <View className="flex-row items-start gap-4">
-                <View
-                    className="w-11 h-11 rounded-card items-center justify-center"
-                    style={{ backgroundColor: selected ? COLORS.accentSoft : COLORS.fill }}
-                >
-                    <MapPin color={selected ? COLORS.accent : COLORS.ink} size={20} />
+                <View className={`w-11 h-11 rounded-card items-center justify-center ${selected ? 'bg-accent-soft' : 'bg-fill'}`}>
+                    <MapPin color={selected ? COLORS.accentDark : COLORS.ink} size={20} strokeWidth={2} />
                 </View>
                 <View className="flex-1">
                     <View className="flex-row items-center gap-2">
-                        <Text className="text-bodylg font-heading tracking-tight text-ink">{address.locality}</Text>
+                        <Text className="text-bodylg font-heading tracking-tight text-ink flex-shrink" numberOfLines={1}>{address.locality}</Text>
                         {selected && (
                             <View className="w-5 h-5 rounded-full bg-ink items-center justify-center">
-                                <Check color="#fff" size={12} strokeWidth={3} />
+                                <Check color={COLORS.white} size={12} strokeWidth={3} />
                             </View>
                         )}
                     </View>
-                    <Text className="text-body text-ink-muted font-body leading-relaxed mt-1" numberOfLines={2}>
-                        {address.description}
-                    </Text>
-                    <View className="flex-row items-center gap-1.5 mt-2.5">
-                        <Clock color={COLORS.inkFaint} size={12} />
-                        <Text className="text-eyebrow font-label text-ink-faint">Livraison ~{eta} min</Text>
+                    <TypeText tone="secondary" className="mt-1" numberOfLines={2}>{address.description}</TypeText>
+                    <View className="flex-row items-center gap-1 mt-2">
+                        <Clock color={COLORS.inkFaint} size={14} strokeWidth={2} />
+                        <TypeText variant="caption" tone="tertiary">Livraison ~{eta} min</TypeText>
                     </View>
                 </View>
                 <Pressable
-                    onPress={(e) => {
-                        e.stopPropagation?.();
-                        onRemove();
-                    }}
-                    hitSlop={8}
+                    onPress={onRemove}
                     accessibilityRole="button"
                     accessibilityLabel={`Supprimer l'adresse ${address.locality}`}
-                    className="w-9 h-9 rounded-full items-center justify-center active:bg-fill"
+                    className="rounded-full items-center justify-center active:bg-fill -mr-2 -mt-2"
+                    style={{ width: TOUCH_MIN, height: TOUCH_MIN }}
                 >
-                    <Trash2 color={COLORS.inkFaint} size={16} />
+                    <Trash2 color={COLORS.inkFaint} size={18} strokeWidth={2} />
                 </Pressable>
             </View>
         </Pressable>
@@ -170,50 +152,30 @@ export default function AddressesScreen() {
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
                 <ScrollView
                     className="flex-1"
-                    contentContainerStyle={{ paddingTop: headerOffset + 16, paddingBottom: insets.bottom + 140 }}
+                    contentContainerStyle={{ paddingHorizontal: SCREEN_GUTTER, paddingTop: headerOffset + 16, paddingBottom: insets.bottom + BOTTOM_BAR_CLEARANCE }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
                     {!isAddingNew ? (
-                        <View className="px-6">
-                            {/* Intro */}
+                        <>
                             <View className="mb-6">
-                                <Text className="font-title text-h1 tracking-tight text-ink">Où vous livrer ?</Text>
-                                <Text className="text-ink-muted mt-2 text-body font-body leading-relaxed">
-                                    Vos points de livraison enregistrés, prêts en un geste.
-                                </Text>
+                                <TypeText variant="h1">Où vous livrer ?</TypeText>
+                                <TypeText tone="secondary" className="mt-2">Vos points de livraison enregistrés, prêts en un geste.</TypeText>
                             </View>
 
-                            {/* Search */}
-                            <View className="bg-white rounded-full border border-hairline flex-row items-center px-5 h-13 mb-6" style={{ height: 52 }}>
-                                <Search color={COLORS.inkFaint} size={19} />
-                                <TextInput
-                                    className="flex-1 ml-3 font-body text-body text-ink"
-                                    placeholder="Rechercher une adresse"
-                                    placeholderTextColor={COLORS.inkFaint}
-                                    value={searchQuery}
-                                    onChangeText={setSearchQuery}
-                                    style={{ paddingVertical: 0 }}
-                                />
-                            </View>
+                            {savedAddresses.length > 0 ? (
+                                <SearchField value={searchQuery} onChangeText={setSearchQuery} placeholder="Rechercher une adresse" className="mb-6" />
+                            ) : null}
 
-                            {/* Saved addresses */}
                             {visibleSaved.length === 0 ? (
-                                <View className="bg-white rounded-sheet border border-hairline px-6 py-12 items-center">
-                                    <View className="w-16 h-16 rounded-full bg-accent/10 items-center justify-center mb-4">
-                                        <MapPin color={COLORS.accent} size={26} />
-                                    </View>
-                                    <Text className="font-heading text-h3 text-ink text-center">
-                                        {searchQuery ? 'Aucun résultat' : 'Aucune adresse enregistrée'}
-                                    </Text>
-                                    <Text className="text-body text-center text-ink-muted font-body mt-2 leading-relaxed">
-                                        {searchQuery
-                                            ? 'Essayez un autre terme.'
-                                            : 'Ajoutez votre premier point de livraison.'}
-                                    </Text>
-                                </View>
+                                <EmptyState
+                                    icon={MapPin}
+                                    title={searchQuery ? 'Aucun résultat' : 'Aucune adresse enregistrée'}
+                                    message={searchQuery ? 'Essayez un autre terme.' : 'Ajoutez votre premier point de livraison.'}
+                                    className="py-12"
+                                />
                             ) : (
-                                <View className="gap-3.5">
+                                <View className="gap-4">
                                     {visibleSaved.map((addr) => (
                                         <AddressCard
                                             key={addr.id}
@@ -225,166 +187,121 @@ export default function AddressesScreen() {
                                     ))}
                                 </View>
                             )}
-                        </View>
-                    ) : (
-                        <View className="px-6">
-                            {!newLocality ? (
-                                <>
-                                    {/* Step 1 — pick the quartier */}
-                                    <View className="mb-6">
-                                        <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-1">
-                                            Étape 1 sur 2
-                                        </Text>
-                                        <Text className="font-title text-h1 tracking-tight text-ink">
-                                            Votre quartier
-                                        </Text>
-                                    </View>
+                        </>
+                    ) : !newLocality ? (
+                        <>
+                            {/* Step 1 — pick the quartier */}
+                            <View className="mb-6">
+                                <TypeText variant="eyebrow" tone="tertiary" className="mb-1">Étape 1 sur 2</TypeText>
+                                <TypeText variant="h1">Votre quartier</TypeText>
+                            </View>
 
-                                    <View className="bg-white rounded-full border border-hairline flex-row items-center px-5 mb-5" style={{ height: 52 }}>
-                                        <Search color={COLORS.inkFaint} size={19} />
-                                        <TextInput
-                                            className="flex-1 ml-3 font-body text-body text-ink"
-                                            placeholder="Rechercher un quartier…"
-                                            placeholderTextColor={COLORS.inkFaint}
-                                            value={searchQuery}
-                                            onChangeText={setSearchQuery}
-                                            autoFocus
-                                            style={{ paddingVertical: 0 }}
-                                        />
-                                    </View>
+                            <SearchField value={searchQuery} onChangeText={setSearchQuery} placeholder="Rechercher un quartier" autoFocus className="mb-5" />
 
-                                    <View className="bg-white rounded-sheet border border-hairline overflow-hidden">
-                                        {filteredLocalities.length === 0 && (
-                                            <View className="items-center py-10">
-                                                <Text className="text-ink-faint text-body font-body">Aucun quartier trouvé.</Text>
-                                            </View>
-                                        )}
-                                        {filteredLocalities.map((loc, i) => (
-                                            <Pressable
-                                                key={loc.id}
-                                                onPress={() => {
-                                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                                    animateNext();
-                                                    setNewLocality(loc);
-                                                    setSearchQuery('');
-                                                }}
-                                                className={`flex-row items-center px-5 py-4 active:bg-fill ${
-                                                    i < filteredLocalities.length - 1 ? 'border-b border-hairline' : ''
-                                                }`}
-                                            >
-                                                <View className="w-10 h-10 rounded-full bg-fill items-center justify-center mr-4">
-                                                    <MapPin color={COLORS.ink} size={18} />
-                                                </View>
-                                                <View className="flex-1">
-                                                    <Text className="font-heading text-body text-ink">{loc.name}</Text>
-                                                    <Text className="text-eyebrow font-label text-ink-faint mt-0.5">
-                                                        Livraison ~{loc.baseDeliveryTimeMins} min
-                                                    </Text>
-                                                </View>
-                                                <ChevronRight color={COLORS.inkFaint} size={18} />
-                                            </Pressable>
-                                        ))}
+                            <Card className="overflow-hidden">
+                                {filteredLocalities.length === 0 && (
+                                    <View className="items-center py-10">
+                                        <TypeText tone="tertiary">Aucun quartier trouvé.</TypeText>
                                     </View>
-                                </>
-                            ) : (
-                                <>
-                                    {/* Step 2 — describe the spot */}
-                                    <View className="mb-6">
-                                        <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-1">
-                                            Étape 2 sur 2
-                                        </Text>
-                                        <Text className="font-title text-h1 tracking-tight text-ink">
-                                            Décrivez le point exact
-                                        </Text>
-                                    </View>
-
-                                    {/* Chosen quartier */}
-                                    <View className="bg-white rounded-panel border border-hairline p-4 flex-row items-center gap-4 mb-5">
-                                        <View className="w-11 h-11 rounded-card items-center justify-center" style={{ backgroundColor: COLORS.accentSoft }}>
-                                            <MapPin color={COLORS.accent} size={20} />
+                                )}
+                                {filteredLocalities.map((loc, i) => (
+                                    <Pressable
+                                        key={loc.id}
+                                        onPress={() => {
+                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                            animateNext();
+                                            setNewLocality(loc);
+                                            setSearchQuery('');
+                                        }}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`${loc.name}, livraison environ ${loc.baseDeliveryTimeMins} minutes`}
+                                        className={`flex-row items-center px-4 active:bg-fill ${i < filteredLocalities.length - 1 ? 'border-b border-hairline' : ''}`}
+                                        style={{ minHeight: 64 }}
+                                    >
+                                        <View className="w-10 h-10 rounded-full bg-fill items-center justify-center mr-4">
+                                            <MapPin color={COLORS.ink} size={18} strokeWidth={2} />
                                         </View>
                                         <View className="flex-1">
-                                            <Text className="font-heading text-bodylg text-ink">{newLocality.name}</Text>
-                                            <Text className="text-eyebrow font-label text-ink-faint mt-0.5">
-                                                Livraison ~{newLocality.baseDeliveryTimeMins} min
-                                            </Text>
+                                            <Text className="font-heading text-body text-ink">{loc.name}</Text>
+                                            <TypeText variant="caption" tone="tertiary" className="mt-1">Livraison ~{loc.baseDeliveryTimeMins} min</TypeText>
                                         </View>
-                                        <Pressable
-                                            onPress={() => {
-                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                                animateNext();
-                                                setNewLocality(null);
-                                            }}
-                                            hitSlop={8}
-                                        >
-                                            <Text className="text-caption font-labelbold text-ink underline">Changer</Text>
-                                        </Pressable>
-                                    </View>
+                                        <ChevronRight color={COLORS.inkFaint} size={18} strokeWidth={2} />
+                                    </Pressable>
+                                ))}
+                            </Card>
+                        </>
+                    ) : (
+                        <>
+                            {/* Step 2 — describe the spot */}
+                            <View className="mb-6">
+                                <TypeText variant="eyebrow" tone="tertiary" className="mb-1">Étape 2 sur 2</TypeText>
+                                <TypeText variant="h1">Décrivez le point exact</TypeText>
+                            </View>
 
-                                    {/* Description */}
-                                    <View className="bg-white rounded-panel border border-hairline mb-3">
-                                        <TextInput
-                                            className="px-5 py-4 text-body font-body text-ink min-h-[110px]"
-                                            placeholder="Ex : Portail bleu face à la pharmacie centrale, 2ᵉ rue après le rond-point…"
-                                            placeholderTextColor={COLORS.inkFaint}
-                                            multiline
-                                            textAlignVertical="top"
-                                            value={newDescription}
-                                            onChangeText={setNewDescription}
-                                            maxLength={180}
-                                            autoFocus
-                                        />
-                                        <Text className="text-eyebrow text-ink-faint font-body text-right px-5 pb-3">
-                                            {newDescription.length}/180
-                                        </Text>
-                                    </View>
+                            {/* Chosen quartier */}
+                            <Card className="p-4 flex-row items-center gap-4 mb-5">
+                                <View className="w-11 h-11 rounded-card items-center justify-center bg-accent-soft">
+                                    <MapPin color={COLORS.accentDark} size={20} strokeWidth={2} />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-heading text-bodylg text-ink">{newLocality.name}</Text>
+                                    <TypeText variant="caption" tone="tertiary" className="mt-1">Livraison ~{newLocality.baseDeliveryTimeMins} min</TypeText>
+                                </View>
+                                <Pressable
+                                    onPress={() => {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                        animateNext();
+                                        setNewLocality(null);
+                                    }}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Changer de quartier"
+                                    className="justify-center px-2"
+                                    style={{ minHeight: TOUCH_MIN }}
+                                >
+                                    <Text className="text-caption font-labelbold text-ink underline">Changer</Text>
+                                </Pressable>
+                            </Card>
 
-                                    {/* Tip */}
-                                    <View className="flex-row items-start gap-3 bg-fill rounded-card px-4 py-3.5">
-                                        <Lightbulb color={COLORS.accent} size={16} style={{ marginTop: 1 }} />
-                                        <Text className="flex-1 text-caption font-body text-ink-muted leading-relaxed">
-                                            À N'Djamena, un bon repère vaut mieux qu'un nom de rue : portail,
-                                            couleur du mur, commerce voisin…
-                                        </Text>
-                                    </View>
-                                </>
-                            )}
-                        </View>
+                            <Field
+                                label="Repère précis"
+                                placeholder="Ex : Portail bleu face à la pharmacie centrale, 2ᵉ rue après le rond-point…"
+                                multiline
+                                value={newDescription}
+                                onChangeText={setNewDescription}
+                                maxLength={180}
+                                counter={`${newDescription.length}/180`}
+                                helper="8 caractères minimum."
+                                autoFocus
+                                className="mb-4"
+                            />
+
+                            {/* Tip */}
+                            <View className="flex-row items-start gap-3 bg-fill rounded-card px-4 py-3">
+                                <Lightbulb color={COLORS.accentDark} size={16} strokeWidth={2} style={{ marginTop: 2 }} />
+                                <TypeText variant="caption" tone="secondary" className="flex-1">
+                                    À N’Djamena, un bon repère vaut mieux qu’un nom de rue : portail, couleur du mur, commerce voisin…
+                                </TypeText>
+                            </View>
+                        </>
                     )}
                 </ScrollView>
             </KeyboardAvoidingView>
 
-            {/* Bottom action */}
-            <View
-                className="absolute bottom-0 left-0 right-0 bg-white/95 border-t border-hairline px-6"
-                style={{ paddingBottom: Math.max(insets.bottom, 20), paddingTop: 16 }}
-            >
+            <BottomActionBar>
                 {!isAddingNew ? (
-                    <Pressable
+                    <Button
+                        label="Ajouter une adresse"
                         onPress={() => enterAddMode(true)}
-                        accessibilityRole="button"
-                        className="w-full h-14 rounded-full flex-row items-center justify-center gap-2.5 bg-ink active:scale-[0.98]"
-                        style={shadowFloat}
-                    >
-                        <Plus color="#fff" size={18} strokeWidth={2.5} />
-                        <Text className="text-body font-labelbold text-white">Ajouter une adresse</Text>
-                    </Pressable>
+                        leading={<Plus color={COLORS.white} size={18} strokeWidth={2.5} />}
+                    />
                 ) : (
-                    <Pressable
+                    <Button
+                        label={newLocality ? 'Enregistrer l’adresse' : 'Choisissez un quartier'}
                         onPress={handleSaveNew}
                         disabled={!canSave}
-                        accessibilityRole="button"
-                        className={`w-full h-14 rounded-full items-center justify-center active:scale-[0.98] ${
-                            canSave ? 'bg-ink' : 'bg-fill-strong'
-                        }`}
-                        style={canSave ? shadowFloat : undefined}
-                    >
-                        <Text className={`text-body font-labelbold ${canSave ? 'text-white' : 'text-ink-faint'}`}>
-                            {newLocality ? "Enregistrer l'adresse" : 'Choisissez un quartier'}
-                        </Text>
-                    </Pressable>
+                    />
                 )}
-            </View>
+            </BottomActionBar>
         </View>
     );
 }

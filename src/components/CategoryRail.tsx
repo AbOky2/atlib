@@ -3,6 +3,7 @@ import { ScrollView, View, Text, Pressable } from 'react-native';
 import { ALL_CATEGORY_ID, type FoodCategory } from '../lib/categories';
 import { CategoryIcon } from './CategoryIcon';
 import { COLORS } from '../lib/palette';
+import { SCREEN_GUTTER } from './ui';
 
 const ITEM_WIDTH = 76;
 
@@ -27,7 +28,7 @@ export function CategoryRail({
             horizontal
             showsHorizontalScrollIndicator={false}
             contentInsetAdjustmentBehavior="never"
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 4 }}
+            contentContainerStyle={{ paddingHorizontal: SCREEN_GUTTER - 8, gap: 4 }}
         >
             {items.map(({ id, label }) => {
                 const active = activeId === id;
@@ -53,10 +54,10 @@ export function CategoryRail({
                         </Text>
                         <View
                             style={{
-                                height: 2.5,
-                                width: 22,
-                                borderRadius: 2,
-                                marginTop: 6,
+                                height: 2,
+                                width: 24,
+                                borderRadius: 1,
+                                marginTop: 8,
                                 backgroundColor: active ? COLORS.accent : 'transparent',
                             }}
                         />

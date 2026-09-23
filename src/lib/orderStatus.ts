@@ -7,6 +7,8 @@
  * top; presentation metadata (labels, colours, progress) below — both exported
  * from here so they can never drift again.
  */
+import { COLORS } from './palette';
+
 // ---------------------------------------------------------------------------
 // Domain
 // ---------------------------------------------------------------------------
@@ -43,7 +45,8 @@ export const LEGAL_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
     ACCEPTED: ['PREPARING', 'CANCELLED'],
     PREPARING: ['READY', 'CANCELLED'],
     READY: ['OUT_FOR_DELIVERY', 'CANCELLED'],
-    OUT_FOR_DELIVERY: ['DELIVERED'],
+    // A delivery can still fail (customer unreachable); the customer can confirm reception.
+    OUT_FOR_DELIVERY: ['DELIVERED', 'CANCELLED'],
     DELIVERED: [],
     CANCELLED: [],
 };
@@ -73,6 +76,13 @@ export const findActiveOrder = <T extends { status: string }>(
     orders: T[] | undefined | null,
 ): T | undefined => orders?.find((o) => isLive(o.status));
 
+/** An explicit history/push reference must never fall back to another order. */
+export const selectTrackedOrder = <T extends { id: string; status: string }>(
+    orders: T[] | undefined, orderId?: string,
+): T | undefined => orderId !== undefined
+    ? orders?.find(order => order.id === orderId)
+    : findActiveOrder(orders) ?? orders?.[0];
+
 // ---------------------------------------------------------------------------
 // Presentation
 // ---------------------------------------------------------------------------
@@ -92,39 +102,66 @@ export interface StatusMeta {
     progress: number;
 }
 
-// Chip colours: the historical per-status palette of orders.tsx / dashboard.tsx
-// / notifications.tsx, now defined once (they had already diverged on wording).
+/**
+ * Why an order was cancelled — mirrored by the SQL check constraint
+ * (202609230001_order_lifecycle.sql) and the push copy in notify-order.
+ * The restaurant picks one of the first four; the others are set by the system.
+ */
+export const CANCELLATION_REASONS = ['OUT_OF_STOCK', 'CLOSED', 'ADDRESS_NOT_SERVED', 'CUSTOMER_UNREACHABLE', 'CUSTOMER', 'NO_RESPONSE', 'ABANDONED', 'OTHER'] as const;
+export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
+/** Reasons a restaurant can choose, in the order they are offered. */
+export const RESTAURANT_CANCELLATION_REASONS: readonly CancellationReason[] = ['OUT_OF_STOCK', 'CLOSED', 'ADDRESS_NOT_SERVED', 'CUSTOMER_UNREACHABLE', 'OTHER'];
+
+export const CANCELLATION_COPY: Record<CancellationReason, { label: string; customer: string }> = {
+    OUT_OF_STOCK: { label: 'Plat en rupture', customer: "Un plat de votre commande n'est plus disponible." },
+    CLOSED: { label: 'Fermeture exceptionnelle', customer: 'Le restaurant est exceptionnellement fermé.' },
+    ADDRESS_NOT_SERVED: { label: 'Adresse non desservie', customer: "Le restaurant ne livre pas à cette adresse." },
+    CUSTOMER_UNREACHABLE: { label: 'Client injoignable', customer: "Le restaurant n'a pas réussi à vous joindre pour la livraison." },
+    CUSTOMER: { label: 'Annulée par le client', customer: 'Vous avez annulé cette commande.' },
+    NO_RESPONSE: { label: 'Sans réponse du restaurant', customer: "Le restaurant n'a pas confirmé à temps. Aucun montant ne vous sera demandé." },
+    ABANDONED: { label: 'Non clôturée', customer: "Cette commande n'a pas été clôturée par le restaurant." },
+    OTHER: { label: 'Autre raison', customer: "Le restaurant a dû annuler. Contactez l'assistance pour en savoir plus." },
+};
+
+export const isCancellationReason = (value: unknown): value is CancellationReason =>
+    typeof value === 'string' && (CANCELLATION_REASONS as readonly string[]).includes(value);
+
+/** Sentence for the customer, with a safe default for an unknown or missing reason. */
+export const cancellationMessage = (reason: string | null | undefined): string =>
+    CANCELLATION_COPY[isCancellationReason(reason) ? reason : 'OTHER'].customer;
+
+// One accent: every live step is the brand colour; only the outcome changes hue.
 export const STATUS_META: Record<OrderStatus, StatusMeta> = {
     PENDING: {
         label: 'En attente',
-        headline: 'Commande reçue',
-        description: 'En attente de confirmation du restaurant…',
-        color: '#f59e0b',
-        tint: 'rgba(245,158,11,0.1)',
+        headline: 'En attente du restaurant',
+        description: 'Le restaurant doit confirmer votre commande.',
+        color: COLORS.warning,
+        tint: COLORS.warningSoft,
         progress: 0.1,
     },
     ACCEPTED: {
         label: 'Validée',
         headline: 'Commande validée',
-        description: 'Acceptée par le restaurant.',
-        color: '#6366f1',
-        tint: 'rgba(99,102,241,0.1)',
+        description: 'Le restaurant a accepté votre commande.',
+        color: COLORS.accentDark,
+        tint: COLORS.accentSoft,
         progress: 0.25,
     },
     PREPARING: {
-        label: 'En préparation',
+        label: 'En cuisine',
         headline: 'En cuisine',
-        description: 'Vos plats sont préparés avec soin.',
-        color: '#6366f1',
-        tint: 'rgba(99,102,241,0.1)',
+        description: 'Vos plats sont en préparation.',
+        color: COLORS.accentDark,
+        tint: COLORS.accentSoft,
         progress: 0.45,
     },
     READY: {
         label: 'Prête',
         headline: 'Commande prête',
-        description: 'Votre commande part en livraison.',
-        color: '#0ea5e9',
-        tint: 'rgba(14,165,233,0.1)',
+        description: 'Votre commande est prête, en attente de départ.',
+        color: COLORS.accentDark,
+        tint: COLORS.accentSoft,
         progress: 0.65,
     },
     OUT_FOR_DELIVERY: {
@@ -132,24 +169,24 @@ export const STATUS_META: Record<OrderStatus, StatusMeta> = {
         headline: 'En route vers vous',
         // The restaurant handles its own deliveries — no third-party couriers.
         description: 'Le restaurant vous livre en ce moment.',
-        color: '#3b82f6',
-        tint: 'rgba(59,130,246,0.1)',
+        color: COLORS.accentDark,
+        tint: COLORS.accentSoft,
         progress: 0.85,
     },
     DELIVERED: {
         label: 'Livrée',
         headline: 'Livrée · Bon appétit !',
-        description: 'Bonne dégustation.',
-        color: '#22c55e',
-        tint: 'rgba(34,197,94,0.1)',
+        description: 'Merci pour votre commande.',
+        color: COLORS.success,
+        tint: COLORS.successSoft,
         progress: 1,
     },
     CANCELLED: {
         label: 'Annulée',
         headline: 'Commande annulée',
         description: 'Cette commande a été annulée.',
-        color: '#ef4444',
-        tint: 'rgba(239,68,68,0.1)',
+        color: COLORS.danger,
+        tint: COLORS.dangerSoft,
         progress: 0,
     },
 };

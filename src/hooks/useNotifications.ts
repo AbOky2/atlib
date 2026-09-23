@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 import { useUserOrders } from '../data/orders';
-import { statusLabel } from '../lib/liveActivity';
+import { cancellationMessage, statusMeta } from '../lib/orderStatus';
 
 export interface AppNotification {
     id: string;
@@ -14,19 +14,9 @@ export interface AppNotification {
     read: boolean;
 }
 
-/** Human sentence for an order's current status (data-driven, no static copy). */
-const bodyFor = (status: string) => {
-    switch (status) {
-        case 'PENDING': return 'Votre commande a bien été reçue.';
-        case 'ACCEPTED': return 'Le restaurant a accepté votre commande.';
-        case 'PREPARING': return 'Votre repas est en préparation.';
-        case 'READY': return 'Votre commande est prête, en attente du livreur.';
-        case 'OUT_FOR_DELIVERY': return 'Votre livreur est en route vers vous !';
-        case 'DELIVERED': return 'Commande livrée. Bon appétit ! 🎉';
-        case 'CANCELLED': return 'Cette commande a été annulée.';
-        default: return statusLabel(status);
-    }
-};
+/** Same words as the tracking screen, the push and the widget — never a second vocabulary. */
+const bodyFor = (status: string, reason: string | null | undefined) =>
+    status === 'CANCELLED' ? cancellationMessage(reason) : statusMeta(status).description;
 
 /**
  * Notifications derived entirely from the user's real orders (react-query).
@@ -39,13 +29,13 @@ export function useNotifications() {
     const readIds = useNotificationStore((s) => s.readIds);
 
     const items = useMemo<AppNotification[]>(() => {
-        const list = (orders ?? []).map((o: any) => {
+        const list = (orders ?? []).map((o) => {
             const id = `${o.id}:${o.status}`;
             return {
                 id,
                 orderId: o.id,
                 title: o.restaurant_name || o.restaurants?.name || `Commande #${String(o.id).slice(0, 6).toUpperCase()}`,
-                body: bodyFor(o.status),
+                body: bodyFor(o.status, o.cancellation_reason),
                 status: o.status,
                 createdAt: o.updated_at ?? o.created_at ?? '',
                 read: readIds.includes(id),

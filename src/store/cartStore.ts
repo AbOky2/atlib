@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { zustandStorage } from '../lib/storage';
+import { uuidv4 } from '../lib/ids';
 import { makeLineId } from '../lib/cartLine';
 
 export interface CartItem {
@@ -22,16 +23,47 @@ export interface CartItem {
 /** What callers pass to addItem — lineId is derived, quantity defaults to 1. */
 export type AddCartItem = Omit<CartItem, 'lineId' | 'quantity'> & { quantity?: number };
 
+export interface DeliveryAddress { locality: string; description: string; note?: string; phone?: string }
+
+/** The subset of a menu row the cart needs to stay truthful. */
+export interface MenuSnapshotDish { id: string; price_xaf: number | null; is_available: boolean | null }
+
+/**
+ * How long a checkout attempt keeps its idempotency key.
+ *
+ * A retry after a lost response happens within minutes and must reuse the key
+ * so the server returns the SAME order. But the same key kept for days would
+ * make an identical basket "return" an order already delivered instead of
+ * creating a new one — so the key expires.
+ */
+export const CHECKOUT_ATTEMPT_TTL_MS = 30 * 60 * 1000;
+
+export interface CheckoutAttempt { fingerprint: string; id: string; createdAt: number }
+
 interface CartStore {
+    checkoutAttempt: CheckoutAttempt | null;
+    getCheckoutRequestId: (fingerprint: string) => string;
+    /** Forget the current key: the next submission is a NEW order. */
+    resetCheckoutAttempt: () => void;
     items: CartItem[];
     currentRestaurantId: string | null;
     currentRestaurantName: string | null;
-    deliveryAddress: { locality: string; description: string; note?: string; phone?: string } | null;
+    deliveryAddress: DeliveryAddress | null;
+    /** Note the customer will hand over; null = exact change. Persisted so a
+     *  relaunch mid-checkout resumes the same attempt. */
+    cashPaidWith: number | null;
+    setCashPaidWith: (amount: number | null) => void;
     addItem: (item: AddCartItem) => void;
     removeItem: (lineId: string) => void;
     updateQuantity: (lineId: string, quantity: number) => void;
     clearCart: () => void;
-    setDeliveryAddress: (address: { locality: string; description: string; note?: string; phone?: string }) => void;
+    setDeliveryAddress: (address: DeliveryAddress) => void;
+    /**
+     * Align the basket with the menu just fetched: drop lines whose dish is gone
+     * or unavailable, follow price changes. Returns what changed so the screen
+     * can tell the customer.
+     */
+    reconcileWithMenu: (restaurantId: string, dishes: MenuSnapshotDish[]) => { removed: string[]; repriced: string[] };
     getTotalPrice: () => number;
     getTotalItems: () => number;
     toastMessage: string | null;
@@ -53,13 +85,33 @@ interface CartStore {
     hideDialog: () => void;
 }
 
+const EMPTY_CART = {
+    checkoutAttempt: null,
+    items: [] as CartItem[],
+    currentRestaurantId: null,
+    currentRestaurantName: null,
+    cashPaidWith: null,
+};
+
 export const useCartStore = create<CartStore>()(
     persist(
         (set, get) => ({
+    checkoutAttempt: null,
+    getCheckoutRequestId: (fingerprint) => {
+        const old = get().checkoutAttempt;
+        const fresh = !!old && Date.now() - old.createdAt < CHECKOUT_ATTEMPT_TTL_MS;
+        if (old?.fingerprint === fingerprint && fresh) return old.id;
+        const id = uuidv4();
+        set({ checkoutAttempt: { fingerprint, id, createdAt: Date.now() } });
+        return id;
+    },
+    resetCheckoutAttempt: () => set({ checkoutAttempt: null }),
     items: [],
     currentRestaurantId: null,
     currentRestaurantName: null,
     deliveryAddress: null,
+    cashPaidWith: null,
+    setCashPaidWith: (amount) => set({ cashPaidWith: amount }),
 
     addItem: (newItem) => {
         const currentId = get().currentRestaurantId;
@@ -80,6 +132,7 @@ export const useCartStore = create<CartStore>()(
                 destructive: true,
                 onConfirm: () => {
                     set({
+                        ...EMPTY_CART,
                         items: [{ ...newItem, lineId, quantity: qtyToAdd }],
                         currentRestaurantId: newItem.restaurantId,
                         currentRestaurantName: newItem.restaurantName || null,
@@ -131,13 +184,41 @@ export const useCartStore = create<CartStore>()(
         };
     }),
 
-    clearCart: () => set({
-        items: [],
-        currentRestaurantId: null,
-        currentRestaurantName: null,
-    }),
-    
+    clearCart: () => set({ ...EMPTY_CART }),
+
     setDeliveryAddress: (address) => set({ deliveryAddress: address }),
+
+    reconcileWithMenu: (restaurantId, dishes) => {
+        const state = get();
+        if (state.currentRestaurantId !== restaurantId || state.items.length === 0) return { removed: [], repriced: [] };
+        const byId = new Map(dishes.map((d) => [d.id, d]));
+        const removed: string[] = [];
+        const repriced: string[] = [];
+        const items: CartItem[] = [];
+        for (const line of state.items) {
+            const dish = byId.get(line.id);
+            if (!dish || dish.is_available !== true || !dish.price_xaf || dish.price_xaf <= 0) {
+                removed.push(line.name);
+                continue;
+            }
+            if (dish.price_xaf !== line.price) {
+                repriced.push(line.name);
+                items.push({ ...line, price: dish.price_xaf });
+            } else {
+                items.push(line);
+            }
+        }
+        if (removed.length || repriced.length) {
+            set({
+                items,
+                currentRestaurantId: items.length === 0 ? null : state.currentRestaurantId,
+                currentRestaurantName: items.length === 0 ? null : state.currentRestaurantName,
+                // The basket changed: a retry must be a new attempt.
+                checkoutAttempt: null,
+            });
+        }
+        return { removed, repriced };
+    },
 
     getTotalPrice: () => get().items.reduce((total, item) => total + (item.price * item.quantity), 0),
     getTotalItems: () => get().items.reduce((total, item) => total + item.quantity, 0),
@@ -146,9 +227,10 @@ export const useCartStore = create<CartStore>()(
     toastType: 'success',
     showToast: (message, type = 'success') => {
         set({ toastMessage: message, toastType: type });
+        // Errors are longer and matter more: leave them on screen long enough to read.
         setTimeout(() => {
             set((state) => (state.toastMessage === message ? { toastMessage: null } : state));
-        }, 3000);
+        }, type === 'error' ? 5000 : 3000);
     },
     hideToast: () => set({ toastMessage: null }),
 
@@ -158,22 +240,30 @@ export const useCartStore = create<CartStore>()(
         }),
         {
             name: 'cart-store',
-            version: 1,
+            version: 2,
             storage: createJSONStorage(() => zustandStorage),
             // Only persist the actual cart data — never the transient toast/dialog UI state.
             partialize: (state) => ({
+                checkoutAttempt: state.checkoutAttempt,
                 items: state.items,
                 currentRestaurantId: state.currentRestaurantId,
                 currentRestaurantName: state.currentRestaurantName,
                 deliveryAddress: state.deliveryAddress,
+                cashPaidWith: state.cashPaidWith,
             }),
-            // v0 carts had no lineId — backfill it so cart operations keep working.
             migrate: (persisted: any, version) => {
+                // v0 carts had no lineId — backfill it so cart operations keep working.
                 if (persisted?.items && version < 1) {
                     persisted.items = persisted.items.map((it: any) => ({
                         ...it,
                         lineId: it.lineId ?? makeLineId(it.id, it.note, it.options),
                     }));
+                }
+                // v1 attempts had no age: treat them as expired rather than reuse a
+                // key of unknown origin.
+                if (version < 2) {
+                    persisted.checkoutAttempt = null;
+                    persisted.cashPaidWith = null;
                 }
                 return persisted;
             },

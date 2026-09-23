@@ -15,7 +15,7 @@ export const COLORS = {
     /** Secondary content. Readable, not decorative. */
     inkMuted: '#5f5e5e',
     /** Tertiary content. Darkened from #8d8a87 so it survives daylight. */
-    inkFaint: '#7d7975',
+    inkFaint: '#706c68',
     inkDisabled: '#b9b5b1',
 
     // ---- Surfaces ----------------------------------------------------------
@@ -37,7 +37,7 @@ export const COLORS = {
     accentPressed: '#E04A29',
     accentSoft: '#FFEDE7',
     /** Accent that holds AA contrast as text on white. */
-    accentDark: '#D6431F',
+    accentDark: '#C73B19',
 
     // ---- Feedback ----------------------------------------------------------
     success: '#1E874B',
@@ -57,7 +57,10 @@ export const COLORS = {
     /** Text tiers on dark. */
     onDark: '#FFFFFF',
     onDarkMuted: 'rgba(255,255,255,0.62)',
-    onDarkFaint: 'rgba(255,255,255,0.40)',
+    onDarkFaint: 'rgba(255,255,255,0.55)',
+    hairlineDark: 'rgba(255,255,255,0.10)',
+    fillDark: 'rgba(255,255,255,0.06)',
+    fillDarkStrong: 'rgba(255,255,255,0.12)',
 } as const;
 
 export type PaletteColor = keyof typeof COLORS;

@@ -1,5 +1,5 @@
 /**
- * NOIR Delivery — design tokens.
+ * Naakul — design tokens (langage visuel NOIR).
  *
  * `fontSize` and `borderRadius` REPLACE Tailwind's defaults rather than extend
  * them. That is deliberate: as long as `text-sm` and `rounded-3xl` remain
@@ -48,7 +48,7 @@ module.exports = {
         // ---- Neutrals (warm) ---------------------------------------------
         ink: "#1c1b1b",          // primary text, dark surfaces
         "ink-muted": "#5f5e5e",  // secondary text — readable, not decorative
-        "ink-faint": "#7d7975",  // tertiary text; darkened from #8d8a87 for outdoor legibility
+        "ink-faint": "#706c68",  // tertiary text; darkened from #8d8a87 for outdoor legibility
         "ink-disabled": "#b9b5b1",
         hairline: "#e7e3e1",     // default border
         "hairline-soft": "#f0ecea",
@@ -65,6 +65,7 @@ module.exports = {
         // ONE canonical orange. Reserved for the primary CTA, the active
         // selection and small brand accents — never as a general surface tint.
         accent: "#FF5733",
+        "accent-dark": "#C73B19",
         "accent-pressed": "#E04A29",
         "accent-soft": "#FFEDE7",
 
@@ -79,10 +80,17 @@ module.exports = {
         // Premium tier accent — used only by the NOIR+ teaser.
         gold: "#E8B830",
 
-        // Dark staff surfaces (restaurant dashboard).
+        // Dark staff surfaces (restaurant dashboard) and the text tiers on them.
+        // White at 55 % on #0a0a0a is 6.3:1; the previous 40 % was under AA.
         "ink-900": "#0a0a0a",
         "ink-800": "#141313",
         "ink-700": "#1c1b1b",
+        "on-dark": "#FFFFFF",
+        "on-dark-muted": "rgba(255,255,255,0.62)",
+        "on-dark-faint": "rgba(255,255,255,0.55)",
+        "hairline-dark": "rgba(255,255,255,0.10)",
+        "fill-dark": "rgba(255,255,255,0.06)",
+        "fill-dark-strong": "rgba(255,255,255,0.12)",
       },
 
       fontFamily: {
@@ -105,10 +113,13 @@ module.exports = {
       minHeight: {
         touch: '44px',
       },
+      // NativeWind 2 drops any letterSpacing that is not a plain number, so em
+      // values never reached React Native. Absolute values, sized for the role.
       letterSpacing: {
-        eyebrow: '0.08em',
-        tight: '-0.01em',
-        tighter: '-0.02em',
+        eyebrow: '0.9px',   // 0.08em at 11 px
+        wide: '1.4px',      // 0.12em at 12 px — counters, tags
+        tight: '-0.3px',    // 0.01em at 24–30 px
+        tighter: '-0.8px',  // 0.02em at 40 px
       },
     },
   },

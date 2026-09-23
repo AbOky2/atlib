@@ -106,10 +106,7 @@ export function BrandSplash({ onDone }: { onDone: () => void }) {
                         ],
                     }}
                 >
-                    <Text
-                        className="font-display text-ink"
-                        style={{ fontSize: 46, letterSpacing: -1.5, lineHeight: 50 }}
-                    >
+                    <Text className="text-display font-display tracking-tighter text-ink">
                         {BRAND}
                     </Text>
                     <Animated.View
@@ -119,19 +116,17 @@ export function BrandSplash({ onDone }: { onDone: () => void }) {
                             borderRadius: 5,
                             backgroundColor: COLORS.accent,
                             marginLeft: 4,
-                            marginBottom: 9,
+                            marginBottom: 8,
                             opacity: dot,
                             transform: [{ scale: dot }],
                         }}
                     />
                 </Animated.View>
                 <Animated.Text
-                    className="font-label text-ink-faint"
+                    className="text-eyebrow font-label text-ink-faint uppercase"
                     style={{
-                        fontSize: 11,
-                        letterSpacing: 4,
-                        marginTop: 10,
-                        textTransform: 'uppercase',
+                        letterSpacing: 3,
+                        marginTop: 12,
                         opacity: tagline,
                         transform: [
                             { translateY: tagline.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) },

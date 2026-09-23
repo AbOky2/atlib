@@ -63,7 +63,7 @@ export const onLiveActivityError = (listener: (message: string) => void): (() =>
     return addActivityErrorListener(({ message }) => listener(message));
 };
 
-/** Start a Live Activity — called when the restaurant CONFIRMS the order. */
+/** Start a Live Activity — created while the order awaits restaurant approval. */
 export const startDeliveryActivity = (orderId: string, restaurantName: string) => {
     if (Platform.OS !== 'ios') return;
     try {
@@ -102,7 +102,7 @@ export const updateDeliveryActivity = (
 export const endDeliveryActivity = (finalStatus?: string) => {
     if (Platform.OS !== 'ios') return;
     try {
-        if (finalStatus === 'DELIVERED') {
+        if (finalStatus === 'DELIVERED' || finalStatus === 'CANCELLED') {
             const meta = statusMeta(finalStatus);
             endActivityWithFinalState(meta.headline, meta.progress);
         } else {

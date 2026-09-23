@@ -1,32 +1,11 @@
 /**
- * Delivery-time estimates.
+ * Delivery-time labels.
  *
- * The DB has no per-restaurant prep-time yet, so the range shown on cards is a
- * deterministic heuristic seeded by the restaurant id: stable for a given
- * restaurant across sessions (no flicker, no fake randomness), spread between
- * 15 and 45 minutes like a real marketplace. Replace with a DB column when
- * operations start measuring actual prep times.
+ * The only estimate the app shows is the one it can stand behind: the locality
+ * table (src/lib/localities.ts), frozen into `orders.eta_minutes` at checkout.
+ * A per-restaurant "25–35 min" used to be derived from the restaurant id — a
+ * number that looked like data and was not. It no longer exists.
  */
-
-const hashString = (value: string): number => {
-    let hash = 0;
-    for (let i = 0; i < value.length; i++) {
-        hash = (hash * 31 + value.charCodeAt(i)) | 0;
-    }
-    return Math.abs(hash);
-};
-
-export interface EtaRange {
-    min: number;
-    max: number;
-}
-
-export function restaurantEtaRange(restaurantId: string): EtaRange {
-    const base = 15 + (hashString(restaurantId) % 21); // 15..35
-    return { min: base, max: base + 10 };
-}
-
-export const formatEtaRange = ({ min, max }: EtaRange): string => `${min}–${max} min`;
 
 /**
  * Wall-clock arrival label ("19h45") for an order placed at `createdAtIso`.
@@ -45,8 +24,10 @@ export function arrivalTimeLabel(
 ): string | null {
     if (!createdAtIso) return null;
     const placedAt = new Date(createdAtIso).getTime();
-    if (Number.isNaN(placedAt)) return null;
-    const arrival = new Date(placedAt + etaMinutes * 60_000);
+    if (Number.isNaN(placedAt) || !Number.isFinite(etaMinutes) || etaMinutes < 0) return null;
+    // Delivery takes place in N'Djamena (UTC+1), matching the APNs worker,
+    // independently of the device's timezone.
+    const arrival = new Date(placedAt + etaMinutes * 60_000 + 3_600_000);
     // French convention: bare hour, zero-padded minutes ("9h05", "19h45").
-    return `${arrival.getHours()}h${String(arrival.getMinutes()).padStart(2, '0')}`;
+    return `${arrival.getUTCHours()}h${String(arrival.getUTCMinutes()).padStart(2, '0')}`;
 }

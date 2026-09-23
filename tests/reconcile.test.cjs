@@ -38,3 +38,22 @@ test('les autres commandes de la liste ne sont pas touchées', () => {
 test('un cache non initialisé est renvoyé tel quel', () => {
     assert.equal(reconcileOrderRow(undefined, { id: 'o1', updated_at: T1 }), undefined);
 });
+
+const { QueryClient } = require('@tanstack/react-query');
+const { reconcileOrderList } = require('../.test-build/lib/reconcile');
+test('React Query protège un statut Realtime pendant une réponse réseau en vol', async () => {
+    const client = new QueryClient();
+    const queryKey = ['orders', 'customer'];
+    client.setQueryData(queryKey, [{ id: 'o1', status: 'PENDING', updated_at: T0 }]);
+    let resolve;
+    const pending = client.fetchQuery({ queryKey, queryFn: () => new Promise(r => { resolve = r; }), structuralSharing: reconcileOrderList });
+    client.setQueryData(queryKey, [{ id: 'o1', status: 'ACCEPTED', updated_at: T1 }]);
+    resolve([{ id: 'o1', status: 'PENDING', updated_at: T0 }]);
+    await pending;
+    assert.equal(client.getQueryData(queryKey)[0].status, 'ACCEPTED');
+    client.clear();
+});
+test('une liste retardée conserve les insertions reçues entretemps', () => {
+    const newOrder = { id: 'new', status: 'PENDING', updated_at: T1 };
+    assert.deepEqual(reconcileOrderList([newOrder], []), [newOrder]);
+});

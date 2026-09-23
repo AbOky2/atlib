@@ -2,8 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useUserOrders } from '../data/orders';
 import { supabase } from '../lib/supabase';
-import { getEstimatedDeliveryTime } from '../lib/localities';
-import { findActiveOrder, isTerminal, statusIndex } from '../lib/orderStatus';
+import { findActiveOrder, isTerminal, isOrderStatus } from '../lib/orderStatus';
 import { reconcileOrderRow } from '../lib/reconcile';
 import {
     startDeliveryActivity,
@@ -11,7 +10,8 @@ import {
     endDeliveryActivity,
     onLiveActivityPushToken,
     onLiveActivityError } from '../lib/liveActivity';
-import { postOrderProgress, clearOrderProgress } from '../lib/notifications';
+import { applyOrderProgress } from '../lib/backgroundNotifications';
+import { clearOrderProgress } from '../lib/notifications';
 import { statusMeta } from '../lib/orderStatus';
 import { arrivalTimeLabel } from '../lib/eta';
 import { useQueryClient } from '@tanstack/react-query';
@@ -25,8 +25,8 @@ import { BRAND_FULL } from '../lib/brand';
  *   B) drives the Live Activity from the *current* status, so it stays correct
  *      whether the status arrived via Realtime OR the polling fallback.
  *
- * Live Activity policy: it STARTS when the restaurant confirms (ACCEPTED), not
- * at creation — the lock screen tracks a confirmed order, never a pending one.
+ * Live Activity starts at PENDING so its update token reaches the server before
+ * the app is suspended. The initial state explicitly awaits restaurant approval.
  * The ETA is pushed as a wall-clock ARRIVAL TIME ("19h45"), not a countdown:
  * the lock screen is read while the app is suspended, so a "12 min" string
  * would freeze at its last foreground value and lie for the rest of the
@@ -48,14 +48,19 @@ export default function GlobalOrderSync() {
     const activeOrder = findActiveOrder(orders);
     const activeId = activeOrder?.id;
     const activeStatus = activeOrder?.status;
-    const createdAt = activeOrder?.created_at;
+    // The promise counts from acceptance — a late « Accepter » must not show a past time.
+    const createdAt = activeOrder?.accepted_at ?? activeOrder?.created_at;
 
-    const neighborhood = (activeOrder as any)?.delivery_zone || '';
-    const announcedEta = getEstimatedDeliveryTime(neighborhood || activeOrder?.delivery_address || '') || 15;
+    const neighborhood = activeOrder?.delivery_zone || '';
+    // Frozen at checkout (eta_minutes) so the server and the app announce the same time.
+    const announcedEta = activeOrder?.eta_minutes ?? null;
+    const updatedAt = activeOrder?.updated_at ?? null;
     const contextLine = neighborhood ? `Vers ${neighborhood}` : 'Livraison par le restaurant';
 
     const startedFor = useRef<string | null>(null);
     const lastLiveId = useRef<string | null>(null);
+    // ActivityKit has an update budget: push a state once per CHANGE, not per poll.
+    const lastPushed = useRef<string | null>(null);
 
     // A) Realtime channel — created ONCE per active order (id in deps only), not on
     // every status change, so we don't churn the join-rate limit at peak.
@@ -93,27 +98,37 @@ export default function GlobalOrderSync() {
     // A-ter) Never lose a Live Activity failure in a device console again.
     useEffect(() => {
         return onLiveActivityError((message) => {
+            startedFor.current = null;
             console.warn('[LiveActivity]', message);
         });
     }, []);
 
-    // A-bis) Hand the activity's APNs token to the backend.
-    //
-    // This is what turns the Live Activity from a nice demo into a real feature:
-    // with it, the server can advance the lock screen while the app is
-    // suspended. Storing it is best-effort — a failure here costs the push
-    // channel, never the order.
+    // Token uploads survive transient failures while this owner is signed in.
     useEffect(() => {
-        return onLiveActivityPushToken(({ orderId, token }) => {
+        if (!user?.id) return;
+        let disposed = false;
+        let sending = false;
+        const pending = new Map<string, string>();
+        const flush = async () => {
+            if (disposed || sending || useAuthStore.getState().user?.id !== user.id) return;
+            sending = true;
+            try {
+                for (const [orderId, token] of pending) {
+                    const { error } = await supabase.from('live_activity_tokens')
+                        .upsert({ order_id: orderId, token, updated_at: new Date().toISOString() }, { onConflict: 'order_id' });
+                    if (!error && pending.get(orderId) === token) pending.delete(orderId);
+                    if (disposed) break;
+                }
+            } catch { /* Retries run on the next interval. */ }
+            finally { sending = false; }
+        };
+        const stop = onLiveActivityPushToken(({ orderId, token }) => {
             if (!orderId || !token) return;
-            supabase
-                .from('live_activity_tokens')
-                .upsert({ order_id: orderId, token, updated_at: new Date().toISOString() }, { onConflict: 'order_id' })
-                .then(({ error }) => {
-                    if (error) console.warn('[GlobalOrderSync] token Live Activity non enregistré:', error.message);
-                });
+            pending.set(orderId, token); void flush();
         });
-    }, []);
+        const timer = setInterval(() => { void flush(); }, 15000);
+        return () => { disposed = true; clearInterval(timer); stop(); };
+    }, [user?.id]);
 
     // B) Ambient tracking follows the current status (from realtime OR poll):
     //    iOS gets the Live Activity, Android the ongoing notification. Same
@@ -123,11 +138,20 @@ export default function GlobalOrderSync() {
         // No live order anymore: close whatever is still up. When the last known
         // order was delivered, keep its final state visible a while.
         if (!activeId || !activeStatus) {
-            if (startedFor.current) {
-                const finished = orders?.find((o) => o.id === lastLiveId.current);
-                endDeliveryActivity(finished?.status === 'DELIVERED' ? 'DELIVERED' : undefined);
-                clearOrderProgress();
+            if (orders) {
+                // Only the order followed in THIS session gets a final state; an
+                // old delivered order found at cold start must not ring again.
+                const finished = lastLiveId.current ? orders.find((o) => o.id === lastLiveId.current) : undefined;
+                endDeliveryActivity(finished?.status ?? orders[0]?.status);
+                if (finished?.updated_at && user?.id && isOrderStatus(finished.status)) {
+                    void applyOrderProgress({ kind: 'order-status', customerId: user.id, orderId: finished.id,
+                        status: finished.status, updatedAt: finished.updated_at,
+                        statusTitle: statusMeta(finished.status).headline, statusBody: statusMeta(finished.status).description,
+                    }).catch(e => console.warn('[progress]', e));
+                } else void clearOrderProgress();
                 startedFor.current = null;
+                lastLiveId.current = null;
+                lastPushed.current = null;
             }
             return;
         }
@@ -142,10 +166,12 @@ export default function GlobalOrderSync() {
             return;
         }
 
-        // Not confirmed yet → nothing on the lock screen or in the shade.
-        if (statusIndex(activeStatus) < 1) return;
+        // Register the activity token while the app is awake, including PENDING.
+        if (!isOrderStatus(activeStatus)) return;
 
-        const arrival = arrivalTimeLabel(createdAt, announcedEta);
+        const arrival = announcedEta != null ? arrivalTimeLabel(createdAt, announcedEta) : null;
+        const signature = `${activeId}|${activeStatus}|${updatedAt ?? ''}|${arrival ?? ''}`;
+        if (lastPushed.current === signature) return;
 
         try {
             if (startedFor.current !== activeId) {
@@ -154,16 +180,18 @@ export default function GlobalOrderSync() {
             }
             // One push per status change — the arrival time is absolute, so there
             // is nothing to refresh in between.
-            updateDeliveryActivity(activeStatus, arrival, contextLine);
-            postOrderProgress(
-                activeId,
-                statusMeta(activeStatus).headline,
-                arrival ? `Arrivée estimée vers ${arrival} · ${contextLine}` : contextLine,
-            );
+            updateDeliveryActivity(activeStatus, activeStatus === 'PENDING' ? '—' : arrival, contextLine);
+            if (user?.id && updatedAt) void applyOrderProgress({
+                kind: 'order-status', customerId: user.id, orderId: activeId,
+                status: activeStatus, updatedAt,
+                statusTitle: statusMeta(activeStatus).headline,
+                statusBody: activeStatus === 'PENDING' ? 'Le restaurant doit accepter votre commande.' : arrival ? `Arrivée estimée vers ${arrival} · ${contextLine}` : contextLine,
+            }).catch(e => console.warn('[progress]', e));
+            lastPushed.current = signature;
         } catch (e) {
             console.error('[GlobalOrderSync] ambient tracking update failed', e);
         }
-    }, [activeId, activeStatus, announcedEta, createdAt, contextLine]);
+    }, [activeId, activeStatus, announcedEta, createdAt, updatedAt, contextLine, orders, user?.id]);
 
     return null;
 }

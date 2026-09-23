@@ -7,7 +7,10 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": ".test-build",
-    "rootDir": "src"
+    "rootDir": "src",
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "src/lib/palette.ts",
@@ -22,6 +25,14 @@
     "src/lib/availability.ts",
     "src/lib/images.ts",
     "src/lib/phone.ts",
-    "src/lib/categories.ts"
+    "src/lib/categories.ts",
+    "src/lib/passwordRecovery.ts",
+    "src/lib/emailConfirmation.ts",
+    "src/lib/orderPush.ts",
+    "src/lib/phoneAuth.ts",
+    "src/lib/brand.ts",
+    "src/lib/legal.ts",
+    "src/lib/authLinks.ts",
+    "src/lib/orderErrors.ts"
   ]
 }

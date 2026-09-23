@@ -1,5 +1,10 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View } from 'react-native';
+import { TriangleAlert } from 'lucide-react-native';
+
+import { Button, EmptyState } from './ui';
+import { queryClient } from '../lib/queryClient';
+import { openSupportChat } from '../lib/support';
 
 interface Props {
     children: React.ReactNode;
@@ -11,7 +16,11 @@ interface State {
 /**
  * Catches render/runtime errors anywhere in the tree and shows a recoverable
  * fallback instead of white-screening the whole app. Mount it near the root.
- * Hook up Sentry (or similar) in componentDidCatch for production visibility.
+ *
+ * « Réessayer » does not just re-render the same tree: it also drops the
+ * query cache, so data that provoked the crash is fetched again rather than
+ * replayed. Production visibility (a crash reporter) is a deliberate later
+ * step: it needs a native rebuild and a DSN, and belongs to the release plan.
  */
 export class ErrorBoundary extends React.Component<Props, State> {
     state: State = { hasError: false };
@@ -21,29 +30,29 @@ export class ErrorBoundary extends React.Component<Props, State> {
     }
 
     componentDidCatch(error: Error, info: React.ErrorInfo) {
-        // TODO(prod): Sentry.captureException(error, { extra: info });
         console.error('[ErrorBoundary]', error, info?.componentStack);
     }
 
-    reset = () => this.setState({ hasError: false });
+    reset = () => {
+        queryClient.clear();
+        this.setState({ hasError: false });
+    };
 
     render() {
         if (!this.state.hasError) return this.props.children;
         return (
-            <View className="flex-1 bg-background items-center justify-center px-8">
-                <Text className="text-display mb-4">😕</Text>
-                <Text className="text-h3 font-title text-ink text-center">
-                    Oups, un problème est survenu
-                </Text>
-                <Text className="text-body text-ink-muted font-body text-center mt-2 leading-relaxed">
-                    Une erreur inattendue s'est produite. Réessayez — vos données sont en sécurité.
-                </Text>
-                <Pressable
-                    onPress={this.reset}
-                    className="bg-ink px-8 py-4 rounded-full mt-8 active:scale-95"
-                >
-                    <Text className="text-white text-caption font-labelbold uppercase tracking-[0.08em]">Réessayer</Text>
-                </Pressable>
+            <View className="flex-1 bg-background items-center justify-center">
+                <EmptyState
+                    icon={TriangleAlert}
+                    title="Un problème est survenu"
+                    message="L’écran n’a pas pu s’afficher. Réessayez : votre panier et vos commandes sont conservés."
+                    action={
+                        <View className="gap-2">
+                            <Button label="Réessayer" onPress={this.reset} />
+                            <Button label="Contacter l’assistance" variant="ghost" size="control" onPress={() => { void openSupportChat("Bonjour, l'application affiche une erreur."); }} />
+                        </View>
+                    }
+                />
             </View>
         );
     }

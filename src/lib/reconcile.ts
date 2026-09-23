@@ -22,3 +22,19 @@ export function reconcileOrderRow<T extends { id: string; updated_at?: string | 
         return { ...row, ...fresh };
     });
 }
+
+/** Run at cache commit time, after a pending fetch resolves. Preserve newer
+ * complete rows received while that fetch was in flight, including inserts. */
+export function reconcileOrderList<T extends { id: string; updated_at?: string | null }>(
+    cached: T[] | undefined, incoming: T[],
+): T[] {
+    if (!cached) return incoming;
+    const previous = new Map(cached.map(row => [row.id, row]));
+    const merged = incoming.map(row => {
+        const old = previous.get(row.id);
+        previous.delete(row.id);
+        return old && Date.parse(old.updated_at ?? '') > Date.parse(row.updated_at ?? '') ? old : row;
+    });
+    // Orders are retained as history, never deleted by clients.
+    return [...merged, ...previous.values()];
+}

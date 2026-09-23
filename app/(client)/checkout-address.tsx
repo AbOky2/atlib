@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MapPin, ArrowRight, Clock, Pencil, MessageSquare, AlertCircle, Phone } from 'lucide-react-native';
+import { MapPin, ArrowRight, Clock, Pencil, Phone } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCartStore } from '../../src/store/cartStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { useAddressStore } from '../../src/store/addressStore';
 import { getEstimatedDeliveryTime } from '../../src/lib/localities';
+import { verifiedAccountPhone } from '../../src/lib/phoneAuth';
 import { isValidChadPhone, normalizeChadPhone } from '../../src/lib/phone';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
 import {
-    Button, Card, Divider, Field, TypeText,
+    Button, Card, Divider, EmptyState, Field, TypeText,
     BottomActionBar, BOTTOM_BAR_CLEARANCE, SCREEN_GUTTER } from '../../src/components/ui';
-import { shadowFloat } from '../../src/lib/elevation';
 import { COLORS } from '../../src/lib/palette';
 
 export default function CheckoutAddressScreen() {
@@ -28,7 +28,7 @@ export default function CheckoutAddressScreen() {
     // The restaurant delivers itself and must be able to CALL the customer —
     // a real phone number is as critical as the address.
     const [phone, setPhone] = useState(() => {
-        const remembered = previousDelivery?.phone || user?.user_metadata?.phone || '';
+        const remembered = previousDelivery?.phone || verifiedAccountPhone(user) || user?.user_metadata?.delivery_phone || user?.user_metadata?.phone || '';
         // Ne préremplir qu'avec un numéro réellement valide : un « 00000000 »
         // hérité d'une ancienne version se réinstallait sinon à chaque commande.
         return isValidChadPhone(remembered) ? remembered : '';
@@ -68,11 +68,8 @@ export default function CheckoutAddressScreen() {
         <View className="flex-1 bg-background">
             <ScreenHeader title="Adresse de livraison" back="arrow" onBack={() => router.back()} />
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                className="flex-1"
-                keyboardVerticalOffset={headerOffset}
-            >
+            {/* The view starts at y = 0 under the absolute header: no vertical offset. */}
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
                 <ScrollView
                     className="flex-1"
                     contentContainerStyle={{ paddingTop: headerOffset + 16, paddingBottom: insets.bottom + BOTTOM_BAR_CLEARANCE }}
@@ -103,27 +100,24 @@ export default function CheckoutAddressScreen() {
                                         accessibilityLabel="Changer d'adresse de livraison"
                                         className="flex-row items-center gap-3 p-4 active:bg-fill"
                                     >
-                                        <View
-                                            className="w-11 h-11 rounded-card items-center justify-center"
-                                            style={{ backgroundColor: COLORS.accentSoft }}
-                                        >
-                                            <MapPin color={COLORS.accent} size={20} />
+                                        <View className="w-11 h-11 rounded-card items-center justify-center bg-accent-soft">
+                                            <MapPin color={COLORS.accentDark} size={20} strokeWidth={2} />
                                         </View>
                                         <View className="flex-1">
                                             <TypeText variant="eyebrow" tone="tertiary">Livraison à</TypeText>
                                             <TypeText variant="h3" numberOfLines={1}>{selectedAddress.locality}</TypeText>
-                                            <TypeText variant="caption" tone="secondary" numberOfLines={1} className="mt-0.5">
+                                            <TypeText variant="caption" tone="secondary" numberOfLines={1} className="mt-1">
                                                 {selectedAddress.description}
                                             </TypeText>
                                         </View>
-                                        <Pencil color={COLORS.inkFaint} size={17} />
+                                        <Pencil color={COLORS.inkFaint} size={16} strokeWidth={2} />
                                     </Pressable>
 
                                     {eta ? (
                                         <>
                                             <Divider />
                                             <View className="flex-row items-center gap-3 px-4 py-3">
-                                                <Clock color={COLORS.inkMuted} size={17} />
+                                                <Clock color={COLORS.inkMuted} size={16} strokeWidth={2} />
                                                 <TypeText variant="body" tone="secondary" className="flex-1">
                                                     Temps estimé
                                                 </TypeText>
@@ -136,7 +130,7 @@ export default function CheckoutAddressScreen() {
                                 {/* The restaurant calls this number on arrival, so it
                                     carries the same weight as the address itself. */}
                                 <Field
-                                    label="Numéro de téléphone"
+                                    label="Numéro pour la livraison"
                                     icon={Phone}
                                     placeholder="66 12 34 56"
                                     keyboardType="phone-pad"
@@ -147,12 +141,14 @@ export default function CheckoutAddressScreen() {
                                     }}
                                     maxLength={20}
                                     error={phoneError}
-                                    helper="Le restaurant vous appellera à ce numéro en arrivant."
+                                    autoComplete="tel"
+                                    textContentType="telephoneNumber"
+                                    helper="Le restaurant appellera ce numéro à l’arrivée. Votre compte n’est pas modifié."
                                     className="mb-6"
                                 />
 
                                 <Field
-                                    label="Instructions pour le livreur"
+                                    label="Instructions pour la livraison"
                                     placeholder="Ex : Portail bleu face à la pharmacie, appelez en arrivant…"
                                     multiline
                                     value={note}
@@ -163,26 +159,13 @@ export default function CheckoutAddressScreen() {
                                 />
                             </>
                         ) : (
-                            /* Empty state */
-                            <View className="bg-white rounded-panel border border-hairline px-6 py-10 items-center">
-                                <View className="w-16 h-16 rounded-full bg-accent/10 items-center justify-center mb-4">
-                                    <AlertCircle color="#FF5733" size={28} />
-                                </View>
-                                <Text className="font-heading text-h3 text-ink text-center">
-                                    Aucune adresse enregistrée
-                                </Text>
-                                <Text className="text-body text-center text-ink-muted font-body mt-2 mb-6 leading-relaxed">
-                                    Ajoutez une adresse de livraison pour continuer.
-                                </Text>
-                                <Pressable
-                                    onPress={() => router.push('/addresses')}
-                                    className="bg-ink px-8 py-4 rounded-full active:scale-95"
-                                >
-                                    <Text className="text-white font-labelbold text-caption uppercase tracking-[0.08em]">
-                                        Choisir une adresse
-                                    </Text>
-                                </Pressable>
-                            </View>
+                            <EmptyState
+                                icon={MapPin}
+                                title="Aucune adresse enregistrée"
+                                message="Ajoutez un point de livraison pour continuer."
+                                action={<Button label="Choisir une adresse" variant="secondary" onPress={() => router.push('/addresses')} />}
+                                className="py-8"
+                            />
                         )}
                     </View>
                 </ScrollView>
@@ -192,8 +175,7 @@ export default function CheckoutAddressScreen() {
                 <Button
                     label={selectedAddress ? 'Vers le paiement' : 'Ajouter une adresse'}
                     onPress={handleContinue}
-                    variant="dark"
-                    trailing={<ArrowRight color="#fff" size={20} />}
+                    trailing={<ArrowRight color={COLORS.white} size={20} strokeWidth={2} />}
                 />
             </BottomActionBar>
         </View>

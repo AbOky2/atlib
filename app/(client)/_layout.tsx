@@ -46,8 +46,8 @@ export default function ClientLayout() {
                 <Stack.Screen name="orders" />
                 <Stack.Screen name="favorites" />
                 <Stack.Screen name="notifications" />
-                <Stack.Screen name="promotions" />
                 <Stack.Screen name="addresses" />
+                <Stack.Screen name="privacy" />
             </Stack>
 
             {/* Surfaces that must survive navigation, mounted once above the stack. */}

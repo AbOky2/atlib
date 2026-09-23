@@ -1,10 +1,7 @@
 /**
  * Chadian phone numbers, normalised to E.164.
  *
- * Email/password is a Western default. Here a phone number IS the identity: it
- * is what people know by heart, what the restaurant calls from the doorstep, and
- * the only credential that also verifies the customer is reachable — which, in a
- * cash-on-delivery market, is the difference between an order and a lost meal.
+ * Normalization validates a number format, not ownership or civil identity.
  *
  * Tchad: country code 235, mobile numbers are 8 digits beginning with 6, 7 or 9
  * (Airtel and Moov ranges). Users type them every possible way — "66 12 34 56",

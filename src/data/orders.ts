@@ -1,20 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { supabase } from '../lib/supabase';
-import { canTransition, isLive, type OrderStatus } from '../lib/orderStatus';
-import { isRpcMissing, isMissingColumn, UNIQUE_VIOLATION, NO_ROWS } from './postgrest';
+import { canTransition, isLive, type CancellationReason, type OrderStatus } from '../lib/orderStatus';
+import { ORDER_ERRORS, mapServerOrderError } from '../lib/orderErrors';
+import { isRpcMissing, UNIQUE_VIOLATION } from './postgrest';
+import { reconcileOrderList } from '../lib/reconcile';
 import type { CustomerOrder, Order } from './types';
+
+export { ORDER_ERRORS } from '../lib/orderErrors';
 
 /**
  * The order lifecycle, from the customer's side: reading their orders, placing
  * one, and moving it through the state machine.
  */
-
-/** Error codes surfaced to the UI — string-compared, so keep them stable. */
-export const ORDER_ERRORS = {
-    ACTIVE_ORDER_EXISTS: 'ACTIVE_ORDER_EXISTS',
-    STATUS_CONFLICT: 'STATUS_CONFLICT',
-} as const;
 
 /** Polling is only worth its bandwidth while something can still change. */
 const hasLiveOrder = (orders: CustomerOrder[] | undefined): boolean =>
@@ -22,6 +20,15 @@ const hasLiveOrder = (orders: CustomerOrder[] | undefined): boolean =>
 
 /** Jitter so thousands of clients never align into a synchronised spike. */
 const jittered = (base: number, spread: number) => base + Math.floor(Math.random() * spread);
+
+/** Each poll reads a bounded page, not the whole history: the load must follow
+ *  traffic, not the account's age. The single active order is always the most
+ *  recent one (one live order per customer), so it stays inside the page. */
+const HISTORY_PAGE = 50;
+
+/** A checkout that has not answered by then is treated as unknown, not failed:
+ *  the idempotency key lets the customer retry without a duplicate. */
+const CREATE_ORDER_TIMEOUT_MS = 25_000;
 
 export function useUserOrders(customerId: string | undefined) {
     return useQuery({
@@ -31,30 +38,21 @@ export function useUserOrders(customerId: string | undefined) {
                 .from('orders')
                 .select('*, restaurants(name, image_url), order_items(*)')
                 .eq('customer_id', customerId!)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .limit(HISTORY_PAGE);
             if (error) throw error;
             return (data ?? []) as CustomerOrder[];
         },
         enabled: !!customerId,
-        // Realtime (GlobalOrderSync) is the primary freshness channel; this poll
-        // is only a safety net, and only while an order is live.
+        structuralSharing: (old, next) => reconcileOrderList(old as CustomerOrder[] | undefined, next as CustomerOrder[]),
+        // An empty cache may follow a lost checkout response or an order placed
+        // on another device. Keep discovery alive even without a known live ID.
         refetchInterval: (query) =>
-            hasLiveOrder(query.state.data as CustomerOrder[] | undefined) ? jittered(30_000, 10_000) : false,
+            hasLiveOrder(query.state.data as CustomerOrder[] | undefined) ? jittered(30_000, 10_000) : jittered(60_000, 15_000),
+        // Coming back to the app after minutes away must show the current step
+        // at once, not after the next poll.
+        refetchOnWindowFocus: 'always',
     });
-}
-
-/** The one order still in flight for this customer, if any. */
-export async function getActiveOrder(customerId: string): Promise<Order | null> {
-    const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('customer_id', customerId)
-        .not('status', 'in', '("DELIVERED","CANCELLED")')
-        .limit(1)
-        .maybeSingle();
-
-    if (error && error.code !== NO_ROWS) throw error;
-    return data;
 }
 
 export interface CreateOrderInput {
@@ -80,102 +78,38 @@ export interface CreateOrderInput {
     /** Announced delivery time, persisted so the SERVER can rebuild the arrival
      *  label for Live Activity pushes without duplicating the locality table. */
     eta_minutes?: number | null;
-    items: { dish_id: string; name: string; qty: number; price_xaf: number }[];
+    items: { dish_id: string; name: string; qty: number; price_xaf: number; note?: string; options?: string[] }[];
 }
 
 /**
- * Place an order.
- *
- * Preferred path: the atomic `create_order` RPC — one transaction, totals
- * recomputed server-side, uniqueness of the active order enforced by the
- * database, idempotent on `client_request_id`.
- *
- * Fallback: a check-then-insert, used only where the RPC isn't deployed. It
- * cannot be race-free from a client, so it compensates instead — if the items
- * fail to insert, the header it just created is removed rather than left as an
- * empty order blocking the account.
+ * Atomic server validation is mandatory; never fall back to client inserts.
+ * Rejects with an ORDER_ERRORS code the screen can act on.
  */
 export async function createOrder(order: CreateOrderInput): Promise<Order> {
-    const { items, ...header } = order;
-
-    const { data: rpcData, error: rpcError } = await supabase.rpc('create_order', {
-        payload: { ...header, items },
-    });
-    if (!rpcError) return rpcData as Order;
-    if (rpcError.code === UNIQUE_VIOLATION) throw new Error(ORDER_ERRORS.ACTIVE_ORDER_EXISTS);
-    if (!isRpcMissing(rpcError.code)) throw rpcError;
-
-    return createOrderWithoutRpc(order);
-}
-
-/** Legacy path. Kept isolated so the happy path above stays readable. */
-async function createOrderWithoutRpc(order: CreateOrderInput): Promise<Order> {
-    const { items } = order;
-
-    if (await getActiveOrder(order.customer_id)) {
-        throw new Error(ORDER_ERRORS.ACTIVE_ORDER_EXISTS);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), CREATE_ORDER_TIMEOUT_MS);
+    let response: Awaited<ReturnType<typeof supabase.rpc>>;
+    try {
+        response = await supabase.rpc('create_order', { payload: order }).abortSignal(controller.signal);
+    } catch (thrown) {
+        if (controller.signal.aborted) throw new Error(ORDER_ERRORS.TIMEOUT);
+        throw thrown;
+    } finally {
+        clearTimeout(timer);
     }
-
-    const baseRow = {
-        customer_id: order.customer_id,
-        customer_name: order.customer_name,
-        customer_phone: order.customer_phone,
-        restaurant_id: order.restaurant_id,
-        restaurant_name: order.restaurant_name,
-        delivery_address: order.delivery_address,
-        delivery_zone: order.delivery_zone,
-        delivery_note: order.delivery_note,
-        delivery_lat: order.delivery_lat,
-        delivery_lng: order.delivery_lng,
-        subtotal_xaf: order.subtotal_xaf,
-        delivery_fee_xaf: order.delivery_fee_xaf,
-        total_xaf: order.total_xaf,
-        payment_method: order.payment_method,
-        status: 'PENDING',
-    };
-    // Columns added after the original schema. On a database that predates them
-    // the insert is retried without them: a missing "change to give" must never
-    // cost the customer their order.
-    const optionalRow = {
-        ...(order.cash_paid_with_xaf != null ? { cash_paid_with_xaf: order.cash_paid_with_xaf } : {}),
-        ...(order.eta_minutes != null ? { eta_minutes: order.eta_minutes } : {}),
-    };
-
-    const insertHeader = (row: Record<string, unknown>) =>
-        supabase.from('orders').insert(row).select().single();
-
-    let { data: created, error } = await insertHeader({ ...baseRow, ...optionalRow });
-
-    if (error && isMissingColumn(error.code) && Object.keys(optionalRow).length) {
-        console.warn('[createOrder] colonne optionnelle absente — nouvel essai sans elle');
-        ({ data: created, error } = await insertHeader(baseRow));
-    }
-
-    if (error || !created) {
-        if (error?.code === UNIQUE_VIOLATION) throw new Error(ORDER_ERRORS.ACTIVE_ORDER_EXISTS);
-        throw error ?? new Error('ORDER_CREATE_FAILED');
-    }
-
-    const { error: itemsError } = await supabase.from('order_items').insert(
-        items.map((item) => ({
-            order_id: created.id,
-            dish_id: item.dish_id,
-            name: item.name,
-            qty: item.qty,
-            price_xaf: item.price_xaf,
-        })),
-    );
-
-    if (itemsError) {
-        // Compensate: never leave an item-less order blocking the account.
-        const { error: deleteError } = await supabase.from('orders').delete().eq('id', created.id);
-        if (deleteError) {
-            await supabase.from('orders').update({ status: 'CANCELLED' }).eq('id', created.id);
+    const { data, error } = response;
+    if (!error) {
+        if (!data || typeof data.id !== 'string' || !data.id || data.customer_id !== order.customer_id) {
+            throw new Error(ORDER_ERRORS.INVALID_RESPONSE);
         }
-        throw itemsError;
+        return data as Order;
     }
-
-    return created;
+    if (controller.signal.aborted) throw new Error(ORDER_ERRORS.TIMEOUT);
+    if (error.code === UNIQUE_VIOLATION) throw new Error(ORDER_ERRORS.ACTIVE_ORDER_EXISTS);
+    if (isRpcMissing(error.code)) throw new Error(ORDER_ERRORS.SCHEMA_REQUIRED);
+    const refusal = mapServerOrderError(error);
+    if (refusal) throw new Error(refusal);
+    throw error;
 }
 
 /**
@@ -190,12 +124,15 @@ export async function updateOrderStatus(
     orderId: string,
     status: OrderStatus,
     from?: OrderStatus,
+    /** Why, when `status` is CANCELLED. The server records it and tells the customer. */
+    cancellationReason?: CancellationReason,
 ): Promise<Order> {
     if (from && !canTransition(from, status)) {
         throw new Error(ORDER_ERRORS.STATUS_CONFLICT);
     }
 
-    let query = supabase.from('orders').update({ status }).eq('id', orderId);
+    const patch = status === 'CANCELLED' && cancellationReason ? { status, cancellation_reason: cancellationReason } : { status };
+    let query = supabase.from('orders').update(patch).eq('id', orderId);
     if (from) query = query.eq('status', from);
 
     const { data, error } = await query.select().maybeSingle();

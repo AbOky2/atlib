@@ -1,22 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+    useWindowDimensions,
     View,
     Text,
     Modal,
     Pressable,
     ScrollView,
-    TextInput,
     KeyboardAvoidingView,
     Platform,
     Animated,
     PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Minus, Plus, Utensils } from 'lucide-react-native';
+import { X, Utensils } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import type { Dish } from '../data/types';
 import { shadowSheet } from '../lib/elevation';
 import { RemoteImage } from './RemoteImage';
 import { formatXaf as formatPrice } from '../lib/pricing';
+import { COLORS } from '../lib/palette';
+import { Button, Field, QuantityStepper, TypeText, SCREEN_GUTTER } from './ui';
 
 /**
  * A single option a dish can expose (drink, supplement, condiment…). The DB has
@@ -47,6 +49,7 @@ interface DishCustomizationModalProps {
 
 export function DishCustomizationModal({ dish, restaurantName, onClose, onConfirm }: DishCustomizationModalProps) {
     const insets = useSafeAreaInsets();
+    const { height } = useWindowDimensions();
     const [quantity, setQuantity] = useState(1);
     const [note, setNote] = useState('');
     const [selected, setSelected] = useState<Record<string, string[]>>({});
@@ -157,33 +160,35 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                     accessibilityLabel="Fermer"
                 />
 
-                <Animated.View
-                    className="bg-white rounded-t-sheet overflow-hidden"
-                    style={{ maxHeight: '92%', transform: [{ translateY: dragY }], ...shadowSheet }}
+                <Animated.View accessibilityViewIsModal
+                    className="bg-surface rounded-t-sheet overflow-hidden"
+                    style={{ maxHeight: height - insets.top - 16, transform: [{ translateY: dragY }], ...shadowSheet }}
                 >
                         {/* The whole image header IS the swipe-to-dismiss zone — a big target,
                             and it lives OUTSIDE the ScrollView so the pan never fights scrolling. */}
                         <View
                             {...panResponder.panHandlers}
-                            className="relative w-full h-56 bg-fill-strong items-center justify-center"
+                            className="relative w-full h-44 bg-fill-strong items-center justify-center"
                         >
                             {dish.image_url ? (
                                 <RemoteImage uri={dish.image_url} displayWidth={430} className="w-full h-full" />
                             ) : (
-                                <Utensils color="#a8a29e" size={48} />
+                                <Utensils color={COLORS.inkFaint} size={48} strokeWidth={1.6} />
                             )}
                             {/* Grabber */}
-                            <View className="absolute top-2.5 left-0 right-0 items-center">
-                                <View className="w-10 h-1.5 rounded-full bg-white/70" />
+                            <View className="absolute top-2 left-0 right-0 items-center">
+                                <View className="w-10 h-1 rounded-full bg-white/70" />
                             </View>
                             {/* Close */}
                             <Pressable
                                 onPress={onClose}
                                 hitSlop={10}
+                                accessibilityRole="button"
+                                accessibilityLabel="Fermer"
                                 style={{ top: insets.top > 20 ? 12 : insets.top + 12 }}
-                                className="absolute left-4 w-10 h-10 rounded-full bg-white items-center justify-center active:scale-95"
+                                className="absolute left-4 w-11 h-11 rounded-full bg-surface items-center justify-center active:scale-95"
                             >
-                                <X color="#1c1b1b" size={22} />
+                                <X color={COLORS.ink} size={22} strokeWidth={2} />
                             </Pressable>
                         </View>
 
@@ -192,19 +197,15 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                             keyboardShouldPersistTaps="handled"
                             bounces={false}
                         >
-                            <View className="px-6 pt-6">
+                            <View className="pt-6" style={{ paddingHorizontal: SCREEN_GUTTER }}>
                                 {restaurantName ? (
-                                    <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-ink-faint mb-2">
-                                        {restaurantName}
-                                    </Text>
+                                    <TypeText variant="eyebrow" tone="tertiary" className="mb-2">{restaurantName}</TypeText>
                                 ) : null}
-                                <Text className="text-h1 font-display tracking-tight text-ink">
+                                <Text className="text-h1 font-display tracking-tight text-ink" accessibilityRole="header">
                                     {dish.name}
                                 </Text>
                                 {dish.short_description ? (
-                                    <Text className="text-body text-ink-muted font-body leading-relaxed mt-2">
-                                        {dish.short_description}
-                                    </Text>
+                                    <TypeText tone="secondary" className="mt-2">{dish.short_description}</TypeText>
                                 ) : null}
                                 <Text className="text-h3 font-title text-ink mt-3">
                                     {formatPrice(dish.price_xaf)}
@@ -212,14 +213,14 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
 
                                 {/* Option groups (rendered only if the dish actually has them) */}
                                 {groups.map((group) => (
-                                    <View key={group.id} className="mt-7">
+                                    <View key={group.id} className="mt-8">
                                         <View className="flex-row items-center justify-between mb-3">
                                             <Text className="text-bodylg font-heading text-ink">
                                                 {group.title}
                                             </Text>
                                             {group.required ? (
-                                                <View className="bg-ink px-2 py-0.5 rounded-full">
-                                                    <Text className="text-eyebrow font-label uppercase tracking-[0.08em] text-white">
+                                                <View className="bg-ink px-2 py-1 rounded-full">
+                                                    <Text className="text-eyebrow font-label uppercase tracking-eyebrow text-white">
                                                         Requis
                                                     </Text>
                                                 </View>
@@ -232,11 +233,14 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                                     <Pressable
                                                         key={opt.id}
                                                         onPress={() => toggleOption(group, opt.id)}
-                                                        className={`flex-row items-center justify-between px-4 py-3.5 rounded-card border ${
+                                                        accessibilityRole={(group.max ?? 1) > 1 ? 'checkbox' : 'radio'}
+                                                        accessibilityState={{ checked: isSel }}
+                                                        className={`flex-row items-center justify-between px-4 rounded-card border ${
                                                             isSel
                                                                 ? 'border-ink bg-fill'
-                                                                : 'border-hairline bg-white'
+                                                                : 'border-hairline bg-surface'
                                                         }`}
+                                                        style={{ minHeight: 52 }}
                                                     >
                                                         <Text className="text-body font-label text-ink flex-1 pr-3">
                                                             {opt.label}
@@ -265,78 +269,37 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                 ))}
 
                                 {/* Special instructions — always available, real free text */}
-                                <View className="mt-7">
-                                    <Text className="text-bodylg font-heading text-ink mb-1">
-                                        Instructions spéciales
-                                    </Text>
-                                    <Text className="text-caption text-ink-faint font-body mb-3">
-                                        Une demande particulière pour ce plat ? (optionnel)
-                                    </Text>
-                                    <View className="bg-fill rounded-card border border-hairline">
-                                        <TextInput
-                                            className="px-4 py-3.5 text-body font-body text-ink min-h-[76px]"
-                                            placeholder="Ex : sans oignon, sauce à part…"
-                                            placeholderTextColor="#8d8a87"
-                                            multiline
-                                            textAlignVertical="top"
-                                            value={note}
-                                            onChangeText={setNote}
-                                            maxLength={160}
-                                        />
-                                    </View>
-                                </View>
+                                <Field
+                                    label="Instructions spéciales"
+                                    helper="Optionnel : sans oignon, sauce à part…"
+                                    placeholder="Une demande particulière pour ce plat ?"
+                                    multiline
+                                    value={note}
+                                    onChangeText={setNote}
+                                    maxLength={160}
+                                    counter={`${note.length}/160`}
+                                    className="mt-8"
+                                />
 
                             </View>
 
                             <View style={{ height: 24 }} />
                         </ScrollView>
 
-                        {/* Sticky action bar — stepper + CTA on one line (the Eats pattern). */}
+                        {/* Sticky action bar — the shared stepper and CTA on one line. */}
                         <View
-                            className="px-5 border-t border-hairline bg-white flex-row items-center gap-3"
-                            style={{ paddingBottom: Math.max(insets.bottom, 16), paddingTop: 14 }}
+                            className="border-t border-hairline bg-surface flex-row items-center gap-3"
+                            style={{ paddingHorizontal: SCREEN_GUTTER, paddingBottom: Math.max(insets.bottom, 16), paddingTop: 12 }}
                         >
-                            <View className="flex-row items-center bg-fill rounded-full p-1" style={{ height: 50 }}>
-                                <Pressable
-                                    onPress={() => {
-                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                        setQuantity((q) => Math.max(1, q - 1));
-                                    }}
-                                    hitSlop={6}
-                                    accessibilityRole="button"
-                                    accessibilityLabel="Réduire la quantité"
-                                    className="w-10 h-10 rounded-full bg-white items-center justify-center active:scale-95 border border-hairline"
-                                >
-                                    <Minus color={quantity <= 1 ? '#c4c7c7' : '#1c1b1b'} size={18} />
-                                </Pressable>
-                                <Text className="w-9 text-center text-bodylg font-title text-ink">
-                                    {quantity}
-                                </Text>
-                                <Pressable
-                                    onPress={() => {
-                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                        setQuantity((q) => Math.min(99, q + 1));
-                                    }}
-                                    hitSlop={6}
-                                    accessibilityRole="button"
-                                    accessibilityLabel="Augmenter la quantité"
-                                    className="w-10 h-10 rounded-full bg-white items-center justify-center active:scale-95 border border-hairline"
-                                >
-                                    <Plus color="#1c1b1b" size={18} />
-                                </Pressable>
+                            <QuantityStepper value={quantity} onChange={setQuantity} />
+                            <View className="flex-1">
+                                <Button
+                                    label="Ajouter"
+                                    onPress={handleConfirm}
+                                    trailing={<Text className="text-white font-title text-bodylg tracking-tight">{formatPrice(total)}</Text>}
+                                    accessibilityLabel={`Ajouter au panier, ${quantity} × ${dish.name}, ${formatPrice(total)}`}
+                                />
                             </View>
-                            <Pressable
-                                onPress={handleConfirm}
-                                accessibilityRole="button"
-                                accessibilityLabel={`Ajouter au panier, ${formatPrice(total)}`}
-                                className="flex-1 bg-ink rounded-full flex-row items-center justify-between px-5 active:scale-[0.98]"
-                                style={{ height: 50 }}
-                            >
-                                <Text className="text-white font-labelbold text-body">Ajouter</Text>
-                                <Text className="text-white font-title text-bodylg tracking-tight">
-                                    {formatPrice(total)}
-                                </Text>
-                            </Pressable>
                         </View>
                 </Animated.View>
             </KeyboardAvoidingView>

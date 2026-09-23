@@ -90,22 +90,28 @@ export interface LiveActivityContentState {
 }
 
 /**
+ * Issue d'un envoi, classée pour la file : seul `retry` justifie de réessayer.
+ * `gone` : Apple a révoqué le jeton (410) ; `rejected` : refus définitif (4xx) —
+ * réessayer ne ferait que répéter le refus pendant des heures.
+ */
+export type ApnsResult = { outcome: 'sent' | 'retry' | 'gone' | 'rejected'; reason: string };
+
+/**
  * Pousse un nouvel état vers une Live Activity.
  *
  * `event: 'end'` clôt l'activité ; `dismissal-date` la laisse visible quelques
  * minutes pour que la commande se termine sur un écran plutôt que de disparaître.
- * Renvoie false si APNs refuse — le jeton est alors probablement périmé.
  */
 export async function pushLiveActivity(
     token: string,
     state: LiveActivityContentState,
-    options: { event: 'update' | 'end'; alert?: { title: string; body: string }; dismissInSeconds?: number },
-): Promise<boolean> {
-    if (!apnsConfigured()) return false;
+    options: { event: 'update' | 'end'; alert?: { title: string; body: string }; dismissInSeconds?: number; timestamp?: number },
+): Promise<ApnsResult> {
+    if (!apnsConfigured()) return { outcome: 'retry', reason: 'APNs non configuré' };
 
     const now = Math.floor(Date.now() / 1000);
     const aps: Record<string, unknown> = {
-        timestamp: now,
+        timestamp: Number.isFinite(options.timestamp) ? options.timestamp : now,
         event: options.event,
         'content-state': state,
     };
@@ -128,13 +134,17 @@ export async function pushLiveActivity(
             body: JSON.stringify({ aps }),
         });
 
-        if (!response.ok) {
-            console.error('APNs a refusé la mise à jour', response.status, await response.text());
-            return false;
-        }
-        return true;
+        if (response.ok) return { outcome: 'sent', reason: '' };
+        const body = await response.text();
+        let reason = `HTTP ${response.status}`;
+        try { reason = JSON.parse(body).reason ?? reason; } catch { /* corps non JSON */ }
+        console.error('APNs a refusé la mise à jour', response.status, reason);
+        if (response.status === 410) return { outcome: 'gone', reason };
+        // 403 couvre aussi le JWT expiré ; 429 et 5xx sont transitoires.
+        if (response.status === 403 || response.status === 429 || response.status >= 500) return { outcome: 'retry', reason };
+        return { outcome: 'rejected', reason };
     } catch (e) {
         console.error('envoi APNs impossible', e);
-        return false;
+        return { outcome: 'retry', reason: 'réseau APNs indisponible' };
     }
 }

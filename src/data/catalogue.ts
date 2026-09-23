@@ -56,7 +56,10 @@ export function useRestaurant(id: string) {
         queryKey: ['restaurant', id],
         queryFn: () => fetchRestaurantById(id),
         enabled: !!id,
+        // Carries the open/closed switch: a minute of staleness, not thirty.
         ...NEAR_STATIC,
+        staleTime: 60 * 1000,
+        refetchOnWindowFocus: 'always',
     });
 }
 
@@ -85,4 +88,17 @@ export function prefetchRestaurant(queryClient: QueryClient, id: string) {
         queryClient.prefetchQuery({ queryKey: ['restaurant', id], queryFn: () => fetchRestaurantById(id) });
     }
     queryClient.prefetchQuery({ queryKey: ['dishes', id], queryFn: () => fetchAvailableDishes(id) });
+}
+
+/**
+ * The menu as the server sees it RIGHT NOW — used after `create_order` refused
+ * a basket (price changed, dish gone, restaurant closed) so the cart can be
+ * reconciled against reality instead of a 30-minute-old cache.
+ */
+export async function refreshMenu(queryClient: QueryClient, restaurantId: string): Promise<MenuDish[]> {
+    await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['restaurants'] }),
+        queryClient.invalidateQueries({ queryKey: ['restaurant', restaurantId] }),
+    ]);
+    return queryClient.fetchQuery({ queryKey: ['dishes', restaurantId], queryFn: () => fetchAvailableDishes(restaurantId), staleTime: 0 });
 }

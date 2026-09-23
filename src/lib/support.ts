@@ -1,14 +1,8 @@
-import { Linking } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { BRAND_FULL } from './brand';
 
-/**
- * Single source of truth for customer support contact.
- *
- * ⚠️ TODO(prod): replace with the real support number before launch — this
- * placeholder was previously duplicated (and already diverging) between
- * tracking.tsx and profile.tsx.
- */
-export const SUPPORT_PHONE = '23566000000';
+/** Configure the real support number at build time, in international format. */
+export const SUPPORT_PHONE = (process.env.EXPO_PUBLIC_SUPPORT_PHONE ?? '').replace(/[^0-9]/g, '');
 
 export const SUPPORT_DEFAULT_MESSAGE = `Bonjour, j'ai besoin d'aide avec ${BRAND_FULL}.`;
 export const SUPPORT_ORDER_MESSAGE = "Bonjour, j'ai besoin d'aide avec ma commande.";
@@ -19,10 +13,14 @@ export const SUPPORT_ORDER_MESSAGE = "Bonjour, j'ai besoin d'aide avec ma comman
  * met with a button that silently does nothing.
  */
 export async function openSupportChat(message: string = SUPPORT_DEFAULT_MESSAGE): Promise<void> {
+    if (!/^235[0-9]{8}$/.test(SUPPORT_PHONE)) {
+        Alert.alert('Support indisponible', 'Le contact du support sera disponible prochainement.');
+        return;
+    }
     const text = encodeURIComponent(message);
     try {
         await Linking.openURL(`whatsapp://send?phone=+${SUPPORT_PHONE}&text=${text}`);
     } catch {
-        Linking.openURL(`https://wa.me/${SUPPORT_PHONE}?text=${text}`).catch(() => {});
+        await Linking.openURL(`https://wa.me/${SUPPORT_PHONE}?text=${text}`).catch(() => { Alert.alert('Ouverture impossible', 'Vérifiez votre connexion et réessayez.'); });
     }
 }

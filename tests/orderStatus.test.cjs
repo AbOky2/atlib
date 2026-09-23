@@ -41,8 +41,10 @@ test('les retours en arrière sont illégaux', () => {
     assert.equal(canTransition('DELIVERED', 'PENDING'), false);
 });
 
-test('on ne peut plus annuler une commande en cours de livraison', () => {
-    assert.equal(canTransition('OUT_FOR_DELIVERY', 'CANCELLED'), false);
+test('une livraison peut échouer (client injoignable) ou être confirmée, jamais reprendre en cuisine', () => {
+    assert.equal(canTransition('OUT_FOR_DELIVERY', 'CANCELLED'), true);
+    assert.equal(canTransition('OUT_FOR_DELIVERY', 'DELIVERED'), true);
+    assert.equal(canTransition('OUT_FOR_DELIVERY', 'PREPARING'), false);
     assert.equal(canTransition('PENDING', 'CANCELLED'), true);
 });
 

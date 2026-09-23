@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WifiOff } from 'lucide-react-native';
+import { COLORS } from '../lib/palette';
 
 import { getNetInfoSafe } from '../lib/netinfo';
 
@@ -64,10 +65,10 @@ export function OfflineBanner() {
             }}
         >
             <View className="bg-ink" style={{ paddingTop: insets.top }}>
-                <View className="flex-row items-center justify-center gap-2 py-2">
-                    <WifiOff color="#fff" size={14} />
-                    <Text className="text-white text-caption font-labelbold">
-                        Vous êtes hors ligne — reconnexion automatique
+                <View className="flex-row items-center justify-center gap-2 py-2" accessibilityRole="alert" accessibilityLiveRegion="polite">
+                    <WifiOff color={COLORS.white} size={14} strokeWidth={2} />
+                    <Text className="text-on-dark text-caption font-labelbold">
+                        Vous êtes hors ligne · reconnexion automatique
                     </Text>
                 </View>
             </View>

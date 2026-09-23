@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Modal, Pressable, Animated, Easing } from 'react-native';
+import { View, Text, Modal, Pressable, ScrollView, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TriangleAlert, HelpCircle } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -78,13 +78,14 @@ export default function GlobalDialog() {
 
             {/* Sheet */}
             <View className="flex-1 justify-end" pointerEvents="box-none">
-                <Animated.View
-                    className="bg-white rounded-t-sheet px-6 pt-3"
+                <Animated.View accessibilityViewIsModal
+                    className="bg-surface rounded-t-sheet px-6 pt-3"
                     style={[
                         shadowSheet,
-                        { shadowOffset: { width: 0, height: -12 }, paddingBottom: Math.max(insets.bottom, 20), transform: [{ translateY: sheetY }] },
+                        { shadowOffset: { width: 0, height: -12 }, maxHeight: '90%', paddingBottom: Math.max(insets.bottom, 20), transform: [{ translateY: sheetY }] },
                     ]}
                 >
+                    <ScrollView bounces={false}>
                     {/* Grabber */}
                     <View className="items-center mb-5">
                         <View className="w-10 h-1 rounded-full bg-fill-strong" />
@@ -103,7 +104,7 @@ export default function GlobalDialog() {
                     <Text className="text-h2 font-title tracking-tight text-ink text-center mb-2">
                         {title}
                     </Text>
-                    <Text className="text-body font-body text-ink-muted text-center leading-relaxed mb-7 px-2">
+                    <Text className="text-body font-body text-ink-muted text-center mb-8 px-2">
                         {message}
                     </Text>
 
@@ -111,7 +112,7 @@ export default function GlobalDialog() {
                     <Pressable
                         onPress={handleConfirm}
                         accessibilityRole="button"
-                        className="w-full h-14 rounded-full items-center justify-center active:scale-[0.98] mb-2.5"
+                        className="w-full h-14 rounded-full items-center justify-center active:scale-[0.98] mb-2"
                         style={{ backgroundColor: destructive ? COLORS.danger : COLORS.ink }}
                     >
                         <Text className="text-white text-body font-labelbold">{confirmText}</Text>
@@ -123,6 +124,7 @@ export default function GlobalDialog() {
                     >
                         <Text className="text-ink text-body font-labelbold">{cancelText}</Text>
                     </Pressable>
+                    </ScrollView>
                 </Animated.View>
             </View>
         </Modal>

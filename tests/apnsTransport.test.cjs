@@ -1,0 +1,26 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const {generateKeyPairSync,webcrypto}=require('node:crypto');
+const fs=require('node:fs'); const path=require('node:path'); const vm=require('node:vm'); const ts=require('typescript');
+test('le transport APNs réel signe la requête, adresse le sujet Live Activity et conserve la version serveur',async()=>{
+ const {privateKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'});
+ const env={APNS_KEY_ID:'test-key',APNS_TEAM_ID:'test-team',APNS_BUNDLE_ID:'com.example.test',APNS_PRIVATE_KEY:privateKey.export({type:'pkcs8',format:'pem'}),APNS_ENV:'sandbox'};
+ const requests=[]; let accepted=true; let rejection={status:503,reason:'ServiceUnavailable'}; const exports={};
+ const code=ts.transpileModule(fs.readFileSync(path.join(__dirname,'../supabase/functions/notify-order/apns.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
+ vm.runInNewContext(code,{exports,Deno:{env:{get:k=>env[k]}},crypto:webcrypto,TextEncoder,Uint8Array,ArrayBuffer,Date,btoa,atob,console:{error(){}},fetch:async(url,options)=>{requests.push({url,...options});return accepted?{ok:true,status:200,text:async()=>''}:{ok:false,status:rejection.status,text:async()=>JSON.stringify({reason:rejection.reason})};}});
+ const state={status:'En préparation',deliveryTime:'11h25',courierName:'Vers Sabangali',progress:0.4};
+ assert.equal((await exports.pushLiveActivity('fake-token',state,{event:'update',timestamp:100})).outcome,'sent');
+ const first=requests[0]; assert.equal(first.url,'https://api.sandbox.push.apple.com/3/device/fake-token');
+ assert.equal(first.headers['apns-topic'],'com.example.test.push-type.liveactivity'); assert.equal(first.headers['apns-push-type'],'liveactivity');
+ assert.match(first.headers.authorization,/^bearer [^.]+\.[^.]+\.[^.]+$/);
+ assert.deepEqual(JSON.parse(first.body).aps, {timestamp:100,event:'update','content-state':state});
+ await exports.pushLiveActivity('fake-token',{...state,status:'Commande annulée',progress:0},{event:'end',timestamp:101});
+ const terminal=JSON.parse(requests[1].body).aps; assert.equal(terminal.event,'end'); assert.equal(terminal.timestamp,101); assert.ok(terminal['dismissal-date']>Date.now()/1000);
+ accepted=false;
+ const outcome=async(status,reason)=>{rejection={status,reason};return (await exports.pushLiveActivity('fake-token',state,{event:'update',timestamp:102})).outcome;};
+ assert.equal(await outcome(503,'ServiceUnavailable'),'retry');
+ assert.equal(await outcome(429,'TooManyRequests'),'retry');
+ assert.equal(await outcome(403,'ExpiredProviderToken'),'retry');
+ assert.equal(await outcome(410,'Unregistered'),'gone');
+ assert.equal(await outcome(400,'BadDeviceToken'),'rejected');
+});

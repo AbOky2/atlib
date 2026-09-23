@@ -1,13 +1,15 @@
+import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { Star, Clock, Truck } from 'lucide-react-native';
+import { Star, Clock, Bike } from 'lucide-react-native';
 
 import { RemoteImage } from './RemoteImage';
 import { ClosedBadge } from './ClosedBadge';
 import { isAcceptingOrders } from '../lib/availability';
-import { restaurantEtaRange, formatEtaRange } from '../lib/eta';
 import { DELIVERY_FEE_XAF, formatXaf } from '../lib/pricing';
 import { COLORS } from '../lib/palette';
+import { SCREEN_GUTTER } from './ui';
 
+/** 80 pt thumbnail + 16 pt above and below. */
 export const RESTAURANT_ROW_HEIGHT = 112;
 
 interface RowRestaurant {
@@ -20,20 +22,25 @@ interface RowRestaurant {
 }
 
 /**
- * One restaurant, in list form.
+ * THE restaurant list item — home, explore and favourites all draw this one.
  *
- * Home used to render every restaurant as a full-bleed editorial card roughly
- * 480 px tall. That is a beautiful way to show three, and an unusable way to
- * show fifty: the customer scrolls past two screens of photography per entry and
- * the whole catalogue is materialised at once. This row is the browsing unit —
- * fixed height, so the list can be virtualised and told exactly how tall it is.
+ * Fixed height so lists can be virtualised and told exactly how tall a row is.
+ * The third meta slot shows the delivery estimate for the customer's address
+ * when one is known (a real number, from the locality table), and otherwise
+ * the delivery fee — never an invented per-restaurant delay.
  */
 export function RestaurantRow({
     restaurant,
+    estimate,
+    trailing,
     onPress,
     onPressIn,
 }: {
     restaurant: RowRestaurant;
+    /** « ~20 min », computed from the selected address; null when unknown. */
+    estimate?: string | null;
+    /** Optional 44 pt control at the end of the row (favourites use it). */
+    trailing?: React.ReactNode;
     onPress: () => void;
     onPressIn?: () => void;
 }) {
@@ -44,15 +51,12 @@ export function RestaurantRow({
             onPress={onPress}
             onPressIn={onPressIn}
             accessibilityRole="button"
-            accessibilityLabel={`${restaurant.name}${open ? '' : ', fermé'}`}
-            className="flex-row items-center gap-4 px-6 active:opacity-70"
-            style={{ height: RESTAURANT_ROW_HEIGHT }}
+            accessibilityLabel={`${restaurant.name}, ${restaurant.genre ?? 'restaurant'}${open ? '' : ', fermé'}`}
+            className="flex-row items-center gap-4 active:opacity-70"
+            style={{ height: RESTAURANT_ROW_HEIGHT, paddingHorizontal: SCREEN_GUTTER }}
         >
-            <View
-                className="w-[84px] h-[84px] rounded-card overflow-hidden bg-fill-strong"
-                style={{ opacity: open ? 1 : 0.45 }}
-            >
-                <RemoteImage uri={restaurant.image_url} displayWidth={84} className="w-full h-full" />
+            <View className="w-20 h-20 rounded-card overflow-hidden bg-fill-strong" style={{ opacity: open ? 1 : 0.45 }}>
+                <RemoteImage uri={restaurant.image_url} displayWidth={80} className="w-full h-full" />
             </View>
 
             <View className="flex-1 justify-center">
@@ -63,27 +67,24 @@ export function RestaurantRow({
                     {!open && <ClosedBadge tone="onSurface" />}
                 </View>
 
-                <Text numberOfLines={1} className="text-label text-ink-muted font-body mt-0.5">
+                <Text numberOfLines={1} className="text-label text-ink-muted font-body mt-1">
                     {restaurant.genre}
                 </Text>
 
                 <View className="flex-row items-center gap-4 mt-2">
-                    <View className="flex-row items-center gap-1.5">
-                        <Star fill={COLORS.ink} color={COLORS.ink} size={12} />
-                        <Text className="text-caption font-labelbold text-ink">{restaurant.rating}</Text>
-                    </View>
-                    <View className="flex-row items-center gap-1.5">
-                        <Clock color={COLORS.inkFaint} size={12} />
-                        <Text className="text-caption text-ink-muted font-body">
-                            {formatEtaRange(restaurantEtaRange(restaurant.id))}
-                        </Text>
-                    </View>
-                    <View className="flex-row items-center gap-1.5">
-                        <Truck color={COLORS.inkFaint} size={12} />
-                        <Text className="text-caption text-ink-muted font-body">{formatXaf(DELIVERY_FEE_XAF)}</Text>
+                    {restaurant.rating != null ? (
+                        <View className="flex-row items-center gap-1">
+                            <Star fill={COLORS.ink} color={COLORS.ink} size={14} strokeWidth={2} />
+                            <Text className="text-caption font-labelbold text-ink">{restaurant.rating}</Text>
+                        </View>
+                    ) : null}
+                    <View className="flex-row items-center gap-1">
+                        {estimate ? <Clock color={COLORS.inkFaint} size={14} strokeWidth={2} /> : <Bike color={COLORS.inkFaint} size={14} strokeWidth={2} />}
+                        <Text className="text-caption text-ink-muted font-body">{estimate ?? `Livraison ${formatXaf(DELIVERY_FEE_XAF)}`}</Text>
                     </View>
                 </View>
             </View>
+            {trailing}
         </Pressable>
     );
 }

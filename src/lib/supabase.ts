@@ -2,8 +2,12 @@ import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const supabaseUrl = 'https://myonaycuggsbielvdzjc.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15b25heWN1Z2dzYmllbHZkempjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5ODcxOTUsImV4cCI6MjA4ODU2MzE5NX0.RYSXIvHNtmYotjrjuSO3PcU1tRzSRFtZCdnO95FQzGk';
+// Public by design (RLS is the security boundary), but read from the build
+// environment so preview and production can point at different projects and a
+// key rotation does not require a code change. The fallback is the live project.
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://myonaycuggsbielvdzjc.supabase.co';
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+    ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15b25heWN1Z2dzYmllbHZkempjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5ODcxOTUsImV4cCI6MjA4ODU2MzE5NX0.RYSXIvHNtmYotjrjuSO3PcU1tRzSRFtZCdnO95FQzGk';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
@@ -11,6 +15,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false,
+        // Email links carry a one-time code that only THIS device can exchange
+        // (src/lib/authLinks.ts): a forged link cannot plant a session.
+        flowType: 'pkce',
     },
     realtime: {
         // Throttle client-side event processing.

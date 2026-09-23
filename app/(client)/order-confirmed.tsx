@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, Animated, Easing, AccessibilityInfo, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, Animated, Easing, AccessibilityInfo, useWindowDimensions, BackHandler } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -13,9 +13,9 @@ import { COLORS } from '../../src/lib/palette';
  *
  * Three acts (~4.5s total), driven purely by the core Animated API so it runs
  * on every build without native animation deps:
- *   1. the check draws itself inside a springing brand-orange disc — "Paiement confirmé"
- *   2. the disc flips to a chef hat while dots pulse — "Transmission au restaurant"
- *   3. confetti burst — "C'est parti !", then auto-navigate to tracking.
+ *   1. the check draws itself inside a springing brand-orange disc — "Commande envoyée"
+ *   2. the disc flips to a chef hat while dots pulse — "En attente du restaurant"
+ *   3. confetti burst — "Suivez votre commande", then auto-navigate to tracking.
  * Tap anywhere (or "Passer") to skip. Honors Reduce Motion by cutting straight
  * to a short static confirmation.
  */
@@ -31,12 +31,12 @@ const ACT_3_MS = 1500;
 // Payment is cash on delivery — nothing has been charged at this point, so the
 // copy celebrates the ORDER, never a "payment".
 const STAGES = [
-    { title: 'Commande confirmée', subtitle: 'Votre commande est validée' },
-    { title: 'Transmission au restaurant', subtitle: 'Le chef reçoit votre commande…' },
-    { title: "C'est parti !", subtitle: 'Suivez votre commande en direct' },
+    { title: 'Commande envoyée', subtitle: 'Votre demande a bien été enregistrée' },
+    { title: 'En attente du restaurant', subtitle: 'Le restaurant doit encore accepter votre commande' },
+    { title: 'Suivez votre commande', subtitle: 'Retrouvez son statut à chaque étape' },
 ] as const;
 
-const CONFETTI_COLORS = [COLORS.accent, COLORS.ink, COLORS.accentDark, '#FFC043', '#66D19E'];
+const CONFETTI_COLORS = [COLORS.accent, COLORS.ink, COLORS.accentDark, COLORS.gold, COLORS.success];
 const CONFETTI_COUNT = 14;
 
 interface ConfettiSpec {
@@ -82,6 +82,18 @@ export default function OrderConfirmedScreen() {
         doneRef.current = true;
         router.replace(orderId ? { pathname: '/tracking', params: { orderId } } : '/tracking');
     };
+
+    // Android back must not resurface the checkout for an order already placed.
+    useEffect(() => {
+        const sub = BackHandler.addEventListener('hardwareBackPress', () => { goToTracking(); return true; });
+        return () => sub.remove();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Screen readers hear each act instead of one silent animation.
+    useEffect(() => {
+        AccessibilityInfo.announceForAccessibility(`${STAGES[stage].title}. ${STAGES[stage].subtitle}`);
+    }, [stage]);
 
     useEffect(() => {
         let cancelled = false;
@@ -178,7 +190,7 @@ export default function OrderConfirmedScreen() {
     });
 
     return (
-        <Pressable className="flex-1 bg-white" onPress={goToTracking} accessibilityLabel="Passer l'animation">
+        <Pressable className="flex-1 bg-surface" onPress={goToTracking} accessible={false}>
             <View className="flex-1 items-center justify-center px-8">
                 {/* Expanding ring behind the disc */}
                 <Animated.View
@@ -263,7 +275,7 @@ export default function OrderConfirmedScreen() {
                             <AnimatedCircle cx={36} cy={36} r={33} stroke="rgba(255,255,255,0.35)" strokeWidth={2.5} fill="none" />
                             <AnimatedPath
                                 d="M20 37.5 L31 48.5 L52 26"
-                                stroke="#FFFFFF"
+                                stroke={COLORS.white}
                                 strokeWidth={6}
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -280,7 +292,7 @@ export default function OrderConfirmedScreen() {
                             transform: [{ scale: iconSwap.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }],
                         }}
                     >
-                        <ChefHat color="#FFFFFF" size={54} strokeWidth={1.8} />
+                        <ChefHat color={COLORS.white} size={54} strokeWidth={1.8} />
                     </Animated.View>
                 </Animated.View>
 
@@ -289,7 +301,7 @@ export default function OrderConfirmedScreen() {
                     className="items-center mt-9"
                     style={{ opacity: textOpacity, transform: [{ translateY: textShift }], width: width - 64 }}
                 >
-                    <Text className="text-h1 font-display tracking-tight text-ink text-center">
+                    <Text className="text-h1 font-display tracking-tight text-ink text-center" accessibilityRole="header">
                         {STAGES[stage].title}
                     </Text>
                     <View className="flex-row items-center mt-2">
@@ -317,11 +329,11 @@ export default function OrderConfirmedScreen() {
 
             {/* Stage progress + skip */}
             <View className="items-center" style={{ paddingBottom: Math.max(insets.bottom, 20) }}>
-                <View className="flex-row gap-1.5 mb-5">
+                <View className="flex-row gap-2 mb-5" accessible accessibilityLabel={`Étape ${stage + 1} sur ${STAGES.length}`}>
                     {STAGES.map((_, i) => (
                         <View
                             key={i}
-                            className="h-1.5 rounded-full"
+                            className="h-2 rounded-full"
                             style={{
                                 width: i === stage ? 22 : 8,
                                 backgroundColor: i <= stage ? COLORS.accent : COLORS.hairline,
@@ -329,7 +341,14 @@ export default function OrderConfirmedScreen() {
                         />
                     ))}
                 </View>
-                <Pressable onPress={goToTracking} hitSlop={12} className="active:opacity-50">
+                <Pressable
+                    onPress={goToTracking}
+                    hitSlop={12}
+                    accessibilityRole="button"
+                    accessibilityLabel="Passer l'animation et ouvrir le suivi"
+                    className="active:opacity-50 items-center justify-center px-6"
+                    style={{ minHeight: 44 }}
+                >
                     <Text className="text-label font-labelbold text-ink-faint">Passer</Text>
                 </Pressable>
             </View>

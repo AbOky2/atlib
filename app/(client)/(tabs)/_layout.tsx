@@ -51,8 +51,8 @@ function NavCircle({
             style={{ width: ITEM_SIZE, height: ITEM_SIZE }}
         >
             <Icon
-                color={active ? '#ffffff' : COLORS.inkMuted}
-                fill={active ? '#1c1b1b' : 'transparent'}
+                color={active ? COLORS.white : COLORS.inkMuted}
+                fill={active ? COLORS.ink : 'transparent'}
                 size={22}
                 strokeWidth={active ? 2.3 : 2}
             />
@@ -61,7 +61,7 @@ function NavCircle({
                     className="absolute bg-accent rounded-full items-center justify-center border-2 border-white"
                     style={{ top: 1, right: 0, minWidth: BADGE_SIZE, height: BADGE_SIZE, paddingHorizontal: 3 }}
                 >
-                    <Text className="text-white text-eyebrow font-labelbold">{badge > 9 ? '9+' : badge}</Text>
+                    <Text className="text-ink text-eyebrow font-labelbold">{badge > 9 ? '9+' : badge}</Text>
                 </View>
             ) : null}
         </Pressable>
@@ -119,7 +119,7 @@ function CustomTabBar({ state, navigation }: any) {
                         style={{ paddingHorizontal: CAPSULE_PADDING, paddingVertical: 8, gap: 6 }}
                     >
                         <NavCircle Icon={House} active={isHome} onPress={() => goTab('home')} label="Accueil" />
-                        <NavCircle Icon={Search} active={isExplore} onPress={() => goTab('explore')} label="Rechercher" />
+                        <NavCircle Icon={Search} active={isExplore} onPress={() => goTab('explore')} label="Explorer" />
                         {/* The cart is a pushed screen, not a tab — hence router.push. */}
                         <NavCircle
                             Icon={ShoppingBag}

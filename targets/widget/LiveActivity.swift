@@ -11,7 +11,8 @@ private let mutedOnDark = Color.white.opacity(0.55)
 /// back to a step icon without touching the ContentState contract.
 /// ⚠️ These bucket boundaries are a contract with STATUS_META.progress; it is
 /// locked by tests/liveActivityContract.test.cjs so the two can't drift apart.
-private func stepSymbol(for progress: Double) -> String {
+private func stepSymbol(for progress: Double, status: String = "") -> String {
+    if status.localizedCaseInsensitiveContains("annul") { return "xmark.circle.fill" }
     switch progress {
     case ..<0.2: return "hourglass"
     case ..<0.35: return "checkmark.seal.fill"
@@ -62,14 +63,16 @@ struct ChadDeliveryLiveActivity: Widget {
                     HStack(spacing: 7) {
                         ZStack {
                             Circle().fill(brand.opacity(0.18)).frame(width: 30, height: 30)
-                            Image(systemName: stepSymbol(for: context.state.progress))
+                            Image(systemName: stepSymbol(for: context.state.progress, status: context.state.status))
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(brand)
                         }
-                        Text("NOIR")
+                        Text("Naakul")
                             .font(.system(size: 14, weight: .black, design: .rounded))
                             .foregroundColor(inkOnDark)
-                            .tracking(0.5)
+                            .tracking(0.3)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
@@ -77,7 +80,7 @@ struct ChadDeliveryLiveActivity: Widget {
                         Text(context.state.deliveryTime)
                             .font(.system(size: 16, weight: .heavy, design: .rounded))
                             .foregroundColor(inkOnDark)
-                        Text("arrivée")
+                        Text(context.state.progress >= 1 || context.state.status.localizedCaseInsensitiveContains("annul") ? "commande" : (context.state.progress < 0.2 ? "confirmation" : "arrivée"))
                             .font(.system(size: 10, weight: .medium))
                             .foregroundColor(mutedOnDark)
                     }
@@ -94,12 +97,12 @@ struct ChadDeliveryLiveActivity: Widget {
                                 .foregroundColor(mutedOnDark)
                                 .lineLimit(1)
                         }
-                        SegmentedProgress(progress: context.state.progress)
+                        if !context.state.status.localizedCaseInsensitiveContains("annul") { SegmentedProgress(progress: context.state.progress) }
                     }
                     .padding(.top, 6)
                 }
             } compactLeading: {
-                Image(systemName: stepSymbol(for: context.state.progress))
+                Image(systemName: stepSymbol(for: context.state.progress, status: context.state.status))
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(brand)
             } compactTrailing: {
@@ -107,7 +110,7 @@ struct ChadDeliveryLiveActivity: Widget {
                     .font(.system(size: 13, weight: .heavy, design: .rounded))
                     .foregroundColor(inkOnDark)
             } minimal: {
-                Image(systemName: stepSymbol(for: context.state.progress))
+                Image(systemName: stepSymbol(for: context.state.progress, status: context.state.status))
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(brand)
             }
@@ -130,16 +133,16 @@ private struct LockScreenView: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(brand.opacity(0.16))
                             .frame(width: 38, height: 38)
-                        Image(systemName: stepSymbol(for: context.state.progress))
+                        Image(systemName: stepSymbol(for: context.state.progress, status: context.state.status))
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(brand)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 4) {
-                            Text("NOIR")
+                            Text("Naakul")
                                 .font(.system(size: 12, weight: .black, design: .rounded))
                                 .foregroundColor(inkOnDark)
-                                .tracking(1)
+                                .tracking(0.5)
                             Circle().fill(brand).frame(width: 4, height: 4)
                         }
                         Text(context.attributes.restaurantName)
@@ -153,13 +156,13 @@ private struct LockScreenView: View {
                     Text(context.state.deliveryTime)
                         .font(.system(size: 21, weight: .heavy, design: .rounded))
                         .foregroundColor(inkOnDark)
-                    Text("arrivée")
+                    Text(context.state.progress >= 1 || context.state.status.localizedCaseInsensitiveContains("annul") ? "commande" : (context.state.progress < 0.2 ? "confirmation" : "arrivée"))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(mutedOnDark)
                 }
             }
 
-            SegmentedProgress(progress: context.state.progress)
+            if !context.state.status.localizedCaseInsensitiveContains("annul") { SegmentedProgress(progress: context.state.progress) }
 
             // Footer: status headline + context line.
             HStack(alignment: .firstTextBaseline) {

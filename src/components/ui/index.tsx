@@ -8,7 +8,7 @@ import {
     type TextInputProps,
     type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, X, Minus, Plus, type LucideIcon } from 'lucide-react-native';
+import { ArrowLeft, X, Minus, Plus, Search, type LucideIcon } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 import { COLORS } from '../../lib/palette';
@@ -38,7 +38,7 @@ export const TOUCH_MIN = 44;
 // ---------------------------------------------------------------------------
 
 type TextVariant = 'display' | 'h1' | 'h2' | 'h3' | 'bodylg' | 'body' | 'label' | 'caption' | 'eyebrow';
-type TextTone = 'primary' | 'secondary' | 'tertiary' | 'accent' | 'danger' | 'onDark' | 'onDarkMuted';
+type TextTone = 'primary' | 'secondary' | 'tertiary' | 'accent' | 'danger' | 'success' | 'onDark' | 'onDarkMuted' | 'onDarkFaint';
 
 const VARIANT_CLASS: Record<TextVariant, string> = {
     display: 'text-display font-display tracking-tighter',
@@ -56,10 +56,12 @@ const TONE_CLASS: Record<TextTone, string> = {
     primary: 'text-ink',
     secondary: 'text-ink-muted',
     tertiary: 'text-ink-faint',
-    accent: 'text-accent',
+    accent: 'text-accent-dark',
     danger: 'text-danger',
-    onDark: 'text-white',
-    onDarkMuted: 'text-white/60',
+    success: 'text-success',
+    onDark: 'text-on-dark',
+    onDarkMuted: 'text-on-dark-muted',
+    onDarkFaint: 'text-on-dark-faint',
 };
 
 export function TypeText({
@@ -90,14 +92,16 @@ export function SectionTitle({
     title,
     action,
     className = '',
+    style,
 }: {
     eyebrow?: string;
     title: string;
     action?: React.ReactNode;
     className?: string;
+    style?: ViewStyle;
 }) {
     return (
-        <View className={`flex-row items-end justify-between ${className}`}>
+        <View className={`flex-row items-end justify-between ${className}`} style={style} accessibilityRole="header">
             <View className="flex-1 pr-4">
                 {/* 4 pt between eyebrow and title: they read as one block, not two. */}
                 {eyebrow ? <TypeText variant="eyebrow" tone="tertiary" className="mb-1">{eyebrow}</TypeText> : null}
@@ -120,11 +124,13 @@ export function Divider({ className = '' }: { className?: string }) {
 // Buttons
 // ---------------------------------------------------------------------------
 
-type ButtonVariant = 'primary' | 'dark' | 'secondary' | 'ghost' | 'destructive';
+type ButtonVariant = 'primary' | 'dark' | 'accent' | 'secondary' | 'ghost' | 'destructive';
 
 const BUTTON_SURFACE: Record<ButtonVariant, string> = {
-    primary: 'bg-accent active:bg-accent-pressed',
+    primary: 'bg-ink active:bg-ink/90',
     dark: 'bg-ink',
+    /** The one brand-coloured action of a DARK screen (the kitchen's « Accepter »). */
+    accent: 'bg-accent active:bg-accent-pressed',
     secondary: 'bg-fill active:bg-fill-strong',
     ghost: 'bg-transparent',
     destructive: 'bg-danger-soft',
@@ -133,6 +139,7 @@ const BUTTON_SURFACE: Record<ButtonVariant, string> = {
 const BUTTON_LABEL: Record<ButtonVariant, string> = {
     primary: 'text-white',
     dark: 'text-white',
+    accent: 'text-ink',
     secondary: 'text-ink',
     ghost: 'text-ink',
     destructive: 'text-danger',
@@ -186,18 +193,18 @@ export function Button({
             className={`rounded-full flex-row items-center px-6 active:scale-[0.98] ${
                 spread ? 'justify-between' : 'justify-center'
             } ${inactive ? 'bg-fill-strong' : BUTTON_SURFACE[variant]} ${className}`}
-            style={{ height }}
+            style={{ minHeight: height, paddingVertical: 12 }}
         >
             {loading ? (
                 <View className="flex-1 items-center">
-                    <ActivityIndicator color={variant === 'secondary' ? COLORS.ink : '#fff'} />
+                    <ActivityIndicator color={COLORS.ink} />
                 </View>
             ) : (
                 <>
-                    <View className="flex-row items-center gap-2">
+                    <View className="flex-row items-center justify-center gap-2" style={{ flexShrink: 1, minWidth: 0 }}>
                         {leading}
                         <Text
-                            numberOfLines={1}
+                            style={{ flexShrink: 1, textAlign: 'center' }}
                             className={`text-bodylg font-labelbold ${inactive ? 'text-ink-disabled' : BUTTON_LABEL[variant]}`}
                         >
                             {label}
@@ -229,9 +236,9 @@ export function IconButton({
     tone?: 'surface' | 'onPhoto' | 'plain';
     className?: string;
 }) {
-    const surface =
-        tone === 'onPhoto' ? 'bg-black/45' : tone === 'plain' ? 'bg-transparent' : 'bg-fill';
-    const color = tone === 'onPhoto' ? '#ffffff' : COLORS.ink;
+    // 45 % is not a Tailwind opacity step, so the photo veil is an inline colour.
+    const surface = tone === 'plain' ? 'bg-transparent' : tone === 'onPhoto' ? '' : 'bg-fill';
+    const color = tone === 'onPhoto' ? COLORS.white : COLORS.ink;
 
     return (
         <Pressable
@@ -243,7 +250,7 @@ export function IconButton({
             accessibilityLabel={label}
             hitSlop={6}
             className={`items-center justify-center rounded-full active:scale-95 ${surface} ${className}`}
-            style={{ width: TOUCH_MIN, height: TOUCH_MIN }}
+            style={[{ width: TOUCH_MIN, height: TOUCH_MIN }, tone === 'onPhoto' ? { backgroundColor: 'rgba(0,0,0,0.45)' } : null]}
         >
             <Icon color={color} size={22} strokeWidth={2} />
         </Pressable>
@@ -289,7 +296,7 @@ export function Chip({
             className={`px-5 rounded-full items-center justify-center border active:scale-[0.97] ${
                 selected ? 'bg-ink border-ink' : 'bg-surface border-hairline'
             } ${className}`}
-            style={{ height: 46 }}
+            style={{ height: TOUCH_MIN }}
         >
             <Text className={`text-label font-labelbold ${selected ? 'text-white' : 'text-ink'}`}>
                 {label}
@@ -311,6 +318,7 @@ export function Field({
     icon: Icon,
     multiline = false,
     counter,
+    trailing,
     className = '',
     ...input
 }: {
@@ -320,6 +328,8 @@ export function Field({
     icon?: LucideIcon;
     multiline?: boolean;
     counter?: string;
+    /** A control at the end of the field (show/hide password…). 44 pt target. */
+    trailing?: React.ReactNode;
     className?: string;
 } & TextInputProps) {
     const borderColor = error ? COLORS.danger : COLORS.hairline;
@@ -338,21 +348,72 @@ export function Field({
                     placeholderTextColor={COLORS.inkFaint}
                     multiline={multiline}
                     textAlignVertical={multiline ? 'top' : 'center'}
+                    accessibilityLabel={label}
                     style={multiline ? { minHeight: 92 } : { paddingVertical: 0 }}
                     {...input}
                 />
+                {trailing && !multiline ? <View className="-mr-2">{trailing}</View> : null}
             </View>
 
             {/* Helper, error and counter share one row so the field never grows a
                 stray gap below it. */}
             {(helper || error || counter) && (
                 <View className="flex-row items-start justify-between mt-2 gap-4">
-                    <Text className={`flex-1 text-caption font-body ${error ? 'text-danger' : 'text-ink-faint'}`}>
+                    <Text
+                        className={`flex-1 text-caption font-body ${error ? 'text-danger' : 'text-ink-faint'}`}
+                        accessibilityRole={error ? 'alert' : undefined}
+                        accessibilityLiveRegion={error ? 'polite' : 'none'}
+                    >
                         {error ?? helper ?? ''}
                     </Text>
                     {counter ? <Text className="text-caption font-body text-ink-faint">{counter}</Text> : null}
                 </View>
             )}
+        </View>
+    );
+}
+
+/** The one search box: 52 pt control, leading glyph, 44 pt clear target. */
+export function SearchField({
+    value,
+    onChangeText,
+    placeholder,
+    className = '',
+    ...input
+}: {
+    value: string;
+    onChangeText: (text: string) => void;
+    placeholder: string;
+    className?: string;
+} & Omit<TextInputProps, 'value' | 'onChangeText' | 'placeholder'>) {
+    return (
+        <View className={`flex-row items-center bg-fill rounded-card pl-4 ${className}`} style={{ height: 52 }}>
+            <Search color={COLORS.inkFaint} size={20} strokeWidth={2} />
+            <TextInput
+                className="flex-1 h-full px-3 text-bodylg font-body text-ink"
+                placeholder={placeholder}
+                placeholderTextColor={COLORS.inkFaint}
+                value={value}
+                onChangeText={onChangeText}
+                accessibilityLabel={placeholder}
+                returnKeyType="search"
+                autoCorrect={false}
+                style={{ paddingVertical: 0 }}
+                {...input}
+            />
+            {value.length > 0 ? (
+                <Pressable
+                    onPress={() => onChangeText('')}
+                    accessibilityRole="button"
+                    accessibilityLabel="Effacer la recherche"
+                    className="items-center justify-center"
+                    style={{ width: TOUCH_MIN, height: TOUCH_MIN }}
+                >
+                    <View className="w-6 h-6 rounded-full bg-fill-strong items-center justify-center">
+                        <X color={COLORS.inkMuted} size={14} strokeWidth={2.4} />
+                    </View>
+                </Pressable>
+            ) : <View style={{ width: 16 }} />}
         </View>
     );
 }
@@ -443,6 +504,8 @@ export function BottomActionBar({
 
 /** Space a scroll view must reserve so content is never hidden by the bar. */
 export const BOTTOM_BAR_CLEARANCE = 96;
+/** Floating navigation capsule (62 pt) plus 16 pt of air, above the safe area. */
+export const TAB_BAR_CLEARANCE = 62 + 16;
 
 // ---------------------------------------------------------------------------
 // Card — a grouped surface. Hairline first, elevation only when it truly floats.
@@ -496,6 +559,45 @@ export function SummaryRow({
         <View className="flex-row items-center justify-between">
             <TypeText variant="body" tone="secondary">{label}</TypeText>
             <TypeText variant="body" className="font-label">{value}</TypeText>
+        </View>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Empty / error state — one composition for « nothing here » everywhere
+// ---------------------------------------------------------------------------
+
+/**
+ * The app had ten different empty states (icon 26 to 48 px, with or without a
+ * disc, three greys). One composition: 80 pt disc, 32 pt icon, h3 title,
+ * secondary message, an optional action 24 pt below.
+ */
+export function EmptyState({
+    icon: Icon,
+    title,
+    message,
+    action,
+    tone = 'light',
+    className = '',
+}: {
+    icon: LucideIcon;
+    title: string;
+    message?: string;
+    action?: React.ReactNode;
+    tone?: 'light' | 'dark';
+    className?: string;
+}) {
+    const dark = tone === 'dark';
+    return (
+        <View className={`items-center px-6 ${className}`}>
+            <View className={`w-20 h-20 rounded-full items-center justify-center mb-5 ${dark ? 'bg-fill-dark' : 'bg-fill'}`}>
+                <Icon color={dark ? COLORS.onDarkMuted : COLORS.inkMuted} size={32} strokeWidth={1.8} />
+            </View>
+            <TypeText variant="h3" tone={dark ? 'onDark' : 'primary'} className="text-center">{title}</TypeText>
+            {message ? (
+                <TypeText tone={dark ? 'onDarkMuted' : 'secondary'} className="text-center mt-2">{message}</TypeText>
+            ) : null}
+            {action ? <View className="mt-6 self-stretch">{action}</View> : null}
         </View>
     );
 }

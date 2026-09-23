@@ -69,14 +69,14 @@ export function ScreenHeader({
     const TitleBlock = (
         <View className={centerTitle ? 'items-center' : ''}>
             {subtitle ? (
-                <Text className="text-eyebrow font-label uppercase tracking-[0.12em] text-ink-faint">
+                <Text className="text-eyebrow font-label uppercase tracking-wide text-ink-faint">
                     {subtitle}
                 </Text>
             ) : null}
             {title ? (
                 <Text
                     numberOfLines={1}
-                    className="text-h2 font-title tracking-[-0.01em] text-ink"
+                    className="text-h2 font-title tracking-tight text-ink"
                 >
                     {title}
                 </Text>

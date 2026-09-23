@@ -1,24 +1,17 @@
 import React, { useEffect } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Bell, Clock, ChefHat, CheckCircle2, Truck, Package, XCircle, type LucideIcon } from 'lucide-react-native';
+import { Bell } from 'lucide-react-native';
+
 import { useAuthStore } from '../../src/store/authStore';
 import { useNotifications, type AppNotification } from '../../src/hooks/useNotifications';
 import { useNotificationStore } from '../../src/store/notificationStore';
 import { statusMeta, type OrderStatus } from '../../src/lib/orderStatus';
 import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
-
-// Icons stay a UI concern; colours come from the canonical status module.
-const STATUS_ICON: Record<OrderStatus, LucideIcon> = {
-    PENDING: Clock,
-    ACCEPTED: CheckCircle2,
-    PREPARING: ChefHat,
-    READY: Package,
-    OUT_FOR_DELIVERY: Truck,
-    DELIVERED: CheckCircle2,
-    CANCELLED: XCircle,
-};
+import { Button, Card, EmptyState, TypeText, SCREEN_GUTTER } from '../../src/components/ui';
+import { STEP_ICON } from './tracking';
 
 const relativeTime = (iso: string) => {
     if (!iso) return '';
@@ -26,7 +19,7 @@ const relativeTime = (iso: string) => {
     if (Number.isNaN(then)) return '';
     const diff = Date.now() - then;
     const min = Math.round(diff / 60000);
-    if (min < 1) return "À l'instant";
+    if (min < 1) return 'À l’instant';
     if (min < 60) return `Il y a ${min} min`;
     const h = Math.round(min / 60);
     if (h < 24) return `Il y a ${h} h`;
@@ -36,6 +29,7 @@ const relativeTime = (iso: string) => {
 };
 
 export default function NotificationsScreen() {
+    const insets = useSafeAreaInsets();
     const headerOffset = useHeaderOffset();
     const user = useAuthStore((s) => s.user);
     const { items } = useNotifications();
@@ -50,7 +44,7 @@ export default function NotificationsScreen() {
     const openNotification = (n: AppNotification) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         // Open THE order the notification is about — not just the active one.
-        router.push({ pathname: '/tracking', params: { orderId: n.orderId } });
+        router.navigate({ pathname: '/tracking', params: { orderId: n.orderId } });
     };
 
     return (
@@ -59,67 +53,50 @@ export default function NotificationsScreen() {
 
             <ScrollView
                 className="flex-1"
-                contentContainerStyle={{ paddingTop: headerOffset + 12, paddingBottom: 40 }}
+                contentContainerStyle={{ paddingHorizontal: SCREEN_GUTTER, paddingTop: headerOffset + 16, paddingBottom: Math.max(insets.bottom, 24) + 24 }}
                 showsVerticalScrollIndicator={false}
             >
-                <View className="px-6">
-                    {!user ? (
-                        <View className="py-24 items-center">
-                            <View className="w-16 h-16 rounded-full bg-fill items-center justify-center mb-5">
-                                <Bell color="#8d8a87" size={30} />
-                            </View>
-                            <Text className="text-h3 font-title text-ink">Connectez-vous</Text>
-                            <Text className="text-body text-ink-muted text-center font-body mt-2 mb-7 leading-relaxed">
-                                Connectez-vous pour suivre l'état de vos commandes en temps réel.
-                            </Text>
-                            <Pressable
-                                onPress={() => router.push('/login')}
-                                className="bg-ink px-8 py-4 rounded-full active:scale-95"
-                            >
-                                <Text className="text-white text-caption font-labelbold">Se connecter</Text>
-                            </Pressable>
-                        </View>
-                    ) : items.length === 0 ? (
-                        <View className="py-24 items-center">
-                            <View className="w-16 h-16 rounded-full bg-fill items-center justify-center mb-5">
-                                <Bell color="#8d8a87" size={30} />
-                            </View>
-                            <Text className="text-h3 font-title text-ink">Aucune notification</Text>
-                            <Text className="text-body text-ink-muted text-center font-body mt-2 leading-relaxed">
-                                Les mises à jour de vos commandes apparaîtront ici.
-                            </Text>
-                        </View>
-                    ) : (
-                        <View className="gap-3 mt-2">
-                            {items.map((n) => {
-                                const meta = statusMeta(n.status);
-                                const Icon = STATUS_ICON[n.status as OrderStatus] ?? Clock;
-                                return (
-                                    <Pressable
-                                        key={n.id}
-                                        onPress={() => openNotification(n)}
-                                        className="flex-row items-start gap-4 bg-white rounded-panel p-4 border border-hairline active:scale-[0.99]"
-                                       
-                                    >
+                {!user ? (
+                    <EmptyState
+                        icon={Bell}
+                        title="Connectez-vous"
+                        message="Connectez-vous pour suivre l’état de vos commandes en temps réel."
+                        action={<Button label="Se connecter" onPress={() => router.push('/login')} />}
+                        className="py-16"
+                    />
+                ) : items.length === 0 ? (
+                    <EmptyState icon={Bell} title="Aucune notification" message="Les mises à jour de vos commandes apparaîtront ici." className="py-16" />
+                ) : (
+                    <View className="gap-3">
+                        {items.map((n) => {
+                            const meta = statusMeta(n.status);
+                            const Icon = STEP_ICON[n.status as OrderStatus] ?? STEP_ICON.PENDING;
+                            return (
+                                <Pressable
+                                    key={n.id}
+                                    onPress={() => openNotification(n)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`${n.title}. ${n.body}${n.read ? '' : '. Non lue'}`}
+                                    className="active:scale-[0.99]"
+                                >
+                                    <Card className="flex-row items-start gap-4 p-4">
                                         <View className="w-11 h-11 rounded-full items-center justify-center" style={{ backgroundColor: meta.tint }}>
-                                            <Icon color={meta.color} size={20} />
+                                            <Icon color={meta.color} size={20} strokeWidth={2} />
                                         </View>
                                         <View className="flex-1">
                                             <View className="flex-row items-center justify-between">
-                                                <Text className="text-body font-heading text-ink flex-1 pr-2" numberOfLines={1}>
-                                                    {n.title}
-                                                </Text>
+                                                <Text className="text-body font-heading text-ink flex-1 pr-2" numberOfLines={1}>{n.title}</Text>
                                                 {!n.read && <View className="w-2 h-2 rounded-full bg-accent" />}
                                             </View>
-                                            <Text className="text-body text-ink-muted font-body leading-relaxed mt-0.5">{n.body}</Text>
-                                            <Text className="text-eyebrow text-ink-faint font-label mt-1.5">{relativeTime(n.createdAt)}</Text>
+                                            <TypeText tone="secondary" className="mt-1">{n.body}</TypeText>
+                                            <TypeText variant="eyebrow" tone="tertiary" className="mt-2 normal-case">{relativeTime(n.createdAt)}</TypeText>
                                         </View>
-                                    </Pressable>
-                                );
-                            })}
-                        </View>
-                    )}
-                </View>
+                                    </Card>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
+                )}
             </ScrollView>
         </View>
     );

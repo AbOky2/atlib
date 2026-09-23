@@ -1,4 +1,4 @@
-# Audit résilience & scalabilité — NOIR Delivery
+# Audit résilience & scalabilité — Naakul
 
 Objectif : tenir **3 000 à 10 000 utilisateurs simultanés** au pic (midi), avec une
 app résiliente sur réseau instable (Tchad) et prête pour la prod.

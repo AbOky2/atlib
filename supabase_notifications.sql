@@ -1,3 +1,4 @@
+-- LEGACY BOOTSTRAP: always apply supabase/migrations/202609050001_order_integrity.sql AFTER this file.
 -- ============================================================================
 -- NOIR Delivery — migration « notifications, disponibilité, monnaie »
 --

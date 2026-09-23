@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "NOIR Delivery",
+    "name": "Naakul",
     "slug": "chad-delivery",
     "version": "1.0.0",
     "scheme": "chaddelivery",
@@ -13,12 +13,13 @@
       "backgroundColor": "#fcf9f8"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.okimy.chaddelivery",
       "appleTeamId": "P268RXF8X7",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSSupportsLiveActivities": true
+        "NSSupportsLiveActivities": true,
+        "CFBundleDevelopmentRegion": "fr"
       }
     },
     "android": {
@@ -39,12 +40,21 @@
       "expo-router",
       "./plugins/withLiveActivity",
       "@bacons/apple-targets",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#fcf9f8"
+        }
+      ],
       "expo-status-bar",
       "expo-image",
       [
         "expo-notifications",
         {
+          "icon": "./assets/notification-icon.png",
           "color": "#FF5733"
         }
       ]

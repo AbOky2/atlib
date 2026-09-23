@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  mobile:
+    name: Tests, TypeScript et garde-fou design
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: t
+        ports: ['55441:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.1
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Scénarios SQL (migrations rejouées sur une base jetable)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          PSQL="psql -h 127.0.0.1 -p 55441 -U postgres -d t -v ON_ERROR_STOP=1 -q"
+          $PSQL -f tests/sql/fixture.sql -f supabase/migrations/202609050001_order_integrity.sql -f tests/sql/order_integrity.sql
+          $PSQL -f supabase/migrations/202609230001_order_lifecycle.sql -f tests/sql/order_lifecycle.sql
+          $PSQL -f supabase/migrations/202609230002_access_hardening.sql -f tests/sql/access_hardening.sql
+          $PSQL -f tests/sql/notification_fixture.sql -f supabase/migrations/202609060001_notification_outbox.sql -f tests/sql/notification_outbox.sql
+          $PSQL -f supabase/migrations/202609140001_notification_resilience.sql -f tests/sql/notification_resilience.sql
+          $PSQL -f tests/sql/account_fixture.sql -f supabase/migrations/202609220001_account_deletion.sql -f tests/sql/account_deletion.sql
+      - name: Export JavaScript (iOS + Android)
+        run: npx expo export --platform ios --platform android --output-dir /tmp/export
