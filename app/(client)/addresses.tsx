@@ -37,12 +37,12 @@ function AddressCard({ address, selected, onSelect, onRemove }: {
             accessibilityLabel={`${address.locality}, ${address.description}${selected ? ', adresse actuelle' : ''}`}
             className={`bg-surface rounded-panel p-4 active:scale-[0.99] ${selected ? 'border-2 border-ink' : 'border border-hairline'}`}
         >
-            <View className="flex-row items-start gap-4">
+            <View className="flex-row items-start" style={{ gap: 16 }}>
                 <View className={`w-11 h-11 rounded-card items-center justify-center ${selected ? 'bg-accent-soft' : 'bg-fill'}`}>
                     <MapPin color={selected ? COLORS.accentDark : COLORS.ink} size={20} strokeWidth={2} />
                 </View>
                 <View className="flex-1">
-                    <View className="flex-row items-center gap-2">
+                    <View className="flex-row items-center" style={{ gap: 8 }}>
                         <Text className="text-bodylg font-heading tracking-tight text-ink flex-shrink" numberOfLines={1}>{address.locality}</Text>
                         {selected && (
                             <View className="w-5 h-5 rounded-full bg-ink items-center justify-center">
@@ -51,7 +51,7 @@ function AddressCard({ address, selected, onSelect, onRemove }: {
                         )}
                     </View>
                     <TypeText tone="secondary" className="mt-1" numberOfLines={2}>{address.description}</TypeText>
-                    <View className="flex-row items-center gap-1 mt-2">
+                    <View className="flex-row items-center mt-2" style={{ gap: 4 }}>
                         <Clock color={COLORS.inkFaint} size={14} strokeWidth={2} />
                         <TypeText variant="caption" tone="tertiary">Livraison ~{eta} min</TypeText>
                     </View>
@@ -175,7 +175,7 @@ export default function AddressesScreen() {
                                     className="py-12"
                                 />
                             ) : (
-                                <View className="gap-4">
+                                <View className="" style={{ gap: 16 }}>
                                     {visibleSaved.map((addr) => (
                                         <AddressCard
                                             key={addr.id}
@@ -239,7 +239,7 @@ export default function AddressesScreen() {
                             </View>
 
                             {/* Chosen quartier */}
-                            <Card className="p-4 flex-row items-center gap-4 mb-5">
+                            <Card className="p-4 flex-row items-center mb-5" style={{ gap: 16 }}>
                                 <View className="w-11 h-11 rounded-card items-center justify-center bg-accent-soft">
                                     <MapPin color={COLORS.accentDark} size={20} strokeWidth={2} />
                                 </View>
@@ -276,7 +276,7 @@ export default function AddressesScreen() {
                             />
 
                             {/* Tip */}
-                            <View className="flex-row items-start gap-3 bg-fill rounded-card px-4 py-3">
+                            <View className="flex-row items-start bg-fill rounded-card px-4 py-3" style={{ gap: 12 }}>
                                 <Lightbulb color={COLORS.accentDark} size={16} strokeWidth={2} style={{ marginTop: 2 }} />
                                 <TypeText variant="caption" tone="secondary" className="flex-1">
                                     À N’Djamena, un bon repère vaut mieux qu’un nom de rue : portail, couleur du mur, commerce voisin…

@@ -52,7 +52,7 @@ export default function ConfirmEmailScreen() {
             <ScreenHeader title="Confirmation de l’email" back="arrow" onBack={() => router.replace('/login')} />
             <ScrollView contentContainerStyle={{ padding: SCREEN_GUTTER, paddingTop: headerOffset + 24, gap: 20 }}>
                 {state === 'busy' ? (
-                    <View className="flex-row items-center gap-3">
+                    <View className="flex-row items-center" style={{ gap: 12 }}>
                         <ActivityIndicator color={COLORS.ink} />
                         <TypeText>Confirmation en cours…</TypeText>
                     </View>

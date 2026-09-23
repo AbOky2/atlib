@@ -122,10 +122,13 @@ test('aucune classe que NativeWind 2 ignore en silence', () => {
     // letterSpacing/lineHeight n'acceptent que des nombres : `tracking-[0.08em]` et
     // `leading-relaxed` n'atteignaient jamais React Native. 35 et 45 ne sont pas
     // des pas d'opacité Tailwind : `bg-black/35` ne produisait aucun voile.
+    // `gap-N` est compilé en marges NÉGATIVES sur le conteneur (marginLeft/Top: -N) et
+    // positives sur les enfants : chaque rangée se décalait de N pt en haut à gauche.
+    // React Native gère `gap` nativement — en style inline, jamais en classe.
     const OPACITY_STEPS = new Set([0, 5, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 100]);
     const offenders = [];
     for (const { file, classes } of classStrings()) {
-        for (const m of classes.matchAll(/\b(?:tracking-\[[^\]]*\]|leading-[a-z0-9\[\].]+|transition-[a-z-]+|-translate-[xy]-\d\/\d|h-13|w-13)\b/g)) {
+        for (const m of classes.matchAll(/\b(?:tracking-\[[^\]]*\]|leading-[a-z0-9\[\].]+|transition-[a-z-]+|-translate-[xy]-\d\/\d|h-13|w-13|gap-(?:[xy]-)?[0-9.]+|space-[xy]-[0-9.]+)\b/g)) {
             offenders.push({ file, what: m[0] });
         }
         for (const m of classes.matchAll(/\b(?:bg|text|border)-[a-z-]+\/(\d+)\b/g)) {

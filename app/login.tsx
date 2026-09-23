@@ -157,7 +157,7 @@ export default function LoginScreen() {
                     showsVerticalScrollIndicator={false}
                 >
                     {/* Brand */}
-                    <View className="flex-row items-end gap-1 mb-8" accessible accessibilityRole="header" accessibilityLabel={`${BRAND}, ${BRAND_TAGLINE}`}>
+                    <View className="flex-row items-end mb-8" style={{ gap: 4 }} accessible accessibilityRole="header" accessibilityLabel={`${BRAND}, ${BRAND_TAGLINE}`}>
                         <Text className="text-display font-display tracking-tighter text-ink">{BRAND}</Text>
                         <View className="w-2 h-2 rounded-full bg-accent mb-3" />
                     </View>
@@ -187,8 +187,8 @@ export default function LoginScreen() {
                                     onPress={() => switchMode(m)}
                                     accessibilityRole="tab"
                                     accessibilityState={{ selected: mode === m }}
-                                    className={`flex-1 rounded-chip items-center justify-center flex-row gap-2 ${mode === m ? 'bg-surface' : ''}`}
-                                    style={{ height: TOUCH_MIN }}
+                                    className={`flex-1 rounded-chip items-center justify-center flex-row ${mode === m ? 'bg-surface' : ''}`}
+                                    style={{ gap: 8, height: TOUCH_MIN }}
                                 >
                                     {m === 'phone'
                                         ? <Phone color={mode === m ? COLORS.ink : COLORS.inkFaint} size={16} strokeWidth={2} />
@@ -336,7 +336,7 @@ export default function LoginScreen() {
 
                     {/* Positive notice (email sent, account created…) */}
                     {notice && (
-                        <View className="bg-surface border border-hairline rounded-card px-5 py-4 mb-6 flex-row items-center gap-3" accessibilityRole="alert" accessibilityLiveRegion="polite">
+                        <View className="bg-surface border border-hairline rounded-card px-5 py-4 mb-6 flex-row items-center" style={{ gap: 12 }} accessibilityRole="alert" accessibilityLiveRegion="polite">
                             <MailCheck color={COLORS.success} size={20} strokeWidth={2} />
                             <TypeText tone="secondary" className="flex-1">{notice}</TypeText>
                         </View>

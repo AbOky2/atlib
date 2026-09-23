@@ -65,8 +65,8 @@ export function ChoiceSheet<K extends string>({
                                 onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onSelect(option.key); }}
                                 accessibilityRole="radio"
                                 accessibilityState={{ checked: active }}
-                                className={`flex-row items-center gap-4 px-4 rounded-card mb-2 ${active ? 'bg-ink' : 'bg-fill active:bg-fill-strong'}`}
-                                style={{ minHeight: 56 }}
+                                className={`flex-row items-center px-4 rounded-card mb-2 ${active ? 'bg-ink' : 'bg-fill active:bg-fill-strong'}`}
+                                style={{ gap: 16, minHeight: 56 }}
                             >
                                 <View className="flex-1 py-3">
                                     <Text className={`text-body font-labelbold ${active ? 'text-white' : 'text-ink'}`}>{option.label}</Text>

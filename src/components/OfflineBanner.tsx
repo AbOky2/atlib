@@ -65,7 +65,7 @@ export function OfflineBanner() {
             }}
         >
             <View className="bg-ink" style={{ paddingTop: insets.top }}>
-                <View className="flex-row items-center justify-center gap-2 py-2" accessibilityRole="alert" accessibilityLiveRegion="polite">
+                <View className="flex-row items-center justify-center py-2" style={{ gap: 8 }} accessibilityRole="alert" accessibilityLiveRegion="polite">
                     <WifiOff color={COLORS.white} size={14} strokeWidth={2} />
                     <Text className="text-on-dark text-caption font-labelbold">
                         Vous êtes hors ligne · reconnexion automatique

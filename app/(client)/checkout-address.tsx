@@ -98,7 +98,7 @@ export default function CheckoutAddressScreen() {
                                         }}
                                         accessibilityRole="button"
                                         accessibilityLabel="Changer d'adresse de livraison"
-                                        className="flex-row items-center gap-3 p-4 active:bg-fill"
+                                        className="flex-row items-center p-4 active:bg-fill" style={{ gap: 12 }}
                                     >
                                         <View className="w-11 h-11 rounded-card items-center justify-center bg-accent-soft">
                                             <MapPin color={COLORS.accentDark} size={20} strokeWidth={2} />
@@ -116,7 +116,7 @@ export default function CheckoutAddressScreen() {
                                     {eta ? (
                                         <>
                                             <Divider />
-                                            <View className="flex-row items-center gap-3 px-4 py-3">
+                                            <View className="flex-row items-center px-4 py-3" style={{ gap: 12 }}>
                                                 <Clock color={COLORS.inkMuted} size={16} strokeWidth={2} />
                                                 <TypeText variant="body" tone="secondary" className="flex-1">
                                                     Temps estimé

@@ -56,7 +56,7 @@ export function ActiveOrderBanner() {
             style={[{ bottom: Math.max(insets.bottom, 14) + 62 + 12, height: 80 }, shadowFloat]}
             className="absolute left-6 right-6 z-40 bg-ink rounded-panel flex-row items-center justify-between px-4"
         >
-            <View className="flex-row items-center gap-4 flex-1">
+            <View className="flex-row items-center flex-1" style={{ gap: 16 }}>
                 <View className="w-12 h-12 rounded-full bg-accent items-center justify-center">
                     <Icon color={COLORS.ink} size={22} strokeWidth={2.2} />
                 </View>

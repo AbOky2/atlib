@@ -67,7 +67,7 @@ export function ScreenHeader({
         left ?? (back ? <BackButton variant={back} onPress={() => onBack?.()} /> : null);
 
     const TitleBlock = (
-        <View className={centerTitle ? 'items-center' : ''}>
+        <View className={centerTitle ? 'items-center' : 'flex-1'}>
             {subtitle ? (
                 <Text className="text-eyebrow font-label uppercase tracking-wide text-ink-faint">
                     {subtitle}
@@ -91,13 +91,15 @@ export function ScreenHeader({
         >
             {centerTitle ? (
                 <>
-                    <View style={{ width: TOUCH_MIN }} className="items-start">{leading}</View>
+                    {/* Both wings reserve one touch target; a wider `right` (two icons)
+                        simply pushes the title's centring zone, never the title itself. */}
+                    <View style={{ minWidth: TOUCH_MIN }} className="items-start">{leading}</View>
                     <View className="flex-1 items-center px-2">{TitleBlock}</View>
-                    <View style={{ width: TOUCH_MIN }} className="items-end">{right}</View>
+                    <View style={{ minWidth: TOUCH_MIN }} className="items-end">{right}</View>
                 </>
             ) : (
                 <>
-                    <View className="flex-row items-center gap-3 flex-1">
+                    <View className="flex-row items-center flex-1" style={{ gap: 12 }}>
                         {leading}
                         {TitleBlock}
                     </View>

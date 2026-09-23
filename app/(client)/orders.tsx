@@ -39,7 +39,7 @@ function OrderRow({ order }: { order: CustomerOrder }) {
         >
             <Card className="p-5">
                 <View className="flex-row items-center justify-between mb-4">
-                    <View className="flex-row items-center gap-2 flex-1 pr-3">
+                    <View className="flex-row items-center flex-1 pr-3" style={{ gap: 8 }}>
                         <TypeText variant="caption" tone="tertiary">{formattedDate || '—'}</TypeText>
                         {formattedTime ? (
                             <>
@@ -48,13 +48,13 @@ function OrderRow({ order }: { order: CustomerOrder }) {
                             </>
                         ) : null}
                     </View>
-                    <View className="flex-row items-center gap-2 px-3 rounded-full" style={{ backgroundColor: meta.tint, height: 28 }}>
+                    <View className="flex-row items-center px-3 rounded-full" style={{ gap: 8, backgroundColor: meta.tint, height: 28 }}>
                         <StatusIcon color={meta.color} size={14} strokeWidth={2.2} />
                         <Text className="text-eyebrow font-label uppercase tracking-eyebrow" style={{ color: meta.color }}>{meta.label}</Text>
                     </View>
                 </View>
 
-                <View className="flex-row justify-between items-center gap-4">
+                <View className="flex-row justify-between items-center" style={{ gap: 16 }}>
                     <View className="flex-1">
                         <TypeText variant="h3" numberOfLines={1}>{name}</TypeText>
                         <TypeText variant="caption" tone="tertiary" className="mt-1">
@@ -109,7 +109,7 @@ export default function OrdersScreen() {
                         className="py-16"
                     />
                 ) : (
-                    <View className="gap-4">
+                    <View className="" style={{ gap: 16 }}>
                         {orders.map((order) => <OrderRow key={order.id} order={order} />)}
                     </View>
                 )}

@@ -207,7 +207,7 @@ export default function PaymentMethodScreen() {
                             }}
                             accessibilityRole="button"
                             accessibilityLabel="Modifier l'adresse de livraison"
-                            className="p-5 flex-row items-start gap-4 active:bg-fill"
+                            className="p-5 flex-row items-start active:bg-fill" style={{ gap: 16 }}
                         >
                             <View className="w-11 h-11 rounded-card items-center justify-center bg-accent-soft">
                                 <MapPin color={COLORS.accentDark} size={20} strokeWidth={2} />
@@ -224,7 +224,7 @@ export default function PaymentMethodScreen() {
                         </Pressable>
 
                         {deliveryAddress?.phone ? (
-                            <View className="pb-3 flex-row items-center gap-2" style={{ paddingLeft: ROW_TEXT_INSET, paddingRight: 20 }}>
+                            <View className="pb-3 flex-row items-center" style={{ gap: 8, paddingLeft: ROW_TEXT_INSET, paddingRight: 20 }}>
                                 <Phone color={COLORS.inkFaint} size={14} strokeWidth={2} />
                                 <TypeText variant="caption" tone="tertiary" className="flex-1" numberOfLines={1}>
                                     {deliveryAddress.phone}
@@ -233,7 +233,7 @@ export default function PaymentMethodScreen() {
                         ) : null}
 
                         {deliveryAddress?.note ? (
-                            <View className="pb-4 flex-row items-center gap-2" style={{ paddingLeft: ROW_TEXT_INSET, paddingRight: 20 }}>
+                            <View className="pb-4 flex-row items-center" style={{ gap: 8, paddingLeft: ROW_TEXT_INSET, paddingRight: 20 }}>
                                 <MessageSquare color={COLORS.inkFaint} size={14} strokeWidth={2} />
                                 <TypeText variant="caption" tone="tertiary" className="flex-1" numberOfLines={2}>
                                     {deliveryAddress.note}
@@ -242,7 +242,7 @@ export default function PaymentMethodScreen() {
                         ) : null}
 
                         {eta ? (
-                            <View className="flex-row items-center gap-2 px-5 py-3 border-t border-hairline bg-fill">
+                            <View className="flex-row items-center px-5 py-3 border-t border-hairline bg-fill" style={{ gap: 8 }}>
                                 <Clock color={COLORS.ink} size={16} strokeWidth={2} />
                                 <TypeText variant="label" tone="secondary" className="flex-1">Arrivée estimée</TypeText>
                                 <TypeText variant="label" className="font-labelbold">~{eta} min</TypeText>
@@ -257,7 +257,7 @@ export default function PaymentMethodScreen() {
                             accessibilityRole="radio"
                             accessibilityState={{ checked: true }}
                             accessibilityLabel="Espèces à la livraison, seul mode de paiement"
-                            className="p-5 flex-row items-center gap-4"
+                            className="p-5 flex-row items-center" style={{ gap: 16 }}
                         >
                             <View className="w-11 h-11 rounded-card items-center justify-center bg-accent-soft">
                                 <Banknote color={COLORS.accentDark} size={20} strokeWidth={2} />
@@ -281,7 +281,7 @@ export default function PaymentMethodScreen() {
                             Cela aide le restaurant à préparer votre monnaie.
                         </TypeText>
 
-                        <View className="flex-row flex-wrap gap-2">
+                        <View className="flex-row flex-wrap" style={{ gap: 8 }}>
                             <Chip
                                 label="J'ai l'appoint"
                                 selected={cashPaidWith === null}
@@ -300,7 +300,7 @@ export default function PaymentMethodScreen() {
                         {change != null && change > 0 ? (
                             <>
                                 <Divider className="my-4" />
-                                <View className="flex-row items-center gap-3">
+                                <View className="flex-row items-center" style={{ gap: 12 }}>
                                     <Coins color={COLORS.accentDark} size={18} strokeWidth={2} />
                                     <TypeText tone="secondary" className="flex-1">
                                         Le restaurant vous rendra
@@ -314,10 +314,10 @@ export default function PaymentMethodScreen() {
                     {/* Order summary */}
                     <TypeText variant="eyebrow" tone="tertiary" className="mb-3">{`Récapitulatif · ${currentRestaurantName ?? 'votre commande'}`}</TypeText>
                     <Card className="p-5 mb-6">
-                        <View className="gap-3">
+                        <View className="" style={{ gap: 12 }}>
                             {items.map(item => (
                                 <View key={item.lineId} className="flex-row justify-between items-center">
-                                    <View className="flex-row items-center gap-3 flex-1 pr-4">
+                                    <View className="flex-row items-center flex-1 pr-4" style={{ gap: 12 }}>
                                         <View className="w-7 h-7 bg-fill rounded-chip items-center justify-center">
                                             <Text className="text-caption font-labelbold text-ink">{item.quantity}</Text>
                                         </View>
@@ -333,7 +333,7 @@ export default function PaymentMethodScreen() {
 
                         <Divider className="my-4" />
 
-                        <View className="gap-3">
+                        <View className="" style={{ gap: 12 }}>
                             <SummaryRow label="Sous-total" value={formatXaf(cartTotal)} />
                             <SummaryRow label="Livraison" value={formatXaf(DELIVERY_FEE_XAF)} />
                             <SummaryRow label="Service" value={formatXaf(SERVICE_FEE_XAF)} />
@@ -345,7 +345,7 @@ export default function PaymentMethodScreen() {
                     </Card>
 
                     {/* Trust note */}
-                    <View className="flex-row items-start gap-3 px-1">
+                    <View className="flex-row items-start px-1" style={{ gap: 12 }}>
                         <ShieldCheck color={COLORS.inkMuted} size={16} strokeWidth={2} style={{ marginTop: 2 }} />
                         <TypeText variant="caption" tone="secondary" className="flex-1">
                             Aucun prélèvement en ligne : vous réglez à la réception de votre commande.

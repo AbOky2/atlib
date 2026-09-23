@@ -201,7 +201,7 @@ export function Button({
                 </View>
             ) : (
                 <>
-                    <View className="flex-row items-center justify-center gap-2" style={{ flexShrink: 1, minWidth: 0 }}>
+                    <View className="flex-row items-center justify-center" style={{ gap: 8, flexShrink: 1, minWidth: 0 }}>
                         {leading}
                         <Text
                             style={{ flexShrink: 1, textAlign: 'center' }}
@@ -228,17 +228,25 @@ export function IconButton({
     onPress,
     label,
     tone = 'surface',
+    active = false,
     className = '',
 }: {
     icon: LucideIcon;
     onPress: () => void;
     label: string;
-    tone?: 'surface' | 'onPhoto' | 'plain';
+    /**
+     * `surface` on a page, `onPhoto` as a dark veil, `plain` with no disc, and
+     * `floating` — a white disc with a level-1 shadow that reads on a photo AND
+     * on a white bar, for the header of a screen whose top is a picture.
+     */
+    tone?: 'surface' | 'onPhoto' | 'plain' | 'floating';
+    /** A toggled state (favourite…): the glyph fills with the accent. */
+    active?: boolean;
     className?: string;
 }) {
     // 45 % is not a Tailwind opacity step, so the photo veil is an inline colour.
-    const surface = tone === 'plain' ? 'bg-transparent' : tone === 'onPhoto' ? '' : 'bg-fill';
-    const color = tone === 'onPhoto' ? COLORS.white : COLORS.ink;
+    const surface = tone === 'plain' ? 'bg-transparent' : tone === 'onPhoto' ? '' : tone === 'floating' ? 'bg-surface' : 'bg-fill';
+    const color = active ? COLORS.accent : tone === 'onPhoto' ? COLORS.white : COLORS.ink;
 
     return (
         <Pressable
@@ -248,11 +256,16 @@ export function IconButton({
             }}
             accessibilityRole="button"
             accessibilityLabel={label}
+            accessibilityState={active ? { selected: true } : undefined}
             hitSlop={6}
             className={`items-center justify-center rounded-full active:scale-95 ${surface} ${className}`}
-            style={[{ width: TOUCH_MIN, height: TOUCH_MIN }, tone === 'onPhoto' ? { backgroundColor: 'rgba(0,0,0,0.45)' } : null]}
+            style={[
+                { width: TOUCH_MIN, height: TOUCH_MIN },
+                tone === 'onPhoto' ? { backgroundColor: 'rgba(0,0,0,0.45)' } : null,
+                tone === 'floating' ? shadowSoft : null,
+            ]}
         >
-            <Icon color={color} size={22} strokeWidth={2} />
+            <Icon color={color} fill={active ? COLORS.accent : 'transparent'} size={22} strokeWidth={2} />
         </Pressable>
     );
 }
@@ -260,7 +273,7 @@ export function IconButton({
 export const BackButton = ({ onPress, variant = 'arrow', tone = 'surface' }: {
     onPress: () => void;
     variant?: 'arrow' | 'close';
-    tone?: 'surface' | 'onPhoto' | 'plain';
+    tone?: 'surface' | 'onPhoto' | 'plain' | 'floating';
 }) => (
     <IconButton
         icon={variant === 'close' ? X : ArrowLeft}
@@ -339,8 +352,8 @@ export function Field({
             <TypeText variant="eyebrow" tone="tertiary" className="mb-2">{label}</TypeText>
 
             <View
-                className={`${FIELD_BASE} ${multiline ? 'py-3' : 'flex-row items-center gap-3'}`}
-                style={{ borderColor, ...(multiline ? { minHeight: 116 } : { height: 56 }) }}
+                className={`${FIELD_BASE} ${multiline ? 'py-3' : 'flex-row items-center'}`}
+                style={{ borderColor, ...(multiline ? { minHeight: 116 } : { height: 56, gap: 12 }) }}
             >
                 {Icon && !multiline ? <Icon color={COLORS.inkFaint} size={20} /> : null}
                 <TextInput
@@ -358,7 +371,7 @@ export function Field({
             {/* Helper, error and counter share one row so the field never grows a
                 stray gap below it. */}
             {(helper || error || counter) && (
-                <View className="flex-row items-start justify-between mt-2 gap-4">
+                <View className="flex-row items-start justify-between mt-2" style={{ gap: 16 }}>
                     <Text
                         className={`flex-1 text-caption font-body ${error ? 'text-danger' : 'text-ink-faint'}`}
                         accessibilityRole={error ? 'alert' : undefined}

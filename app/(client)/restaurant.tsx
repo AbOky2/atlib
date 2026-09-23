@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator, Share, type LayoutChangeEvent } from 'react-native';
+import { View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator, Share, Animated, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Heart, Share2, Star, Clock, Bike, Plus, Utensils, Store, WifiOff } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowLeft, Heart, Share2, Star, Clock, Bike, MapPin, Plus, Utensils, Store, WifiOff, type LucideIcon } from 'lucide-react-native';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -13,7 +14,7 @@ import { useDishes, useRestaurant } from '../../src/data/catalogue';
 import { DishCustomizationModal } from '../../src/components/DishCustomizationModal';
 import { RemoteImage } from '../../src/components/RemoteImage';
 import { ClosedBadge } from '../../src/components/ClosedBadge';
-import { ScreenHeader, useHeaderOffset } from '../../src/components/ScreenHeader';
+import { ScreenHeader, useHeaderInsetTop, useHeaderOffset, HEADER_CONTENT_HEIGHT } from '../../src/components/ScreenHeader';
 import { Button, EmptyState, IconButton, TypeText, BottomActionBar, BOTTOM_BAR_CLEARANCE, SCREEN_GUTTER, TOUCH_MIN } from '../../src/components/ui';
 import { BRAND_FULL } from '../../src/lib/brand';
 import { getEstimatedDeliveryTime } from '../../src/lib/localities';
@@ -22,7 +23,80 @@ import { shadowFloat } from '../../src/lib/elevation';
 import { isAcceptingOrders, CLOSED_NOTICE } from '../../src/lib/availability';
 import { COLORS } from '../../src/lib/palette';
 
-const HERO_HEIGHT = 320;
+/** The photo owns the top of the screen; the app bar floats over it until it is scrolled away. */
+const HERO_HEIGHT = 300;
+/** Distance, in points, over which the bar turns from transparent to solid. */
+const HEADER_FADE = 64;
+
+/**
+ * App bar of a screen that starts with a picture.
+ *
+ * Transparent while the photo is under it, with white discs that read on any
+ * image; fades to the standard solid bar — and reveals the name — as the hero
+ * leaves the screen. `progress` (0 → 1) is driven by the scroll position.
+ */
+function HeroHeader({
+    title,
+    progress,
+    favourite,
+    onBack,
+    onToggleFavourite,
+    onShare,
+}: {
+    title: string;
+    progress: Animated.AnimatedInterpolation<number>;
+    favourite: boolean;
+    onBack: () => void;
+    onToggleFavourite: () => void;
+    onShare: () => void;
+}) {
+    const insetTop = useHeaderInsetTop();
+    return (
+        <View className="absolute top-0 left-0 right-0 z-50" pointerEvents="box-none">
+            <Animated.View pointerEvents="none" className="absolute top-0 left-0 right-0 bottom-0 bg-surface border-b border-hairline" style={{ opacity: progress }} />
+            <View
+                style={{ paddingTop: insetTop, height: insetTop + HEADER_CONTENT_HEIGHT, paddingHorizontal: SCREEN_GUTTER }}
+                className="flex-row items-center"
+                pointerEvents="box-none"
+            >
+                <View style={{ minWidth: TOUCH_MIN }} className="items-start">
+                    <IconButton icon={ArrowLeft} tone="floating" label="Retour" onPress={onBack} />
+                </View>
+                <Animated.View className="flex-1 items-center px-2" style={{ opacity: progress }} pointerEvents="none">
+                    <Text numberOfLines={1} className="text-h3 font-title tracking-tight text-ink">{title}</Text>
+                </Animated.View>
+                <View className="flex-row items-center" style={{ gap: 8 }}>
+                    <IconButton
+                        icon={Heart}
+                        tone="floating"
+                        active={favourite}
+                        label={favourite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                        onPress={onToggleFavourite}
+                    />
+                    <IconButton icon={Share2} tone="floating" label="Partager ce restaurant" onPress={onShare} />
+                </View>
+            </View>
+        </View>
+    );
+}
+
+/** One fact about the delivery — fee, time — as a quiet pill. */
+function Fact({ icon: Icon, label, onPress }: { icon: LucideIcon; label: string; onPress?: () => void }) {
+    const body = (
+        <>
+            <Icon color={COLORS.ink} size={16} strokeWidth={2} />
+            <Text className="text-label font-label text-ink" numberOfLines={1}>{label}</Text>
+        </>
+    );
+    const className = 'flex-row items-center bg-fill rounded-full px-3';
+    const style = { height: 36, gap: 6 };
+    if (!onPress) return <View className={className} style={style}>{body}</View>;
+    return (
+        <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} className={`${className} active:bg-fill-strong`} style={style}>
+            {body}
+        </Pressable>
+    );
+}
 
 export default function RestaurantDetailsScreen() {
     const insets = useSafeAreaInsets();
@@ -44,8 +118,16 @@ export default function RestaurantDetailsScreen() {
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
     const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
     const scrollRef = useRef<ScrollView>(null);
+    const scrollY = useRef(new Animated.Value(0)).current;
     const sectionOffsets = useRef<Record<string, number>>({});
     const menuTop = useRef(0);
+    const barHeight = useRef(0);
+
+    const headerProgress = scrollY.interpolate({
+        inputRange: [HERO_HEIGHT - headerOffset - HEADER_FADE, HERO_HEIGHT - headerOffset],
+        outputRange: [0, 1],
+        extrapolate: 'clamp',
+    });
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
@@ -115,12 +197,13 @@ export default function RestaurantDetailsScreen() {
         if (categories.length > 0 && !activeCategory) setActiveCategory(categories[0]);
     }, [categories, activeCategory]);
 
-    // The category bar is a real table of contents: it scrolls to the section.
+    // The category bar is a real table of contents: it scrolls to the section,
+    // which lands just under the bar once it is stuck beneath the app bar.
     const jumpTo = (category: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setActiveCategory(category);
         const y = sectionOffsets.current[category];
-        if (y != null) scrollRef.current?.scrollTo({ y: menuTop.current + y - 72, animated: true });
+        if (y != null) scrollRef.current?.scrollTo({ y: menuTop.current + y - headerOffset - barHeight.current - 8, animated: true });
     };
 
     if (loadingRestaurant && !restaurant) {
@@ -149,86 +232,74 @@ export default function RestaurantDetailsScreen() {
         );
     }
 
-    // The sticky element is the category bar. Its index shifts when the closed
-    // notice is inserted above it, so it is derived rather than hardcoded.
-    const stickyIndex = isOpen ? 1 : 2;
+    // Children of the scroll view: hero, identity, [closed notice], category bar,
+    // menu. The sticky one is the bar, so its index moves with the notice.
+    const stickyIndex = isOpen ? 2 : 3;
     const showCartBar = cartItems > 0 && isOpen;
+    const genre = restaurant.genre?.split(',')[0]?.trim() || null;
 
     return (
         <View className="flex-1 bg-background">
-            <ScreenHeader
+            <HeroHeader
                 title={restaurant.name}
-                back="arrow"
+                progress={headerProgress}
+                favourite={isFav}
                 onBack={() => router.back()}
-                centerTitle
-                right={
-                    <View className="flex-row items-center gap-2">
-                        <IconButton
-                            icon={Heart}
-                            label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                            onPress={() => {
-                                const added = toggleFavorite(id ?? '');
-                                showToast(added ? 'Ajouté aux favoris' : 'Retiré des favoris');
-                            }}
-                        />
-                        <IconButton
-                            icon={Share2}
-                            label="Partager ce restaurant"
-                            onPress={() => { Share.share({ message: `Découvrez ${restaurant.name} sur ${BRAND_FULL} !` }).catch(() => {}); }}
-                        />
-                    </View>
-                }
+                onToggleFavourite={() => {
+                    const added = toggleFavorite(id ?? '');
+                    showToast(added ? 'Ajouté aux favoris' : 'Retiré des favoris');
+                }}
+                onShare={() => { Share.share({ message: `Découvrez ${restaurant.name} sur ${BRAND_FULL} !` }).catch(() => {}); }}
             />
 
-            <ScrollView
+            <Animated.ScrollView
                 ref={scrollRef}
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
                 stickyHeaderIndices={[stickyIndex]}
-                contentContainerStyle={{ paddingTop: headerOffset, paddingBottom: showCartBar ? BOTTOM_BAR_CLEARANCE + insets.bottom : Math.max(insets.bottom, 24) + 16 }}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.ink} progressViewOffset={headerOffset} />}
+                onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+                scrollEventThrottle={16}
+                contentContainerStyle={{ paddingBottom: showCartBar ? BOTTOM_BAR_CLEARANCE + insets.bottom : Math.max(insets.bottom, 24) + 16 }}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.white} progressViewOffset={headerOffset} />}
             >
-                {/* Hero */}
-                <View className="relative w-full overflow-hidden bg-ink" style={{ height: HERO_HEIGHT }}>
-                    <RemoteImage uri={restaurant.image_url} displayWidth={430} className="w-full h-full" />
-                    <View className="absolute inset-0 bg-black/40" />
-                    <View className="absolute bottom-0 left-0 w-full pb-6" style={{ paddingHorizontal: SCREEN_GUTTER }}>
-                        <View className="flex-row items-center gap-2 mb-3">
-                            <View className="flex-row items-center gap-2 bg-accent px-3 rounded-full" style={{ height: 28 }}>
+                {/* 0 — Hero: the photo, full bleed under the floating bar */}
+                <View className="w-full overflow-hidden bg-ink" style={{ height: HERO_HEIGHT }}>
+                    <RemoteImage uri={restaurant.image_url} displayWidth={430} className="w-full h-full" style={{ opacity: isOpen ? 1 : 0.6 }} />
+                    {/* A light veil at the top keeps the white discs legible on a pale sky. */}
+                    <LinearGradient
+                        pointerEvents="none"
+                        colors={['rgba(0,0,0,0.28)', 'rgba(0,0,0,0)']}
+                        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: headerOffset + 32 }}
+                    />
+                    {!isOpen ? <View className="absolute bottom-5" style={{ left: SCREEN_GUTTER }}><ClosedBadge /></View> : null}
+                </View>
+
+                {/* 1 — Identity: the name, the cuisine, the two facts a customer asks first */}
+                <View className="pt-5 pb-3" style={{ paddingHorizontal: SCREEN_GUTTER }}>
+                    <Text className="text-h1 font-display tracking-tighter text-ink" accessibilityRole="header">
+                        {restaurant.name}
+                    </Text>
+                    <View className="flex-row items-center mt-2" style={{ gap: 6 }}>
+                        {restaurant.rating != null ? (
+                            <>
                                 <Star fill={COLORS.ink} color={COLORS.ink} size={14} strokeWidth={2} />
-                                <Text className="text-ink text-eyebrow font-labelbold tracking-eyebrow uppercase">
-                                    {restaurant.genre?.split(',')[0] ?? 'Recommandé'}
-                                </Text>
-                            </View>
-                            {!isOpen && <ClosedBadge />}
-                        </View>
-                        <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} className="text-h1 font-display tracking-tight text-white" accessibilityRole="header">
-                            {restaurant.name}
-                        </Text>
-                        <View className="flex-row flex-wrap items-center gap-x-6 gap-y-2 mt-4">
-                            {restaurant.rating != null ? (
-                                <View className="flex-row items-center gap-1">
-                                    <Star fill={COLORS.white} color={COLORS.white} size={16} strokeWidth={2} />
-                                    <Text className="text-white text-body font-label">{restaurant.rating}</Text>
-                                </View>
-                            ) : null}
-                            {estimate ? (
-                                <View className="flex-row items-center gap-1">
-                                    <Clock color={COLORS.white} size={16} strokeWidth={2} />
-                                    <Text className="text-white text-body font-label">{estimate}</Text>
-                                </View>
-                            ) : null}
-                            <View className="flex-row items-center gap-1">
-                                <Bike color={COLORS.white} size={16} strokeWidth={2} />
-                                <Text className="text-white text-body font-label">Livraison {formatXaf(DELIVERY_FEE_XAF)}</Text>
-                            </View>
-                        </View>
+                                <Text className="text-label font-labelbold text-ink">{restaurant.rating}</Text>
+                                {genre ? <View className="w-1 h-1 rounded-full bg-ink-disabled" /> : null}
+                            </>
+                        ) : null}
+                        {genre ? <Text className="text-label font-body text-ink-muted flex-shrink" numberOfLines={1}>{genre}</Text> : null}
+                    </View>
+                    <View className="flex-row flex-wrap mt-4" style={{ gap: 8 }}>
+                        <Fact icon={Bike} label={`Livraison ${formatXaf(DELIVERY_FEE_XAF)}`} />
+                        {estimate && selectedAddress
+                            ? <Fact icon={Clock} label={`${estimate} · ${selectedAddress.locality}`} />
+                            : <Fact icon={MapPin} label="Choisir une adresse" onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/addresses'); }} />}
                     </View>
                 </View>
 
-                {/* Closed notice — stated once, plainly, before the menu */}
+                {/* 2 — Closed notice: stated once, plainly, before the menu */}
                 {!isOpen && (
-                    <View className="mt-6 mb-2 flex-row items-center gap-3 rounded-panel border border-hairline bg-surface px-5 py-4" style={{ marginHorizontal: SCREEN_GUTTER }}>
+                    <View className="mt-3 mb-2 flex-row items-center rounded-panel border border-hairline bg-surface px-5 py-4" style={{ gap: 12, marginHorizontal: SCREEN_GUTTER }}>
                         <View className="w-9 h-9 rounded-full bg-fill items-center justify-center">
                             <Clock color={COLORS.ink} size={18} strokeWidth={2} />
                         </View>
@@ -238,31 +309,40 @@ export default function RestaurantDetailsScreen() {
                     </View>
                 )}
 
-                {/* Category bar — sticky, and a real table of contents */}
-                <View className="bg-background py-3 border-b border-hairline z-40">
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SCREEN_GUTTER, gap: 8 }}>
-                        {categories.map((cat) => {
-                            const active = activeCategory === cat;
-                            return (
-                                <Pressable
-                                    key={cat}
-                                    onPress={() => jumpTo(cat)}
-                                    accessibilityRole="tab"
-                                    accessibilityState={{ selected: active }}
-                                    className={`px-4 rounded-full items-center justify-center ${active ? 'bg-ink' : 'bg-fill'}`}
-                                    style={{ height: 36 }}
-                                >
-                                    <Text className={`text-label font-labelbold ${active ? 'text-white' : 'text-ink-muted'}`}>{cat}</Text>
-                                </Pressable>
-                            );
-                        })}
-                    </ScrollView>
+                {/* Category bar — sticky under the app bar.
+                    It carries a transparent top padding the height of the bar and
+                    pulls itself up by the same amount: nothing moves while it
+                    scrolls, and once stuck the chips sit exactly below the (by then
+                    solid) app bar instead of under it. */}
+                <View className="z-40" style={{ marginTop: -headerOffset, paddingTop: headerOffset }} pointerEvents="box-none">
+                    <View
+                        className="bg-background py-3 border-b border-hairline"
+                        onLayout={(e: LayoutChangeEvent) => { barHeight.current = e.nativeEvent.layout.height; }}
+                    >
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SCREEN_GUTTER, gap: 8 }}>
+                            {categories.map((cat) => {
+                                const active = activeCategory === cat;
+                                return (
+                                    <Pressable
+                                        key={cat}
+                                        onPress={() => jumpTo(cat)}
+                                        accessibilityRole="tab"
+                                        accessibilityState={{ selected: active }}
+                                        className={`px-4 rounded-full items-center justify-center ${active ? 'bg-ink' : 'bg-fill'}`}
+                                        style={{ height: 36 }}
+                                    >
+                                        <Text className={`text-label font-labelbold ${active ? 'text-white' : 'text-ink-muted'}`}>{cat}</Text>
+                                    </Pressable>
+                                );
+                            })}
+                        </ScrollView>
+                    </View>
                 </View>
 
                 {/* Menu — every dish uses ONE uniform row */}
                 <View
-                    className="pt-8 gap-10"
-                    style={{ paddingHorizontal: SCREEN_GUTTER }}
+                    className="pt-8"
+                    style={{ gap: 40, paddingHorizontal: SCREEN_GUTTER }}
                     onLayout={(e: LayoutChangeEvent) => { menuTop.current = e.nativeEvent.layout.y; }}
                 >
                     {loadingMenu && categories.length === 0 && (
@@ -288,19 +368,20 @@ export default function RestaurantDetailsScreen() {
 
                         return (
                             <View key={`section-${category}`} onLayout={(e: LayoutChangeEvent) => { sectionOffsets.current[category] = e.nativeEvent.layout.y; }}>
-                                <View className="flex-row items-center gap-4 mb-5">
+                                <View className="flex-row items-center mb-5" style={{ gap: 16 }}>
                                     <Text className="text-h3 font-title tracking-tight text-ink" accessibilityRole="header">{category}</Text>
                                     <View className="h-px flex-1 bg-hairline" />
                                 </View>
 
-                                <View className="gap-6">
+                                <View style={{ gap: 24 }}>
                                     {items.map((item) => (
                                         <Pressable
                                             key={item.id}
                                             onPress={() => openDish(item)}
                                             accessibilityRole="button"
                                             accessibilityLabel={`${item.name}, ${formatXaf(item.price_xaf)}`}
-                                            className="flex-row gap-4 items-start active:opacity-70"
+                                            className="flex-row items-start active:opacity-70"
+                                            style={{ gap: 16 }}
                                         >
                                             <View className="flex-1 pt-1">
                                                 <Text numberOfLines={2} className="font-heading tracking-tight text-h3 text-ink">{item.name}</Text>
@@ -336,7 +417,7 @@ export default function RestaurantDetailsScreen() {
                         );
                     })}
                 </View>
-            </ScrollView>
+            </Animated.ScrollView>
 
             {showCartBar && (
                 <BottomActionBar>

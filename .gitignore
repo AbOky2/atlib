@@ -55,3 +55,6 @@ modules/**/build/
 
 # Supabase CLI link cache (machine-specific)
 supabase/.temp/
+
+# Sauvegardes locales du dossier natif (jamais versionnées)
+ios.bak-*/

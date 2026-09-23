@@ -176,8 +176,8 @@ export default function RestaurantDashboard() {
                         accessibilityRole="switch"
                         accessibilityState={{ checked: open, disabled: togglingOpen }}
                         accessibilityLabel={open ? 'Fermer les commandes' : 'Ouvrir les commandes'}
-                        className={`px-4 rounded-full flex-row items-center gap-2 active:scale-95 ${open ? 'bg-success' : 'bg-fill-dark-strong'}`}
-                        style={{ height: 44, opacity: togglingOpen ? 0.6 : 1 }}
+                        className={`px-4 rounded-full flex-row items-center active:scale-95 ${open ? 'bg-success' : 'bg-fill-dark-strong'}`}
+                        style={{ gap: 8, height: 44, opacity: togglingOpen ? 0.6 : 1 }}
                     >
                         <Power color={open ? COLORS.white : COLORS.onDarkMuted} size={16} strokeWidth={2.4} />
                         <Text className={`font-labelbold text-label ${open ? 'text-on-dark' : 'text-on-dark-muted'}`}>
@@ -202,7 +202,7 @@ export default function RestaurantDashboard() {
                                 }}
                                 accessibilityRole="tab"
                                 accessibilityState={{ selected }}
-                                className={`flex-1 h-11 rounded-chip items-center justify-center flex-row gap-2 ${selected ? 'bg-fill-dark-strong' : ''}`}
+                                className={`flex-1 h-11 rounded-chip items-center justify-center flex-row ${selected ? 'bg-fill-dark-strong' : ''}`} style={{ gap: 8 }}
                             >
                                 <Icon color={selected ? COLORS.white : COLORS.onDarkFaint} size={16} strokeWidth={2} />
                                 <Text className={`text-label font-labelbold ${selected ? 'text-on-dark' : 'text-on-dark-faint'}`}>
@@ -356,8 +356,8 @@ function OrderCard({
                             }}
                             accessibilityRole="button"
                             accessibilityLabel={`Appeler ${order.customer_name ?? 'le client'}`}
-                            className="px-4 rounded-full bg-accent flex-row items-center gap-2 active:scale-95"
-                            style={{ minHeight: 44 }}
+                            className="px-4 rounded-full bg-accent flex-row items-center active:scale-95"
+                            style={{ gap: 8, minHeight: 44 }}
                         >
                             <Phone color={COLORS.ink} size={16} strokeWidth={2} />
                             <Text className="text-ink font-labelbold text-label">{order.customer_phone}</Text>
@@ -368,14 +368,14 @@ function OrderCard({
                 <View className="h-px bg-hairline-dark w-full mb-3" />
 
                 {/* Where, and how to find it */}
-                <View className="flex-row items-start gap-2 mb-1">
+                <View className="flex-row items-start mb-1" style={{ gap: 8 }}>
                     <MapPin color={COLORS.onDarkFaint} size={16} strokeWidth={2} style={{ marginTop: 3 }} />
                     <TypeText tone="onDarkMuted" className="flex-1">
                         {order.delivery_address || order.delivery_zone || 'Adresse non précisée'}
                     </TypeText>
                 </View>
                 {order.delivery_note ? (
-                    <View className="flex-row items-start gap-2 mb-3">
+                    <View className="flex-row items-start mb-3" style={{ gap: 8 }}>
                         <MessageSquare color={COLORS.onDarkFaint} size={16} strokeWidth={2} style={{ marginTop: 3 }} />
                         <TypeText tone="onDark" className="flex-1">{order.delivery_note}</TypeText>
                     </View>
@@ -398,7 +398,7 @@ function OrderCard({
 
                 {/* The change to prepare BEFORE leaving — the doorstep argument, avoided */}
                 {change != null && change > 0 ? (
-                    <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-hairline-dark">
+                    <View className="flex-row items-center mt-3 pt-3 border-t border-hairline-dark" style={{ gap: 8 }}>
                         <Coins color={COLORS.accent} size={16} strokeWidth={2} />
                         <TypeText tone="onDarkMuted" className="flex-1">
                             Paie avec {formatXaf(order.cash_paid_with_xaf)} · à rendre
@@ -406,7 +406,7 @@ function OrderCard({
                         <Text className="text-accent font-title text-bodylg">{formatXaf(change)}</Text>
                     </View>
                 ) : order.cash_paid_with_xaf == null && isLive(order.status) ? (
-                    <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-hairline-dark">
+                    <View className="flex-row items-center mt-3 pt-3 border-t border-hairline-dark" style={{ gap: 8 }}>
                         <Coins color={COLORS.onDarkFaint} size={16} strokeWidth={2} />
                         <TypeText tone="onDarkFaint" className="flex-1">Le client aura l'appoint</TypeText>
                     </View>
@@ -414,7 +414,7 @@ function OrderCard({
             </View>
 
             {action || canCancel ? (
-                <View className="gap-2">
+                <View className="" style={{ gap: 8 }}>
                     {action ? (
                         <Button
                             label={action.label}

@@ -159,7 +159,7 @@ function TimelineStep({
 
 function InfoRow({ icon: Icon, label, value, muted = false }: { icon: LucideIcon; label: string; value: string; muted?: boolean }) {
     return (
-        <View className="flex-row items-start gap-4">
+        <View className="flex-row items-start" style={{ gap: 16 }}>
             <View className="w-10 h-10 rounded-full bg-fill items-center justify-center">
                 <Icon color={COLORS.ink} size={18} strokeWidth={2} />
             </View>
@@ -327,8 +327,8 @@ export default function TrackingScreen() {
                         }}
                         accessibilityRole="button"
                         accessibilityLabel="Contacter l'assistance"
-                        className="px-4 rounded-full bg-fill flex-row items-center gap-2 active:scale-95"
-                        style={{ height: TOUCH_MIN }}
+                        className="px-4 rounded-full bg-fill flex-row items-center active:scale-95"
+                        style={{ gap: 8, height: TOUCH_MIN }}
                     >
                         <LifeBuoy color={COLORS.ink} size={18} strokeWidth={2} />
                         <Text className="text-label font-labelbold text-ink">Aide</Text>
@@ -352,7 +352,7 @@ export default function TrackingScreen() {
                     arrival time belongs here — otherwise those users would have
                     no time information anywhere in the product. */}
                 {live && Platform.OS !== 'ios' && index >= 1 && arrival && (
-                    <View className="flex-row items-center gap-3 bg-fill rounded-card px-4 py-3 mb-6">
+                    <View className="flex-row items-center bg-fill rounded-card px-4 py-3 mb-6" style={{ gap: 12 }}>
                         <View className="w-9 h-9 rounded-full bg-ink items-center justify-center">
                             <Clock color={COLORS.white} size={16} strokeWidth={2} />
                         </View>
@@ -365,7 +365,7 @@ export default function TrackingScreen() {
                 {/* Live Activity hint — shown ONLY when one is really running,
                     so the app never claims a lock-screen tracker it doesn't have. */}
                 {live && Platform.OS === 'ios' && index >= 1 && activityRunning && (
-                    <View className="flex-row items-center gap-3 bg-fill rounded-card px-4 py-3 mb-6">
+                    <View className="flex-row items-center bg-fill rounded-card px-4 py-3 mb-6" style={{ gap: 12 }}>
                         <View className="w-9 h-9 rounded-full bg-ink items-center justify-center">
                             <Smartphone color={COLORS.white} size={16} strokeWidth={2} />
                         </View>
@@ -398,7 +398,7 @@ export default function TrackingScreen() {
                 )}
 
                 {/* Route and delivery details */}
-                <Card className="p-5 mb-6 gap-4">
+                <Card className="p-5 mb-6" style={{ gap: 16 }}>
                     <InfoRow icon={UtensilsCrossed} label="Restaurant" value={activeOrder.restaurant_name || 'Restaurant'} />
                     <Divider />
                     <InfoRow icon={MapPin} label="Livraison" value={activeOrder.delivery_address || neighborhood || 'Votre adresse'} />
@@ -429,13 +429,13 @@ export default function TrackingScreen() {
                             accessibilityLabel={`Détails de la commande, ${items.length} article${items.length > 1 ? 's' : ''}, total ${formatXaf(orderTotal)}`}
                             className="w-full px-5 py-5 flex-row justify-between items-center active:bg-fill"
                         >
-                            <View className="flex-row items-center gap-3">
+                            <View className="flex-row items-center" style={{ gap: 12 }}>
                                 <Receipt color={COLORS.ink} size={20} strokeWidth={2} />
                                 <Text className="font-labelbold text-body tracking-tight text-ink">
                                     Détails · {items.length} article{items.length > 1 ? 's' : ''}
                                 </Text>
                             </View>
-                            <View className="flex-row items-center gap-3">
+                            <View className="flex-row items-center" style={{ gap: 12 }}>
                                 <Text className="text-body font-title text-ink">{formatXaf(orderTotal)}</Text>
                                 {isOrderDetailsExpanded
                                     ? <ChevronUp color={COLORS.inkFaint} size={20} strokeWidth={2} />
@@ -445,10 +445,10 @@ export default function TrackingScreen() {
 
                         {isOrderDetailsExpanded && (
                             <View className="px-5 pb-5 border-t border-hairline">
-                                <View className="pt-4 gap-3">
+                                <View className="pt-4" style={{ gap: 12 }}>
                                     {items.map((item) => (
                                         <View key={item.id} className="flex-row justify-between items-start">
-                                            <View className="flex-row gap-3 items-start flex-1 pr-4">
+                                            <View className="flex-row items-start flex-1 pr-4" style={{ gap: 12 }}>
                                                 <View className="w-7 h-7 bg-fill rounded-chip items-center justify-center">
                                                     <Text className="text-caption font-labelbold text-ink">{item.quantity}</Text>
                                                 </View>

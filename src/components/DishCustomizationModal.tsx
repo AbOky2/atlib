@@ -226,7 +226,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                                 </View>
                                             ) : null}
                                         </View>
-                                        <View className="gap-2">
+                                        <View className="" style={{ gap: 8 }}>
                                             {group.options.map((opt) => {
                                                 const isSel = (selected[group.id] ?? []).includes(opt.id);
                                                 return (
@@ -245,7 +245,7 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
                                                         <Text className="text-body font-label text-ink flex-1 pr-3">
                                                             {opt.label}
                                                         </Text>
-                                                        <View className="flex-row items-center gap-3">
+                                                        <View className="flex-row items-center" style={{ gap: 12 }}>
                                                             {opt.priceDelta ? (
                                                                 <Text className="text-caption font-labelbold text-ink-muted">
                                                                     +{formatPrice(opt.priceDelta)}
@@ -288,8 +288,8 @@ export function DishCustomizationModal({ dish, restaurantName, onClose, onConfir
 
                         {/* Sticky action bar — the shared stepper and CTA on one line. */}
                         <View
-                            className="border-t border-hairline bg-surface flex-row items-center gap-3"
-                            style={{ paddingHorizontal: SCREEN_GUTTER, paddingBottom: Math.max(insets.bottom, 16), paddingTop: 12 }}
+                            className="border-t border-hairline bg-surface flex-row items-center"
+                            style={{ gap: 12, paddingHorizontal: SCREEN_GUTTER, paddingBottom: Math.max(insets.bottom, 16), paddingTop: 12 }}
                         >
                             <QuantityStepper value={quantity} onChange={setQuantity} />
                             <View className="flex-1">

@@ -104,7 +104,7 @@ export function MenuManager({ restaurantId }: { restaurantId: string | undefined
             {sections.map(([category, items]) => (
                 <View key={category} className="mb-8">
                     <TypeText variant="eyebrow" tone="onDarkFaint" className="mb-3">{category}</TypeText>
-                    <View className="gap-2">
+                    <View className="" style={{ gap: 8 }}>
                         {items.map((dish) => {
                             const available = dish.is_available !== false;
                             const busy = !!pending[dish.id];
@@ -115,8 +115,8 @@ export function MenuManager({ restaurantId }: { restaurantId: string | undefined
                                     accessibilityRole="switch"
                                     accessibilityState={{ checked: available, disabled: busy }}
                                     accessibilityLabel={`${dish.name}, ${available ? 'disponible' : 'retiré de la carte'}`}
-                                    className="flex-row items-center gap-4 bg-ink-800 rounded-panel p-3 border border-hairline-dark active:scale-[0.99]"
-                                    style={{ opacity: busy ? 0.6 : 1, minHeight: 80 }}
+                                    className="flex-row items-center bg-ink-800 rounded-panel p-3 border border-hairline-dark active:scale-[0.99]"
+                                    style={{ gap: 16, opacity: busy ? 0.6 : 1, minHeight: 80 }}
                                 >
                                     <View className="w-14 h-14 rounded-card overflow-hidden bg-ink-900 items-center justify-center" style={{ opacity: available ? 1 : 0.35 }}>
                                         {dish.image_url ? (

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Share } from 'react-native';
-import { Bell, Award, Heart, HelpCircle, Gift, ChevronRight, Package, Store, ShieldCheck, Trash2, type LucideIcon } from 'lucide-react-native';
+import { Bell, Heart, HelpCircle, Gift, ChevronRight, Package, Store, ShieldCheck, Trash2, type LucideIcon } from 'lucide-react-native';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -15,8 +15,8 @@ import { useMyRestaurantId } from '../../../src/data/restaurantAdmin';
 import { ACCOUNT_ERRORS } from '../../../src/data/account';
 import { ScreenHeader, useHeaderOffset } from '../../../src/components/ScreenHeader';
 import { useBottomClearance } from '../../../src/components/ActiveOrderBanner';
-import { Button, TypeText, SCREEN_GUTTER, TOUCH_MIN } from '../../../src/components/ui';
-import { BRAND, BRAND_FULL, BRAND_CITY } from '../../../src/lib/brand';
+import { Button, Card, TypeText, SCREEN_GUTTER, TOUCH_MIN } from '../../../src/components/ui';
+import { BRAND_FULL, BRAND_CITY } from '../../../src/lib/brand';
 import { openSupportChat } from '../../../src/lib/support';
 import { COLORS } from '../../../src/lib/palette';
 
@@ -140,22 +140,19 @@ export default function ProfileScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 {/* Identity */}
-                <View className="flex-row items-center gap-4 mb-10">
+                <View className="flex-row items-center mb-10" style={{ gap: 16 }}>
                     <View className="w-14 h-14 rounded-full bg-ink items-center justify-center">
                         <Text className="text-h2 font-title text-white">{initial}</Text>
                     </View>
                     <View className="flex-1">
                         <Text className="text-h1 font-display tracking-tight text-ink" numberOfLines={1}>{displayName}</Text>
                         {phone ? <TypeText variant="caption" tone="secondary" className="mt-1">{formatChadPhone(phone)} · Numéro vérifié</TypeText> : null}
-                        <View className="flex-row items-center px-3 bg-ink rounded-full gap-2 self-start mt-2" style={{ height: 24 }}>
-                            <Award color={COLORS.white} size={14} strokeWidth={2} />
-                            <Text className="text-eyebrow font-label tracking-eyebrow uppercase text-white">Membre {BRAND}</Text>
-                        </View>
+                        {user?.email ? <TypeText variant="caption" tone="tertiary" className="mt-1" numberOfLines={1}>{user.email}</TypeText> : null}
                     </View>
                 </View>
 
                 {/* Real numbers only */}
-                <View className="flex-row gap-4 mb-10">
+                <View className="flex-row mb-10" style={{ gap: 16 }}>
                     <StatTile label="Commandes" value={orderCount} />
                     <StatTile label="Favoris" value={favoritesCount} />
                 </View>
@@ -182,8 +179,8 @@ export default function ProfileScreen() {
                 </View>
 
                 {/* Account */}
-                <TypeText variant="eyebrow" tone="tertiary" className="px-2 mb-4">Compte</TypeText>
-                <View className="gap-2 mb-10">
+                <TypeText variant="eyebrow" tone="tertiary" className="mb-3">Compte</TypeText>
+                <SettingsGroup className="mb-8">
                     {/* Staff entry point — shown only when the account is linked to a restaurant. */}
                     {myRestaurantId ? (
                         <SettingItem icon={Store} accent label="Espace restaurant" onPress={() => router.push('/(restaurant)/dashboard')} />
@@ -191,14 +188,14 @@ export default function ProfileScreen() {
                     <SettingItem icon={Heart} label="Favoris" onPress={() => router.push('/favorites')} />
                     <SettingItem icon={Package} label="Mes commandes" onPress={() => router.push('/orders')} />
                     <SettingItem icon={HelpCircle} label="Aide" onPress={handleHelp} />
-                </View>
+                </SettingsGroup>
 
                 {/* Privacy — the two things the stores require to be reachable in-app. */}
-                <TypeText variant="eyebrow" tone="tertiary" className="px-2 mb-4">Confidentialité</TypeText>
-                <View className="gap-2 mb-10">
+                <TypeText variant="eyebrow" tone="tertiary" className="mb-3">Confidentialité</TypeText>
+                <SettingsGroup className="mb-10">
                     <SettingItem icon={ShieldCheck} label="Politique de confidentialité" onPress={() => router.push('/privacy')} />
                     {user ? <SettingItem icon={Trash2} label="Supprimer mon compte" destructive onPress={handleDeleteAccount} /> : null}
-                </View>
+                </SettingsGroup>
 
                 <View className="items-center">
                     {user ? (
@@ -222,6 +219,27 @@ function StatTile({ label, value }: { label: string; value: number }) {
     );
 }
 
+/**
+ * A grouped list, the way Settings does it: one surface, rows separated by a
+ * hairline that starts after the icon column — not a stack of pills.
+ */
+function SettingsGroup({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+    const rows = React.Children.toArray(children).filter(Boolean);
+    return (
+        <Card className={`overflow-hidden ${className}`}>
+            {rows.map((row, i) => (
+                <View key={i}>
+                    {i > 0 ? <View className="h-px bg-hairline" style={{ marginLeft: SETTING_TEXT_INSET }} /> : null}
+                    {row}
+                </View>
+            ))}
+        </Card>
+    );
+}
+
+/** 16 pt padding + 36 pt icon disc + 14 pt gap: where the text of a row starts. */
+const SETTING_TEXT_INSET = 16 + 36 + 14;
+
 function SettingItem({ icon: Icon, label, onPress, accent = false, destructive = false }: {
     icon: LucideIcon; label: string; onPress: () => void; accent?: boolean; destructive?: boolean;
 }) {
@@ -231,16 +249,14 @@ function SettingItem({ icon: Icon, label, onPress, accent = false, destructive =
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onPress(); }}
             accessibilityRole="button"
             accessibilityLabel={label}
-            className="flex-row items-center justify-between px-4 bg-fill active:bg-fill-strong rounded-panel"
-            style={{ height: 64 }}
+            className="flex-row items-center px-4 active:bg-fill"
+            style={{ height: 60, gap: 14 }}
         >
-            <View className="flex-row items-center gap-4 flex-1">
-                <View className="w-10 h-10 rounded-full bg-surface items-center justify-center">
-                    <Icon color={color} size={20} strokeWidth={2} />
-                </View>
-                <Text className={`font-labelbold text-bodylg ${destructive ? 'text-danger' : 'text-ink'}`} numberOfLines={1}>{label}</Text>
+            <View className={`w-9 h-9 rounded-full items-center justify-center ${destructive ? 'bg-danger-soft' : accent ? 'bg-accent-soft' : 'bg-fill'}`}>
+                <Icon color={color} size={18} strokeWidth={2} />
             </View>
-            <ChevronRight color={COLORS.inkFaint} size={20} strokeWidth={2} />
+            <Text className={`flex-1 font-label text-bodylg ${destructive ? 'text-danger' : 'text-ink'}`} numberOfLines={1}>{label}</Text>
+            <ChevronRight color={COLORS.inkDisabled} size={20} strokeWidth={2} />
         </Pressable>
     );
 }

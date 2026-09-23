@@ -67,7 +67,7 @@ export default function NotificationsScreen() {
                 ) : items.length === 0 ? (
                     <EmptyState icon={Bell} title="Aucune notification" message="Les mises à jour de vos commandes apparaîtront ici." className="py-16" />
                 ) : (
-                    <View className="gap-3">
+                    <View className="" style={{ gap: 12 }}>
                         {items.map((n) => {
                             const meta = statusMeta(n.status);
                             const Icon = STEP_ICON[n.status as OrderStatus] ?? STEP_ICON.PENDING;
@@ -79,7 +79,7 @@ export default function NotificationsScreen() {
                                     accessibilityLabel={`${n.title}. ${n.body}${n.read ? '' : '. Non lue'}`}
                                     className="active:scale-[0.99]"
                                 >
-                                    <Card className="flex-row items-start gap-4 p-4">
+                                    <Card className="flex-row items-start p-4" style={{ gap: 16 }}>
                                         <View className="w-11 h-11 rounded-full items-center justify-center" style={{ backgroundColor: meta.tint }}>
                                             <Icon color={meta.color} size={20} strokeWidth={2} />
                                         </View>

@@ -42,7 +42,7 @@ export default function FavoritesScreen() {
                 back="arrow"
                 onBack={() => router.back()}
                 right={
-                    <View className="flex-row items-center gap-1" accessible accessibilityLabel={`${favorites.length} favori${favorites.length > 1 ? 's' : ''}`}>
+                    <View className="flex-row items-center" style={{ gap: 4 }} accessible accessibilityLabel={`${favorites.length} favori${favorites.length > 1 ? 's' : ''}`}>
                         <Heart fill={COLORS.accent} color={COLORS.accent} size={18} strokeWidth={2} />
                         <Text className="text-body font-labelbold text-accent-dark">{favorites.length}</Text>
                     </View>

@@ -52,15 +52,15 @@ export function RestaurantRow({
             onPressIn={onPressIn}
             accessibilityRole="button"
             accessibilityLabel={`${restaurant.name}, ${restaurant.genre ?? 'restaurant'}${open ? '' : ', fermé'}`}
-            className="flex-row items-center gap-4 active:opacity-70"
-            style={{ height: RESTAURANT_ROW_HEIGHT, paddingHorizontal: SCREEN_GUTTER }}
+            className="flex-row items-center active:opacity-70"
+            style={{ gap: 16, height: RESTAURANT_ROW_HEIGHT, paddingHorizontal: SCREEN_GUTTER }}
         >
             <View className="w-20 h-20 rounded-card overflow-hidden bg-fill-strong" style={{ opacity: open ? 1 : 0.45 }}>
                 <RemoteImage uri={restaurant.image_url} displayWidth={80} className="w-full h-full" />
             </View>
 
             <View className="flex-1 justify-center">
-                <View className="flex-row items-center gap-2">
+                <View className="flex-row items-center" style={{ gap: 8 }}>
                     <Text numberOfLines={1} className="text-bodylg font-heading tracking-tight text-ink flex-shrink">
                         {restaurant.name}
                     </Text>
@@ -71,14 +71,14 @@ export function RestaurantRow({
                     {restaurant.genre}
                 </Text>
 
-                <View className="flex-row items-center gap-4 mt-2">
+                <View className="flex-row items-center mt-2" style={{ gap: 16 }}>
                     {restaurant.rating != null ? (
-                        <View className="flex-row items-center gap-1">
+                        <View className="flex-row items-center" style={{ gap: 4 }}>
                             <Star fill={COLORS.ink} color={COLORS.ink} size={14} strokeWidth={2} />
                             <Text className="text-caption font-labelbold text-ink">{restaurant.rating}</Text>
                         </View>
                     ) : null}
-                    <View className="flex-row items-center gap-1">
+                    <View className="flex-row items-center" style={{ gap: 4 }}>
                         {estimate ? <Clock color={COLORS.inkFaint} size={14} strokeWidth={2} /> : <Bike color={COLORS.inkFaint} size={14} strokeWidth={2} />}
                         <Text className="text-caption text-ink-muted font-body">{estimate ?? `Livraison ${formatXaf(DELIVERY_FEE_XAF)}`}</Text>
                     </View>

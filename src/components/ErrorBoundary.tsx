@@ -47,7 +47,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                     title="Un problème est survenu"
                     message="L’écran n’a pas pu s’afficher. Réessayez : votre panier et vos commandes sont conservés."
                     action={
-                        <View className="gap-2">
+                        <View className="" style={{ gap: 8 }}>
                             <Button label="Réessayer" onPress={this.reset} />
                             <Button label="Contacter l’assistance" variant="ghost" size="control" onPress={() => { void openSupportChat("Bonjour, l'application affiche une erreur."); }} />
                         </View>

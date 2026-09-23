@@ -72,7 +72,7 @@ export default function CartScreen() {
                         >
                             <View className="flex-1 pr-3">
                                 <TypeText variant="h3" numberOfLines={1}>{currentRestaurantName || 'Restaurant'}</TypeText>
-                                <View className="flex-row items-center gap-1 mt-1">
+                                <View className="flex-row items-center mt-1" style={{ gap: 4 }}>
                                     <Bike color={COLORS.inkFaint} size={14} strokeWidth={2} />
                                     <TypeText variant="label" tone="secondary">Livré par le restaurant · {formatXaf(DELIVERY_FEE_XAF)}</TypeText>
                                 </View>
@@ -80,9 +80,9 @@ export default function CartScreen() {
                             <ChevronRight color={COLORS.inkFaint} size={20} strokeWidth={2} />
                         </Pressable>
 
-                        <View className="gap-4 mb-8">
+                        <View className="mb-8" style={{ gap: 16 }}>
                             {items.map((item) => (
-                                <View key={item.lineId} className="flex-row gap-4 items-center">
+                                <View key={item.lineId} className="flex-row items-center" style={{ gap: 16 }}>
                                     <View className="w-20 h-20 rounded-card overflow-hidden bg-fill-strong items-center justify-center">
                                         {item.image_url ? (
                                             <RemoteImage uri={item.image_url} displayWidth={80} className="w-full h-full" />
@@ -92,7 +92,7 @@ export default function CartScreen() {
                                     </View>
 
                                     <View className="flex-1 justify-center">
-                                        <View className="flex-row items-start justify-between gap-3">
+                                        <View className="flex-row items-start justify-between" style={{ gap: 12 }}>
                                             <TypeText variant="bodylg" numberOfLines={2} className="flex-1 font-heading">{item.name}</TypeText>
                                             <Text className="text-bodylg font-labelbold text-ink">{formatXaf(item.price * item.quantity)}</Text>
                                         </View>
@@ -125,7 +125,7 @@ export default function CartScreen() {
                         </View>
 
                         <Card className="p-5">
-                            <View className="gap-3">
+                            <View className="" style={{ gap: 12 }}>
                                 <SummaryRow label="Sous-total" value={formatXaf(cartTotal)} />
                                 <SummaryRow label="Frais de livraison" value={formatXaf(DELIVERY_FEE_XAF)} />
                                 <SummaryRow label="Frais de service" value={formatXaf(SERVICE_FEE_XAF)} />
@@ -144,7 +144,7 @@ export default function CartScreen() {
                         label="Commander"
                         onPress={() => router.push(isAuthenticated ? '/checkout-address' : '/login')}
                         trailing={
-                            <View className="flex-row items-center gap-3">
+                            <View className="flex-row items-center" style={{ gap: 12 }}>
                                 <Text className="text-bodylg font-title text-white tracking-tight">{formatXaf(finalTotal)}</Text>
                                 <ArrowRight color={COLORS.white} size={20} strokeWidth={2} />
                             </View>

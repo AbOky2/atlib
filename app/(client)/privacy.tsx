@@ -47,7 +47,7 @@ function Section({ section }: { section: LegalSection }) {
                 <TypeText key={paragraph} tone="secondary" className="mb-3">{paragraph}</TypeText>
             ))}
             {section.bullets?.map((bullet) => (
-                <View key={bullet} className="flex-row gap-3 mb-2 pr-2">
+                <View key={bullet} className="flex-row mb-2 pr-2" style={{ gap: 12 }}>
                     {/* 6 pt disc aligned on the first line's x-height, not the block centre. */}
                     <View className="w-1.5 h-1.5 rounded-full bg-ink-faint mt-2" />
                     <TypeText tone="secondary" className="flex-1">{bullet}</TypeText>

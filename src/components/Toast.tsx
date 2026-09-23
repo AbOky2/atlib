@@ -38,6 +38,11 @@ export default function Toast() {
 
     const { Icon, color } = TOAST_ICON[toastType] ?? TOAST_ICON.success;
 
+    // The store clears the message to dismiss; the pill keeps the last words
+    // while it slides away instead of collapsing to a lone icon mid-flight.
+    const lastMessage = useRef(toastMessage);
+    if (toastMessage) lastMessage.current = toastMessage;
+
     return (
         <Animated.View
             pointerEvents="none"
@@ -45,11 +50,11 @@ export default function Toast() {
             style={{ position: 'absolute', top: 0, left: 24, right: 24, zIndex: 9999, alignItems: 'center', transform: [{ translateY }], opacity }}
         >
             <View
-                className="flex-row items-center gap-3 rounded-full"
-                style={[{ backgroundColor: COLORS.ink, paddingHorizontal: 20, paddingVertical: 12, maxWidth: '100%' }, shadowFloat]}
+                className="flex-row items-center rounded-full"
+                style={[{ gap: 12 }, { backgroundColor: COLORS.ink, paddingHorizontal: 20, paddingVertical: 12, maxWidth: '100%' }, shadowFloat]}
             >
                 <Icon color={color} size={18} strokeWidth={2} />
-                <Text className="text-label font-labelbold text-on-dark" style={{ flexShrink: 1 }}>{toastMessage}</Text>
+                <Text className="text-label font-labelbold text-on-dark" style={{ flexShrink: 1 }}>{lastMessage.current}</Text>
             </View>
         </Animated.View>
     );

@@ -11,7 +11,7 @@ import { CategoryRail } from '../../../src/components/CategoryRail';
 import { RestaurantRow, RESTAURANT_ROW_HEIGHT } from '../../../src/components/RestaurantRow';
 import { useBottomClearance } from '../../../src/components/ActiveOrderBanner';
 import { useHeaderInsetTop } from '../../../src/components/ScreenHeader';
-import { Button, EmptyState, SearchField, SectionTitle, TypeText, SCREEN_GUTTER } from '../../../src/components/ui';
+import { Button, EmptyState, SearchField, TypeText, SCREEN_GUTTER } from '../../../src/components/ui';
 import { useAddressStore } from '../../../src/store/addressStore';
 import { FOOD_CATEGORIES, ALL_CATEGORY_ID, matchesCategory } from '../../../src/lib/categories';
 import { getEstimatedDeliveryTime } from '../../../src/lib/localities';
@@ -90,12 +90,13 @@ export default function ExploreScreen() {
                     className="py-12"
                 />
             ) : (
-                <SectionTitle
-                    eyebrow={`${count} restaurant${count > 1 ? 's' : ''}`}
-                    title={searchQuery.trim() ? `« ${searchQuery.trim()} »` : 'Explorer'}
-                    className="mb-2"
-                    style={{ paddingHorizontal: SCREEN_GUTTER }}
-                />
+                // The page already says « Explorer » in its bar: the list only
+                // needs to state what it holds.
+                <TypeText variant="eyebrow" tone="tertiary" className="mb-2" style={{ paddingHorizontal: SCREEN_GUTTER }} accessibilityRole="header">
+                    {searchQuery.trim()
+                        ? `${count} résultat${count > 1 ? 's' : ''} pour « ${searchQuery.trim()} »`
+                        : `${count} restaurant${count > 1 ? 's' : ''}`}
+                </TypeText>
             )}
         </>
     );
@@ -109,7 +110,7 @@ export default function ExploreScreen() {
                 style={{ paddingTop: insetTop + 8, paddingHorizontal: SCREEN_GUTTER }}
             >
                 <TypeText variant="h1" className="mb-3" accessibilityRole="header">Explorer</TypeText>
-                <SearchField value={searchQuery} onChangeText={setSearchQuery} placeholder="Rechercher un restaurant ou une cuisine" />
+                <SearchField value={searchQuery} onChangeText={setSearchQuery} placeholder="Un restaurant, une cuisine…" />
             </View>
 
             <FlatList

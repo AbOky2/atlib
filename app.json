@@ -39,6 +39,7 @@
       "expo-font",
       "expo-router",
       "./plugins/withLiveActivity",
+      "./plugins/withMinimumDeploymentTarget",
       "@bacons/apple-targets",
       [
         "expo-splash-screen",

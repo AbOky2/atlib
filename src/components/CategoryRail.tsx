@@ -19,7 +19,7 @@ export function CategoryRail({
     activeId,
     onSelect,
 }: {
-    items: FoodCategory[];
+    items: readonly FoodCategory[];
     activeId: string;
     onSelect: (id: string) => void;
 }) {

@@ -329,7 +329,7 @@ export default function OrderConfirmedScreen() {
 
             {/* Stage progress + skip */}
             <View className="items-center" style={{ paddingBottom: Math.max(insets.bottom, 20) }}>
-                <View className="flex-row gap-2 mb-5" accessible accessibilityLabel={`Étape ${stage + 1} sur ${STAGES.length}`}>
+                <View className="flex-row mb-5" style={{ gap: 8 }} accessible accessibilityLabel={`Étape ${stage + 1} sur ${STAGES.length}`}>
                     {STAGES.map((_, i) => (
                         <View
                             key={i}
