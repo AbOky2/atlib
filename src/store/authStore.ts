@@ -12,6 +12,7 @@ import { useFavoritesStore } from './favoritesStore';
 import { useNotificationStore } from './notificationStore';
 import { isValidSmsCode, SMS_RESEND_DELAY_MS, verifiedAccountPhone } from '../lib/phoneAuth';
 import { PHONE_SIGN_IN_ENABLED } from '../lib/authFeatures';
+import { signInWithProvider as socialSignIn, type SocialProvider } from '../lib/socialAuth';
 import { normalizeChadPhone } from '../lib/phone';
 import { ACCOUNT_ERRORS, deleteMyAccount, getAccountDeletionBlocker, type AccountError } from '../data/account';
 
@@ -27,6 +28,11 @@ interface AuthStore {
     initialize: () => Promise<void>;
     signIn: (email: string, password: string) => Promise<AuthResult>;
     signUp: (email: string, password: string, fullName?: string) => Promise<AuthResult>;
+    /**
+     * Sign in with the phone's own account (Google, Apple). 'cancelled' is the
+     * customer closing the system sheet: nothing to show, nothing to explain.
+     */
+    signInWithProvider: (provider: SocialProvider) => Promise<AuthResult | 'cancelled'>;
     /** Send a one-time code by SMS. */
     phoneCodeResendAt: number;
     requestPhoneCode: (phone: string) => Promise<AuthResult>;
@@ -57,6 +63,10 @@ const friendlyAuthError = (message: string): string => {
     // Phone auth is only live once an SMS provider is configured in Supabase.
     if (/phone.*(provider|not enabled|disabled)/i.test(message)) {
         return "La connexion par SMS n'est pas encore activée. Utilisez votre email pour le moment.";
+    }
+    // Google / Apple must be switched on in the Supabase dashboard first.
+    if (/unsupported provider|provider.*(not enabled|disabled|could not be found)/i.test(message)) {
+        return 'Cette connexion n’est pas encore activée. Utilisez votre email pour le moment.';
     }
     if (/token has expired|invalid token|otp/i.test(message)) return 'Code incorrect ou expiré. Demandez-en un nouveau.';
     return message;
@@ -180,6 +190,32 @@ export const useAuthStore = create<AuthStore>((write) => {
             set({ loading: false, error: "Erreur d'inscription. Vérifiez votre connexion internet." });
             return 'error';
         }
+    },
+
+    signInWithProvider: async (provider) => {
+        set({ loading: true, error: null });
+        const outcome = await socialSignIn(provider);
+        if (outcome.status === 'cancelled') {
+            set({ loading: false });
+            return 'cancelled';
+        }
+        if (outcome.status === 'unavailable') {
+            set({ loading: false, error: provider === 'google' ? 'La connexion Google n’est pas disponible sur cet appareil.' : 'La connexion Apple n’est pas disponible sur cet appareil.' });
+            return 'error';
+        }
+        if (outcome.status === 'error') {
+            set({ loading: false, error: friendlyAuthError(outcome.message) });
+            return 'error';
+        }
+        let { session } = outcome;
+        // Apple gives the name once, at the first sign-in; Google gives it every
+        // time. Keep it when the account has none, so the greeting can use it.
+        if (outcome.fullName && !session.user.user_metadata?.full_name) {
+            const { data } = await supabase.auth.updateUser({ data: { full_name: outcome.fullName } }).catch(() => ({ data: { user: null } }));
+            if (data.user) session = { ...session, user: data.user };
+        }
+        set({ session, user: session.user, isAuthenticated: true, loading: false, error: null });
+        return 'ok';
     },
 
     requestPhoneCode: async (phone) => {
