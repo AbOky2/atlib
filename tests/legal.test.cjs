@@ -5,7 +5,7 @@ const path = require('node:path');
 
 // Le générateur charge .env avant de lire legal.ts : il doit passer en premier,
 // sinon l'éditeur et le contact sont lus vides et la page « dérive ».
-const { render } = require('../scripts/build-legal.cjs');
+const { render, renderFunction } = require('../scripts/build-legal.cjs');
 const { PRIVACY_POLICY } = require('../.test-build/lib/legal');
 
 test('la politique de confidentialité couvre ce que les stores exigent', () => {
@@ -21,4 +21,10 @@ test('la page HTML hébergée est identique à la source de l\'app', () => {
     assert.ok(fs.existsSync(file), 'legal/privacy.html absent — lancez npm run legal:build');
     assert.equal(fs.readFileSync(file, 'utf8'), render(),
         'legal/privacy.html a dérivé de src/lib/legal.ts — relancez npm run legal:build');
+});
+
+test('la fonction Edge « privacy » sert exactement la page générée', () => {
+    const file = path.join(__dirname, '..', 'supabase', 'functions', 'privacy', 'index.ts');
+    assert.ok(fs.existsSync(file), 'supabase/functions/privacy/index.ts absent — lancez npm run legal:build');
+    assert.equal(fs.readFileSync(file, 'utf8'), renderFunction(), 'la fonction privacy a dérivé — relancez npm run legal:build');
 });

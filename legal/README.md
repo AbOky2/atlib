@@ -16,3 +16,13 @@
    - Play Console → Suppression de compte → URL : la même page décrit le parcours en bas.
 4. Faire relire le texte par un conseil juridique : il décrit fidèlement ce que fait le code,
    pas les obligations propres à la structure qui exploite le service.
+
+## Hébergement retenu (27 septembre 2026)
+
+Supabase Storage sert les objets HTML en `text/plain` sur son domaine par défaut (protection anti-XSS) : la page
+n'y est pas lisible. Elle est donc servie par la fonction Edge publique `privacy`, générée par `npm run legal:build`
+(`supabase/functions/privacy/index.ts`) et déployée avec `--no-verify-jwt` :
+
+https://myonaycuggsbielvdzjc.supabase.co/functions/v1/privacy
+
+À chaque modification de `src/lib/legal.ts` : `npm run legal:build`, puis redéployer la fonction.

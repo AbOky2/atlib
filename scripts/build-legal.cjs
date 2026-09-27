@@ -69,12 +69,31 @@ ${sections}
 `;
 }
 
-module.exports = { render };
+/**
+ * The same page as an Edge Function. Supabase Storage serves HTML objects as
+ * `text/plain` on its default domain (an anti-XSS rule), so the hosted policy
+ * lives at /functions/v1/privacy instead — deployed with `--no-verify-jwt`.
+ */
+function renderFunction() {
+    return `// Généré par \`npm run legal:build\` depuis src/lib/legal.ts — ne pas modifier à la main.
+// Déployer : supabase functions deploy privacy --project-ref <ref> --use-api --no-verify-jwt
+const HTML = ${JSON.stringify(render())};
+
+Deno.serve(() => new Response(HTML, {
+    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300' },
+}));
+`;
+}
+
+module.exports = { render, renderFunction };
 
 if (require.main === module) {
     const out = path.resolve(__dirname, '..', 'legal', 'privacy.html');
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, render());
+    const fn = path.resolve(__dirname, '..', 'supabase', 'functions', 'privacy', 'index.ts');
+    fs.mkdirSync(path.dirname(fn), { recursive: true });
+    fs.writeFileSync(fn, renderFunction());
     const missing = [!LEGAL_PUBLISHER && 'EXPO_PUBLIC_LEGAL_PUBLISHER', !LEGAL_EMAIL && 'EXPO_PUBLIC_LEGAL_EMAIL'].filter(Boolean);
     console.log(`legal/privacy.html généré${missing.length ? ` — À CONFIGURER avant publication : ${missing.join(', ')}` : ''}.`);
 }
