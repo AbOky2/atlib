@@ -206,3 +206,18 @@ test('chaque Pressable porte un rôle d\'accessibilité ou vit dans un composant
     assert.equal(offenders.length, 0,
         `Pressable sans rôle ni label :\n${report(offenders)}`);
 });
+
+test('NativeWind 2 peut encore extraire les styles de façon synchrone (Tailwind figé)', () => {
+    // tailwindcss 3.4.x rend son plugin PostCSS asynchrone ; le plugin Babel de
+    // NativeWind 2 appelle `.css` en synchrone et Metro échoue alors sur le premier
+    // `className` avec « Use process(css).then(cb) to work with async plugins ».
+    // La version est donc figée en exact dans package.json ; ce test le rappelle.
+    const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    assert.match(pkg.dependencies.tailwindcss, /^\d/, 'tailwindcss doit être une version exacte, sans ^ ni ~');
+    // NativeWind signale dans `errors` les utilitaires qu'il ne sait pas traduire :
+    // c'est informatif. Ce qui compte ici, c'est que l'extraction SYNCHRONE aboutisse.
+    const { extractStyles } = require('../node_modules/nativewind/dist/postcss/extract-styles.js');
+    const result = extractStyles(require('../tailwind.config.js'), '@tailwind utilities;');
+    assert.ok(result && typeof result === 'object', 'extraction sans résultat');
+    assert.ok(Object.keys(result.styles ?? {}).length > 0, 'aucun style extrait');
+});
