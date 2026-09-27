@@ -45,6 +45,14 @@
           "backgroundColor": "#fcf9f8"
         }
       ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ],
       "expo-status-bar",
       "expo-image",
       [

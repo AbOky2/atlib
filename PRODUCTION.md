@@ -1,4 +1,4 @@
-# Préparation de la sortie Naakul — 8 septembre 2026, mise à jour le 23 septembre 2026
+# Préparation de la sortie Naakul — 8 septembre 2026, mise à jour le 27 septembre 2026
 
 ## État de validation
 
@@ -19,7 +19,7 @@ Le compte EAS connecté a été vérifié en lecture seule : `okimy`, projet `@o
 ## Points à fermer avant publication publique
 
 1. **Support et confidentialité** : fournir le vrai numéro WhatsApp du support ; configurer `EXPO_PUBLIC_SUPPORT_PHONE` dans EAS production. Fournir la politique de confidentialité publique et la rendre accessible dans l’app et les fiches stores. Ne pas publier des coordonnées fictives.
-2. **Suppression du compte** : aucun parcours n’a été trouvé dans le code. Apple exige un moyen d’initier la suppression dans les apps qui permettent de créer un compte. Concevoir et implémenter le traitement, y compris le sort des données de commande qui doivent éventuellement être conservées, avant la soumission publique. [Exigence Apple](https://developer.apple.com/support/offering-account-deletion-in-your-app/).
+2. **Suppression du compte** : en place depuis le 23 septembre (Profil → Confidentialité, Edge Function `delete-account`, commandes passées anonymisées). Reste à vérifier sur le binaire candidat. [Exigence Apple](https://developer.apple.com/support/offering-account-deletion-in-your-app/).
 3. **Backend** : appliquer et vérifier les migrations sur le projet cible, l’auth email et SMTP, les deux liens de redirection, `pg_net`, le job de reprise, les secrets APNs et les reçus. Lire [EMAIL_AUTH.md](EMAIL_AUTH.md) et [le runbook backend](supabase/migrations/DEPLOIEMENT_NOTIFICATIONS.md). Les migrations locales ne prouvent pas leur déploiement.
 4. **Android** : fournir la configuration Firebase client correspondant à `com.okimy.chaddelivery` via la variable fichier `GOOGLE_SERVICES_JSON`, et configurer séparément le compte de service FCM V1 dans EAS Credentials. Le fichier client n’est pas la clé privée de compte de service. Tester l’app installée et les notifications avant une sortie Android. [Instructions Expo](https://docs.expo.dev/push-notifications/fcm-credentials/).
 5. **Ajouts acceptés précédemment** : le renvoi de l’email de confirmation et le motif de refus client restent à implémenter ; ils ne sont pas inclus dans cette préparation EAS.
@@ -87,3 +87,56 @@ L’application s’appelle désormais **Naakul** (« manger », arabe tchadien)
 - Recette sur iPhone et Android (aucun simulateur disponible pendant cette passe).
 - Rapport de crash (Sentry ou équivalent) : à ajouter avec un rebuild natif et un DSN.
 - Comptes de démonstration pour la revue Apple/Google, avec un restaurant qui répond.
+
+## Mise à jour du 27 septembre 2026 — passage au SDK 57 et checklist de mise en ligne
+
+### Ce qui a été fait
+
+- **Expo SDK 57** (`expo` 57.0.25, React Native 0.86.3, React 19.2 inchangé) : `npx expo install expo@^57.0.0 --fix`,
+  `expo-doctor` 21/21, TypeScript et 139 tests verts, `npx expo export` iOS et Android réussis.
+- **iOS 27** : Apple exige le cycle de vie UIScene pour les apps compilées avec le SDK iOS 27. C'est pris en
+  charge par `expo-build-properties` (`ios.enableSceneSupport`) déclaré dans `app.json` ; plus aucun
+  `SceneDelegate` écrit à la main. Vérifié par une régénération complète du projet iOS (`expo prebuild --clean`),
+  une compilation Xcode 27 et un lancement sur simulateur iOS 27 (voir la ligne de résultat ci-dessous).
+- **Connexion** : e-mail + mot de passe, numéro de téléphone obligatoire à l'inscription (mémorisé sur le
+  compte, prérempli à la commande). Google et Apple retirés ; le SMS reste codé mais désactivé.
+- **Config Expo** : clé `splash` obsolète retirée (le plugin la remplace), `@expo/prebuild-config` n'est plus
+  une dépendance directe, versions alignées sur le SDK.
+- **Base** : deux migrations de plus, `202609230003_local_not_africain.sql` (donnée « Africain » → « Cuisine
+  locale » / « Plats locaux ») et `202609230004_customer_order_updates.sql` (politique RLS permettant au
+  client d'annuler en attente et de confirmer la réception — sans elle, l'annulation ne faisait rien).
+- **Recette au simulateur iOS avec un compte de test** : profil, adresses, checkout, paiement, commande,
+  confirmation, suivi, dialogue d'annulation, notifications, historique.
+
+### Checklist de mise en ligne, dans l'ordre
+
+1. **SQL Editor Supabase** : passer `202609230003_local_not_africain.sql` puis
+   `202609230004_customer_order_updates.sql` (idempotentes). Vérifier avec `supabase/verify_remote.sql`.
+2. **Supabase Auth** : décider de « Confirm email » (recommandation : désactivé pour le lancement, voir
+   `EMAIL_AUTH.md`). Vérifier les deux URL de redirection `chaddelivery://confirm-email` et
+   `chaddelivery://reset-password`.
+3. **Variables EAS production** : `EXPO_PUBLIC_SUPPORT_PHONE` (numéro WhatsApp réel, format +235…),
+   `EXPO_PUBLIC_LEGAL_PUBLISHER`, `EXPO_PUBLIC_LEGAL_EMAIL`. Puis `npm run legal:build` avec cet
+   environnement et héberger `legal/privacy.html` (URL demandée par les deux stores).
+4. **Contrôle local** : `npm run release:verify`, puis `npm run release:check -- --strict --platform=ios`
+   (et `--platform=android` une fois Firebase fourni). Ces deux commandes échouent aujourd'hui, à raison,
+   sur le support et l'éditeur légal absents.
+5. **EAS CLI** : mettre à jour (`npm install -g eas-cli`) — le SDK 57 demande un CLI récent — puis
+   `eas build:version:set` si les stores ont déjà des numéros de build.
+6. **iOS** : `eas build --platform ios --profile production`, TestFlight, recette complète sur iPhone
+   (inscription avec numéro, commande, acceptation côté restaurant, suivi, Live Activity, annulation,
+   suppression de compte), puis `eas submit --platform ios --id <build>`.
+7. **Android** : fournir `GOOGLE_SERVICES_JSON` (fichier client Firebase) et le compte de service FCM V1 dans
+   EAS Credentials, puis `eas build --platform android --profile production`, piste de test interne, recette.
+8. **Fiches stores** : captures, description, déclarations de données (e-mail, nom, téléphone, adresse de
+   livraison, aucun suivi publicitaire), URL de confidentialité, compte de démonstration pour la revue avec
+   un restaurant qui répond.
+9. **Après ouverture** : rapport de crash (Sentry) à ajouter avec un rebuild, surveillance des commandes
+   PENDING et des reçus de notification (voir « Après ouverture » plus haut).
+
+### Résultat de la vérification native SDK 57
+
+Le 27 septembre 2026 : `expo prebuild --platform ios --clean` génère `UIApplicationSceneManifest` avec
+`EXExpoAppSceneDelegate`, `pod install` puis `xcodebuild` (Xcode 27, SDK iOS 27) réussissent, l'app s'installe et
+s'ouvre sur le simulateur iOS 27 avec la session et le catalogue, sans rapport de crash. Ce qui bloquait le
+SDK 56 sur Xcode 27 est résolu par le SDK lui-même. Les builds EAS restent à faire avec un CLI à jour.
