@@ -17,7 +17,7 @@ l'interface est identique sur les deux plateformes). Pour les refaire : capturer
 | Catégorie | Nourriture et boissons (App Store : Food & Drink ; Play : Alimentation et boissons) |
 | URL d'assistance | https://wa.me/23566123456 |
 | URL marketing | facultative ; laisser vide |
-| URL de confidentialité | https://myonaycuggsbielvdzjc.supabase.co/functions/v1/privacy (page servie par la fonction Edge `privacy`, régénérée par `npm run legal:build` puis `supabase functions deploy privacy --project-ref myonaycuggsbielvdzjc --use-api --no-verify-jwt`) |
+| URL de confidentialité | https://chad-delivery.expo.app/privacy.html (EAS Hosting ; republier avec `npm run legal:deploy` après `npm run legal:build`) |
 | Compte de revue | `testadmin@test.td` / `test1234` — catalogue de démonstration, commandes en espèces, un restaurant doit accepter pendant l'examen (dashboard) |
 | Classification | 4+ / Tout public : aucun contenu sensible, aucun achat intégré, paiement en espèces à la livraison |
 

@@ -12,7 +12,8 @@
     "release:check": "node scripts/release-check.cjs",
     "release:verify": "npm test && npm run typecheck && npm run release:check",
     "legal:build": "tsc -p tsconfig.test.json && node scripts/build-legal.cjs",
-    "test:sql": "zsh scripts/test-sql.sh"
+    "test:sql": "zsh scripts/test-sql.sh",
+    "legal:deploy": "zsh scripts/legal-deploy.sh"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

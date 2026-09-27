@@ -19,10 +19,10 @@
 
 ## Hébergement retenu (27 septembre 2026)
 
-Supabase Storage sert les objets HTML en `text/plain` sur son domaine par défaut (protection anti-XSS) : la page
-n'y est pas lisible. Elle est donc servie par la fonction Edge publique `privacy`, générée par `npm run legal:build`
-(`supabase/functions/privacy/index.ts`) et déployée avec `--no-verify-jwt` :
+Les domaines `supabase.co` servent tout HTML en `text/plain` avec une politique de sécurité qui interdit le rendu
+(protection anti-XSS) : ni Storage ni une fonction Edge ne peuvent afficher la page. Elle est donc publiée sur
+EAS Hosting, le domaine du projet Expo :
 
-https://myonaycuggsbielvdzjc.supabase.co/functions/v1/privacy
+https://chad-delivery.expo.app/privacy.html
 
-À chaque modification de `src/lib/legal.ts` : `npm run legal:build`, puis redéployer la fonction.
+À chaque modification de `src/lib/legal.ts` : `npm run legal:build`, puis `npm run legal:deploy`.

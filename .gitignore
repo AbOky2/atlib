@@ -58,3 +58,5 @@ supabase/.temp/
 
 # Sauvegardes locales du dossier natif (jamais versionnées)
 ios.bak-*/
+# dossier temporaire de publication de la page légale
+/legal-site/
