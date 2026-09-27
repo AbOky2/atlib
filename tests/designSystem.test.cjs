@@ -218,6 +218,5 @@ test('NativeWind 2 peut encore extraire les styles de façon synchrone (Tailwind
     // c'est informatif. Ce qui compte ici, c'est que l'extraction SYNCHRONE aboutisse.
     const { extractStyles } = require('../node_modules/nativewind/dist/postcss/extract-styles.js');
     const result = extractStyles(require('../tailwind.config.js'), '@tailwind utilities;');
-    assert.ok(result && typeof result === 'object', 'extraction sans résultat');
-    assert.ok(Object.keys(result.styles ?? {}).length > 0, 'aucun style extrait');
+    assert.equal(result.hasStyles, true, 'aucun style extrait');
 });
