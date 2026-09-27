@@ -11,6 +11,8 @@ import UniformTypeIdentifiers
 // App Store 6,9" : 1320 2868 — Google Play : 1080 2160 (ratio 2:1 maximal).
 let a = CommandLine.arguments
 let fontPath = a[1], input = a[2], output = a[3], W = CGFloat(Int(a[4])!), H = CGFloat(Int(a[5])!), title = a[6]
+// 7e argument facultatif : pixels à rogner en haut de la capture (barre d'état iOS, pour une capture Android neutre).
+let cropTop = a.count > 7 ? CGFloat(Int(a[7]) ?? 0) : 0
 let fontURL = URL(fileURLWithPath: fontPath) as CFURL
 var regErr: Unmanaged<CFError>?
 _ = CTFontManagerRegisterFontsForURL(fontURL, .process, &regErr)
@@ -48,7 +50,8 @@ let frame = CTFramesetterCreateFrame(setter, CFRange(location: 0, length: 0), pa
 CTFrameDraw(frame, ctx)
 // Capture : chargée telle quelle, placée sous le titre, coins arrondis, ombre douce, débord en bas.
 let src = CGImageSourceCreateWithURL(URL(fileURLWithPath: input) as CFURL, nil)!
-let shot = CGImageSourceCreateImageAtIndex(src, 0, nil)!
+let full = CGImageSourceCreateImageAtIndex(src, 0, nil)!
+let shot = cropTop > 0 ? full.cropping(to: CGRect(x: 0, y: Int(cropTop), width: full.width, height: full.height - Int(cropTop)))! : full
 let shotW = CGFloat(shot.width), shotH = CGFloat(shot.height)
 let availableTop = textRect.minY - H * 0.035
 let scale = (W * 0.82) / shotW

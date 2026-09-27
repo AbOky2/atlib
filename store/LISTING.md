@@ -1,7 +1,12 @@
 # Fiches App Store et Google Play — Naakul
 
 Textes prêts à coller, préparés le 27 septembre 2026. Les longueurs respectent les limites de chaque store.
-Les captures se génèrent avec `swift scripts/store/compose.swift` (voir `store/screenshots/`).
+Les captures sont dans `store/screenshots/ios` (1320 × 2868, iPhone 6,9") et `store/screenshots/android`
+(1080 × 2160). Elles sont composées par `scripts/store/compose.swift` à partir de captures brutes du simulateur
+iPhone 17 Pro Max (barre d'état figée à 9:41 ; sur Android, la barre d'état est rognée pour rester neutre :
+l'interface est identique sur les deux plateformes). Pour les refaire : capturer les écrans, puis
+`swift scripts/store/compose.swift <Manrope ExtraBold.ttf> <capture.png> <sortie.png> 1320 2868 "<titre>"`
+(ajouter `186` en dernier argument pour rogner la barre d'état).
 
 ## Identité commune
 
