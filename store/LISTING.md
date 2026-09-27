@@ -82,6 +82,61 @@ Parcours : ouvrir un restaurant, ajouter un plat, Commander, choisir un quartier
 La suppression du compte est dans Profil → Confidentialité → Supprimer mon compte.
 ```
 
+## App Store — localisation anglaise (si la fiche garde « English (U.S.) »)
+
+App Store Connect exige ces champs dans la langue principale de la fiche. Si celle-ci reste l'anglais, coller :
+
+**Name** (30) : `Naakul`
+
+**Subtitle** (30) : `Food delivery in N'Djamena`
+
+**Promotional text** (170) :
+`N'Djamena's best tables, delivered to your door. Order in a few taps, pay cash on delivery, follow your order live.`
+
+**Keywords** (100) :
+`food,delivery,restaurant,ndjamena,chad,order,burger,pizza,grill,meals,dinner,lunch,takeaway`
+
+**Support URL** : `https://wa.me/23566123456`
+
+**Marketing URL** : leave empty. **Privacy Policy URL** : `https://chad-delivery.expo.app/privacy.html`
+
+**Description** (4000) :
+
+```
+Naakul — "to eat", in Chadian Arabic — is food delivery designed for N'Djamena.
+
+Pick a restaurant, build your order, and get it delivered to your door. No bank card needed: you pay cash when your order arrives, and you tell us in advance which note you'll pay with so the restaurant brings your change.
+
+WHAT YOU'LL FIND IN NAAKUL
+• N'Djamena's restaurants, with their menus, prices and photos.
+• Cuisines to find what you want fast: local dishes, grills, pizzas, burgers.
+• An address described the way people do here: the neighbourhood, then a precise landmark (gate, shop, wall colour).
+• An estimated delivery time based on your neighbourhood.
+• Order tracking step by step: accepted, cooking, ready, on its way, delivered. On iPhone, the arrival time shows on the Lock Screen and in the Dynamic Island.
+• A notification at every step.
+• Cancel for free until the restaurant accepts.
+• Your addresses and favourite restaurants, saved for next time.
+
+SIMPLE AND HONEST
+• An account with your email and phone number — the number the restaurant calls on arrival.
+• No online payment, no card details.
+• No ads, no cross-app tracking.
+• Delete your account from within the app.
+
+Naakul is a local service in N'Djamena. Questions? Support answers on WhatsApp from Profile → Help.
+```
+
+**What's New** (4000) :
+`First release of Naakul: order from N'Djamena's restaurants, pay cash on delivery and follow your order live.`
+
+**Review notes** : same as the French notes, in English if preferred:
+```
+Test account: testadmin@test.td / test1234 (already confirmed).
+Naakul is a cash-on-delivery food delivery service in N'Djamena, Chad: no in-app purchases, no online payment.
+Flow: open a restaurant, add a dish, Commander, pick a neighbourhood and describe the delivery point, Vers le paiement, Envoyer au restaurant. Tracking shows progress; an order not accepted within 20 minutes is cancelled automatically, and the customer can cancel while it is pending.
+Account deletion: Profil → Confidentialité → Supprimer mon compte.
+```
+
 ## Google Play (Play Console)
 
 **Nom de l'application** (30 max) : `Naakul`
