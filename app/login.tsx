@@ -4,16 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Mail, Lock, Eye, EyeOff, User, MailCheck, Phone, KeyRound } from 'lucide-react-native';
-import * as AppleAuthentication from 'expo-apple-authentication';
 
 import { PHONE_SIGN_IN_ENABLED } from '../src/lib/authFeatures';
 import { useAuthStore } from '../src/store/authStore';
 import { isValidSmsCode, SMS_CODE_LENGTH, smsResendSeconds } from '../src/lib/phoneAuth';
 import { isValidChadPhone, formatChadPhone, normalizeChadPhone } from '../src/lib/phone';
 import { BRAND, BRAND_TAGLINE, BRAND_FULL } from '../src/lib/brand';
-import { Button, Divider, Field, TypeText, SCREEN_GUTTER, TOUCH_MIN } from '../src/components/ui';
-import { GoogleLogo } from '../src/components/GoogleLogo';
-import { APPLE_SIGN_IN_ENABLED, GOOGLE_SIGN_IN_ENABLED, type SocialProvider } from '../src/lib/socialAuth';
+import { Button, Field, TypeText, SCREEN_GUTTER, TOUCH_MIN } from '../src/components/ui';
 import { COLORS } from '../src/lib/palette';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,7 +36,7 @@ export default function LoginScreen() {
     const [formError, setFormError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
 
-    const { signIn, signUp, requestPhoneCode, verifyPhoneCode, requestPasswordReset, loading, error, clearError, phoneCodeResendAt, signInWithProvider } = useAuthStore();
+    const { signIn, signUp, requestPhoneCode, verifyPhoneCode, requestPasswordReset, loading, error, clearError, phoneCodeResendAt } = useAuthStore();
     const [now, setNow] = useState(Date.now());
     const resendSeconds = smsResendSeconds(phoneCodeResendAt, now);
     useEffect(() => {
@@ -150,17 +147,6 @@ export default function LoginScreen() {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             setNotice(`Email de réinitialisation envoyé à ${email.trim()}. Ouvrez le lien depuis ce téléphone.`);
         }
-    };
-
-    const handleSocial = async (provider: SocialProvider) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        resetFeedback();
-        const result = await signInWithProvider(provider);
-        if (result === 'ok') {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            router.back();
-        }
-        // 'cancelled' is the customer closing the sheet; 'error' is already in the store.
     };
 
     const submitLabel = mode === 'phone'
@@ -388,36 +374,6 @@ export default function LoginScreen() {
                         disabled={mode === 'phone' && !codeSent && resendSeconds > 0}
                         className="mb-4"
                     />
-
-                    {/* The account the phone already has — free, no password, one gesture.
-                        Each button exists only once its provider is configured. */}
-                    {mode === 'email' && (APPLE_SIGN_IN_ENABLED || GOOGLE_SIGN_IN_ENABLED) && (
-                        <View className="mb-4">
-                            <View className="flex-row items-center my-2" style={{ gap: 12 }}>
-                                <Divider className="flex-1" />
-                                <TypeText variant="caption" tone="tertiary">ou</TypeText>
-                                <Divider className="flex-1" />
-                            </View>
-                            {APPLE_SIGN_IN_ENABLED && (
-                                <AppleAuthentication.AppleAuthenticationButton
-                                    buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-                                    buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-                                    cornerRadius={28}
-                                    style={{ height: 56, width: '100%', marginTop: 8 }}
-                                    onPress={() => { void handleSocial('apple'); }}
-                                />
-                            )}
-                            {GOOGLE_SIGN_IN_ENABLED && (
-                                <Button
-                                    label="Continuer avec Google"
-                                    variant="secondary"
-                                    leading={<GoogleLogo size={20} />}
-                                    onPress={() => { void handleSocial('google'); }}
-                                    className="mt-3"
-                                />
-                            )}
-                        </View>
-                    )}
 
                     {mode === 'email' && isSignUp && (
                         <Text className="text-caption font-body text-ink-faint text-center mb-4">

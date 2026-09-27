@@ -7,11 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#fcf9f8"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.okimy.chaddelivery",
@@ -20,8 +15,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSSupportsLiveActivities": true,
         "CFBundleDevelopmentRegion": "fr"
-      },
-      "usesAppleSignIn": true
+      }
     },
     "android": {
       "adaptiveIcon": {

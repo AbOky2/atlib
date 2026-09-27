@@ -12,7 +12,7 @@ test('le parcours réel normalise le téléphone, crée par OTP et bloque les re
   updateUser:async()=>({data:{user},error:null})};
  const storage={getItem:()=> 'A',setItem:()=>{},removeItem:()=>{}};
  const store={setState:()=>{}};
- const mocks={'../data/account':{ACCOUNT_ERRORS:{DELETE_FAILED:'DELETE_FAILED'},getAccountDeletionBlocker:async()=>null,deleteMyAccount:async()=>{}},'../lib/authFeatures':features,'../lib/socialAuth':{signInWithProvider:async()=>({status:'unavailable'})},zustand:require('zustand'),'expo-linking':{createURL:(route,{scheme})=>`${scheme}://${route}`},'../lib/supabase':{supabase:{auth}},'@supabase/supabase-js':{},
+ const mocks={'../data/account':{ACCOUNT_ERRORS:{DELETE_FAILED:'DELETE_FAILED'},getAccountDeletionBlocker:async()=>null,deleteMyAccount:async()=>{}},'../lib/authFeatures':features,zustand:require('zustand'),'expo-linking':{createURL:(route,{scheme})=>`${scheme}://${route}`},'../lib/supabase':{supabase:{auth}},'@supabase/supabase-js':{},
  '../lib/liveActivity':{endDeliveryActivity:()=>{}},'../lib/notifications':{clearOrderProgress:async()=>{}},
  '../lib/queryClient':{queryClient:{clear:()=>{}}},'../lib/storage':{zustandStorage:storage},
  './cartStore':{useCartStore:store},'./addressStore':{useAddressStore:store},'./favoritesStore':{useFavoritesStore:store},'./notificationStore':{useNotificationStore:store},

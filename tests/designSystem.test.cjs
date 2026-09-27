@@ -22,8 +22,7 @@ const path = require('node:path');
 
 const ROOTS = ['app', 'src'];
 // Sources de vérité des couleurs, et le seul fichier de dessin.
-// GoogleLogo.tsx : une marque déposée garde ses couleurs, imposées par Google.
-const IGNORED = ['database.types.ts', 'CategoryIcon.tsx', 'GoogleLogo.tsx', 'palette.ts', 'elevation.ts'];
+const IGNORED = ['database.types.ts', 'CategoryIcon.tsx', 'palette.ts', 'elevation.ts'];
 
 function sourceFiles() {
     const out = [];

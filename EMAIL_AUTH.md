@@ -45,5 +45,4 @@ N’Djamena, où beaucoup de clients ne consultent pas leurs e-mails. Désactive
 immédiatement ; l’app gère déjà les deux cas (`signUp` renvoie `ok` quand une
 session est fournie). Contrepartie : une adresse mal saisie ne pourra pas
 récupérer son mot de passe ; le numéro de téléphone donne alors un canal
-d’assistance. Les connexions Google et Apple (`SOCIAL_AUTH.md`) contournent
-entièrement la question.
+d’assistance.

@@ -53,7 +53,7 @@ test('le panier d’un invité survit à sa connexion, mais pas au changement de
         '../lib/supabase': { supabase: { auth } }, '../lib/liveActivity': { endDeliveryActivity() {} }, '../lib/notifications': { clearOrderProgress: async () => {} },
         '../lib/queryClient': { queryClient: cache }, '../lib/storage': { zustandStorage: storage }, './cartStore': { useCartStore: cart },
         './addressStore': { useAddressStore: addresses }, './favoritesStore': { useFavoritesStore: favorites }, './notificationStore': { useNotificationStore: notifications },
-        '../lib/phoneAuth': require('../.test-build/lib/phoneAuth'), '../lib/phone': require('../.test-build/lib/phone'), '../lib/socialAuth':{signInWithProvider:async()=>({status:'unavailable'})},'../lib/authFeatures': { PHONE_SIGN_IN_ENABLED: false },
+        '../lib/phoneAuth': require('../.test-build/lib/phoneAuth'), '../lib/phone': require('../.test-build/lib/phone'), '../lib/authFeatures': { PHONE_SIGN_IN_ENABLED: false },
         '../data/account': { ACCOUNT_ERRORS: { DELETE_FAILED: 'DELETE_FAILED' }, getAccountDeletionBlocker: async () => null, deleteMyAccount: async () => {} },
     }).useAuthStore;
 
