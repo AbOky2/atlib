@@ -1,7 +1,7 @@
 # Fiches App Store et Google Play — Naakul
 
 Textes prêts à coller, préparés le 27 septembre 2026. Les longueurs respectent les limites de chaque store.
-Les captures sont dans `store/screenshots/ios` (1320 × 2868, iPhone 6,9") et `store/screenshots/android`
+Les captures sont dans `store/screenshots/ios-6.9` (1320 × 2868), `store/screenshots/ios-6.5` (1284 × 2778) et `store/screenshots/android`
 (1080 × 2160). Elles sont composées par `scripts/store/compose.swift` à partir de captures brutes du simulateur
 iPhone 17 Pro Max (barre d'état figée à 9:41 ; sur Android, la barre d'état est rognée pour rester neutre :
 l'interface est identique sur les deux plateformes). Pour les refaire : capturer les écrans, puis
@@ -62,7 +62,10 @@ Naakul est un service local, à N'Djamena. Une question ? L'assistance vous rép
 **Nouveautés de cette version** (4000 max) :
 `Première version de Naakul : commandez auprès des restaurants de N'Djamena, payez en espèces à la livraison et suivez votre commande en direct.`
 
-**Captures d'écran** : 6,9 pouces obligatoire (1320 × 2868) — dossier `store/screenshots/ios/`. Les autres tailles sont dérivées automatiquement par Apple.
+**Captures d'écran** : deux emplacements dans App Store Connect → Distribution → version → Aperçus et captures.
+- « Écran de 6,9 pouces » (obligatoire) : `store/screenshots/ios-6.9/` (1320 × 2868).
+- « Écran de 6,5 pouces » (facultatif, sinon Apple réutilise les 6,9) : `store/screenshots/ios-6.5/` (1284 × 2778).
+Chaque dossier reçoit ses propres fichiers : un fichier glissé dans le mauvais emplacement est refusé pour ses dimensions.
 
 **Confidentialité de l'app (App Privacy)** — données collectées, liées à l'identité, non utilisées pour le suivi :
 - Coordonnées : nom, adresse e-mail, numéro de téléphone, adresse physique (adresse de livraison) — fonctionnalité de l'app.
