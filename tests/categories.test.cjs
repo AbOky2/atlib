@@ -67,11 +67,10 @@ test('chaque catégorie a un identifiant unique et un libellé', () => {
     FOOD_CATEGORIES.forEach((c) => assert.ok(c.label && c.label.length > 0, `${c.id} sans libellé`));
 });
 
-test('chaque catégorie possède un dessin dans CategoryIcon', () => {
-    const src = require('node:fs').readFileSync('src/components/CategoryIcon.tsx', 'utf8');
+test('chaque catégorie possède un dessin (Fluent Emoji) dans cuisineEmoji.ts', () => {
+    const src = require('node:fs').readFileSync('src/assets/cuisineEmoji.ts', 'utf8');
     FOOD_CATEGORIES.forEach((c) => {
-        const key = c.id === ALL_CATEGORY_ID ? '[ALL_CATEGORY_ID]' : c.id;
-        assert.ok(src.includes(`${key}:`), `aucun dessin pour « ${c.id} » dans CategoryIcon.tsx`);
+        assert.match(src, new RegExp(`^\\s+${c.id}: '<svg`, 'm'), `aucun dessin pour « ${c.id} » dans cuisineEmoji.ts`);
     });
 });
 

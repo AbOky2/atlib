@@ -22,7 +22,8 @@ const path = require('node:path');
 
 const ROOTS = ['app', 'src'];
 // Sources de vérité des couleurs, et le seul fichier de dessin.
-const IGNORED = ['database.types.ts', 'CategoryIcon.tsx', 'palette.ts', 'elevation.ts'];
+// cuisineEmoji.ts : les SVG Fluent Emoji (MIT) gardent leurs propres couleurs, comme l'icône de l'app.
+const IGNORED = ['database.types.ts', 'CategoryIcon.tsx', 'cuisineEmoji.ts', 'palette.ts', 'elevation.ts'];
 
 function sourceFiles() {
     const out = [];
