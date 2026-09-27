@@ -1,6 +1,14 @@
 // Generates legal/privacy.html from src/lib/legal.ts (compiled by `tsc -p tsconfig.test.json`).
 // Usage: npm run legal:build  — run with the production environment loaded so the
 // publisher and contact are real, never placeholders.
+// Charge .env / .env.local / .env.production comme Expo le fait pour `expo start`
+// et `expo export` : `npm run release:check` lit ainsi les mêmes valeurs que
+// l'app, au lieu d'exiger un `export` manuel dans le terminal.
+try {
+    process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+    require('@expo/env').load(require('node:path').resolve(__dirname, '..'), { silent: true });
+} catch { /* sans Expo, on lit l'environnement tel quel */ }
+
 const fs = require('node:fs');
 const path = require('node:path');
 const { PRIVACY_POLICY, PRIVACY_UPDATED_AT, LEGAL_PUBLISHER, LEGAL_EMAIL } = require('../.test-build/lib/legal');

@@ -1,4 +1,12 @@
 // Local configuration check only: no build, upload, API call or secret output.
+// Charge .env / .env.local / .env.production comme Expo le fait pour `expo start`
+// et `expo export` : `npm run release:check` lit ainsi les mêmes valeurs que
+// l'app, au lieu d'exiger un `export` manuel dans le terminal.
+try {
+    process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+    require('@expo/env').load(require('node:path').resolve(__dirname, '..'), { silent: true });
+} catch { /* sans Expo, on lit l'environnement tel quel */ }
+
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
