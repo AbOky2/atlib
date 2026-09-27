@@ -69,12 +69,58 @@ ${sections}
 `;
 }
 
-module.exports = { render };
+/**
+ * The account-deletion page Google Play links from the store listing. It must
+ * name the app, give the steps, and say what is deleted and what is kept —
+ * the same facts as the policy, in the order a customer looks for them.
+ */
+function renderDeletion() {
+    const contact = LEGAL_EMAIL ? `<a href="mailto:${escape(LEGAL_EMAIL)}">${escape(LEGAL_EMAIL)}</a>` : `l'assistance dans l'application (Profil → Aide)`;
+    const publisher = LEGAL_PUBLISHER ? escape(LEGAL_PUBLISHER) : `l'éditeur de ${escape(BRAND)}`;
+    const head = render().split('<body>')[0]
+        .replace(/<title>[^<]*<\/title>/, `<title>${escape(BRAND)} — Supprimer votre compte</title>`)
+        .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="Comment supprimer votre compte ${escape(BRAND)} et les données associées, dans l'application ou par email.">`);
+    return `${head}<body>
+<main>
+  <div class="brand">${escape(BRAND)}<i></i></div>
+  <h1>Supprimer votre compte</h1>
+  <p class="updated">Application ${escape(BRAND)} · éditée par ${publisher}</p>
+<section>
+<h2>Depuis l'application</h2>
+<p>La suppression se fait directement dans l'application, sans nous écrire :</p>
+<ul><li>Ouvrez l'onglet <strong>Profil</strong>.</li><li>Dans la section <strong>Confidentialité</strong>, appuyez sur <strong>Supprimer mon compte</strong>.</li><li>Confirmez. La suppression est immédiate et définitive.</li></ul>
+<p>Si une commande est en cours, la suppression est refusée jusqu'à sa livraison ou son annulation, puis redevient possible.</p>
+</section>
+<section>
+<h2>Sans accès à l'application</h2>
+<p>Écrivez à ${contact} depuis l'adresse email de votre compte, avec l'objet « Suppression de compte ». Nous supprimons le compte sous un mois et vous le confirmons par email.</p>
+</section>
+<section>
+<h2>Ce qui est supprimé</h2>
+<ul><li>Votre identifiant de connexion (adresse email, mot de passe).</li><li>Votre nom et votre numéro de téléphone.</li><li>Vos adresses de livraison et vos favoris.</li><li>Vos jetons de notification.</li></ul>
+</section>
+<section>
+<h2>Ce qui est conservé</h2>
+<p>Vos commandes passées sont conservées <strong>anonymisées</strong> — sans nom, téléphone, adresse ni consigne — pour la comptabilité des restaurants. Elles ne peuvent plus être reliées à vous.</p>
+</section>
+  <hr>
+  <footer>
+    <p>Voir aussi la <a href="privacy.html">politique de confidentialité</a>.</p>
+    <p>${publisher} · N'Djamena, Tchad</p>
+  </footer>
+</main>
+</body>
+</html>
+`;
+}
+
+module.exports = { render, renderDeletion };
 
 if (require.main === module) {
     const out = path.resolve(__dirname, '..', 'legal', 'privacy.html');
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, render());
+    fs.writeFileSync(path.resolve(__dirname, '..', 'legal', 'supprimer-compte.html'), renderDeletion());
     const missing = [!LEGAL_PUBLISHER && 'EXPO_PUBLIC_LEGAL_PUBLISHER', !LEGAL_EMAIL && 'EXPO_PUBLIC_LEGAL_EMAIL'].filter(Boolean);
-    console.log(`legal/privacy.html généré${missing.length ? ` — À CONFIGURER avant publication : ${missing.join(', ')}` : ''}.`);
+    console.log(`legal/privacy.html et legal/supprimer-compte.html générés${missing.length ? ` — À CONFIGURER avant publication : ${missing.join(', ')}` : ''}.`);
 }

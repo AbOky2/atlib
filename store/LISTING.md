@@ -153,6 +153,13 @@ Account deletion: Profil → Confidentialité → Supprimer mon compte.
 **Captures d'écran téléphone** : 2 minimum, 8 maximum, format 9:16 conseillé, ratio maximal 2:1 — dossier `store/screenshots/android/` (1080 × 2160).
 **Icône** : `assets/icon.png` (512 × 512 exigés : la console redimensionne le 1024). **Image de présentation** (1024 × 500, obligatoire) : `store/feature-graphic.png`.
 
+**Suppression de compte** (Contenu de l'application → Suppression de compte) : méthodes de création de compte =
+cocher uniquement « Nom d'utilisateur et mot de passe » (e-mail + mot de passe ; ne pas cocher « autres méthodes »
+ni OAuth). URL de suppression : `https://chad-delivery.expo.app/supprimer-compte.html`. Aux questions suivantes :
+la suppression du compte supprime aussi les données associées ; certaines données sont conservées (commandes
+anonymisées pour la comptabilité des restaurants) ; les utilisateurs peuvent demander la suppression de données
+sans supprimer le compte (par e-mail).
+
 **Sécurité des données** (questionnaire) :
 - Collecte : nom, e-mail, numéro de téléphone, adresse (livraison), historique d'achats (commandes), identifiant utilisateur. Toutes chiffrées en transit, suppression possible depuis l'app.
 - Finalité : fonctionnalité de l'application et gestion du compte. Aucune publicité, aucun partage avec des tiers, aucune donnée de localisation GPS.

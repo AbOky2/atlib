@@ -7,5 +7,6 @@ cd "$(dirname "$0")/.."
 rm -rf legal-site && mkdir -p legal-site
 cp legal/privacy.html legal-site/privacy.html
 cp legal/privacy.html legal-site/index.html
+cp legal/supprimer-compte.html legal-site/supprimer-compte.html
 npx -y eas-cli@latest deploy --export-dir legal-site --prod --non-interactive
 rm -rf legal-site
