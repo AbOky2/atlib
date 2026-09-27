@@ -126,8 +126,8 @@ L’application s’appelle désormais **Naakul** (« manger », arabe tchadien)
 6. **iOS** : `eas build --platform ios --profile production`, TestFlight, recette complète sur iPhone
    (inscription avec numéro, commande, acceptation côté restaurant, suivi, Live Activity, annulation,
    suppression de compte), puis `eas submit --platform ios --id <build>`.
-7. **Android** : fournir `GOOGLE_SERVICES_JSON` (fichier client Firebase) et le compte de service FCM V1 dans
-   EAS Credentials, puis `eas build --platform android --profile production`, piste de test interne, recette.
+7. **Android** : suivre [ANDROID.md](ANDROID.md) — Firebase (`GOOGLE_SERVICES_JSON` + clé FCM V1), build de
+   production, premier envoi manuel sur la piste de test interne, recette, puis production.
 8. **Fiches stores** : captures, description, déclarations de données (e-mail, nom, téléphone, adresse de
    livraison, aucun suivi publicitaire), URL de confidentialité, compte de démonstration pour la revue avec
    un restaurant qui répond.
