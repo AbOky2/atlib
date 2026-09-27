@@ -28,3 +28,22 @@ arrivent sous la forme `chaddelivery://confirm-email?code=…` / `chaddelivery:/
 refusés : un lien forgé ne peut plus installer une session étrangère sur le téléphone d’un client. Contrepartie
 assumée : le lien doit être ouvert sur l’appareil qui a fait la demande ; l’adresse est confirmée côté serveur
 quoi qu’il arrive, et l’écran indique de se connecter par mot de passe si l’échange échoue.
+
+## Numéro de téléphone à l’inscription (27 septembre 2026)
+
+L’inscription demande un numéro de mobile tchadien (6, 7 ou 9 en tête), normalisé
+en `+235…` et enregistré dans `user_metadata.delivery_phone`. Il préremplit le
+numéro de livraison à la première commande ; il reste modifiable à chaque commande
+et n’est pas une preuve de possession du numéro (aucun SMS n’est envoyé).
+
+## Confirmation de l’e-mail : à décider avant le lancement
+
+Avec la confirmation activée, le client doit ouvrir le lien reçu **sur le même
+téléphone** avant de pouvoir commander : c’est le point de friction principal à
+N’Djamena, où beaucoup de clients ne consultent pas leurs e-mails. Désactiver
+« Confirm email » dans Authentication → Providers → Email ouvre le compte
+immédiatement ; l’app gère déjà les deux cas (`signUp` renvoie `ok` quand une
+session est fournie). Contrepartie : une adresse mal saisie ne pourra pas
+récupérer son mot de passe ; le numéro de téléphone donne alors un canal
+d’assistance. Les connexions Google et Apple (`SOCIAL_AUTH.md`) contournent
+entièrement la question.

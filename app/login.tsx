@@ -9,7 +9,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { PHONE_SIGN_IN_ENABLED } from '../src/lib/authFeatures';
 import { useAuthStore } from '../src/store/authStore';
 import { isValidSmsCode, SMS_CODE_LENGTH, smsResendSeconds } from '../src/lib/phoneAuth';
-import { isValidChadPhone, formatChadPhone } from '../src/lib/phone';
+import { isValidChadPhone, formatChadPhone, normalizeChadPhone } from '../src/lib/phone';
 import { BRAND, BRAND_TAGLINE, BRAND_FULL } from '../src/lib/brand';
 import { Button, Divider, Field, TypeText, SCREEN_GUTTER, TOUCH_MIN } from '../src/components/ui';
 import { GoogleLogo } from '../src/components/GoogleLogo';
@@ -32,6 +32,8 @@ export default function LoginScreen() {
     const [isSignUp, setIsSignUp] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [fullName, setFullName] = useState('');
+    // The number the restaurant will call: asked once, at sign-up, then prefilled at checkout.
+    const [signupPhone, setSignupPhone] = useState('');
     // Client-side validation errors and positive notices, shown in the same
     // banners as server errors — feedback must never be haptic-only.
     const [formError, setFormError] = useState<string | null>(null);
@@ -113,8 +115,15 @@ export default function LoginScreen() {
             return;
         }
 
+        const phone = isSignUp ? normalizeChadPhone(signupPhone) : null;
+        if (isSignUp && !phone) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            setFormError('Saisissez un numéro de mobile tchadien valide (ex : 66 12 34 56).');
+            return;
+        }
+
         const result = isSignUp
-            ? await signUp(email.trim(), password, fullName.trim() || undefined)
+            ? await signUp(email.trim(), password, fullName.trim() || undefined, phone ?? undefined)
             : await signIn(email.trim(), password);
 
         if (result === 'confirm-email') {
@@ -289,6 +298,21 @@ export default function LoginScreen() {
                                     autoComplete="name"
                                     textContentType="name"
                                     maxLength={120}
+                                    className="mb-5"
+                                />
+                            )}
+                            {isSignUp && (
+                                <Field
+                                    label="Numéro de téléphone"
+                                    icon={Phone}
+                                    placeholder="66 12 34 56"
+                                    value={signupPhone}
+                                    onChangeText={setSignupPhone}
+                                    keyboardType="phone-pad"
+                                    autoComplete="tel"
+                                    textContentType="telephoneNumber"
+                                    maxLength={20}
+                                    helper="Le restaurant vous appelle à ce numéro pour la livraison."
                                     className="mb-5"
                                 />
                             )}

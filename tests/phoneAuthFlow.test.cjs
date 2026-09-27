@@ -27,6 +27,9 @@ test('le parcours réel normalise le téléphone, crée par OTP et bloque les re
  assert.equal(get().isAuthenticated,false);
  assert.equal(calls[0][1].options.emailRedirectTo,'chaddelivery://confirm-email');
  assert.equal(calls[0][1].options.data.full_name,'Test');
+ assert.equal(calls[0][1].options.data.delivery_phone,undefined,'sans numéro, pas de champ vide');
+ assert.equal(await get().signUp('test@example.com','password8','Test','+23566123456'),'confirm-email');
+ assert.equal(calls[1][1].options.data.delivery_phone,'+23566123456','le numéro d’inscription est mémorisé sur le compte');
  calls.length=0;
  features.PHONE_SIGN_IN_ENABLED=true;
  const first=get().requestPhoneCode('66 12 34 56');

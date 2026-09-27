@@ -27,7 +27,9 @@ interface AuthStore {
     error: string | null;
     initialize: () => Promise<void>;
     signIn: (email: string, password: string) => Promise<AuthResult>;
-    signUp: (email: string, password: string, fullName?: string) => Promise<AuthResult>;
+    /** `phone` is the delivery contact, already normalised (+235…): it lands in the
+     *  account metadata so the checkout is prefilled from the first order. */
+    signUp: (email: string, password: string, fullName?: string, phone?: string) => Promise<AuthResult>;
     /**
      * Sign in with the phone's own account (Google, Apple). 'cancelled' is the
      * customer closing the system sheet: nothing to show, nothing to explain.
@@ -158,15 +160,16 @@ export const useAuthStore = create<AuthStore>((write) => {
         }
     },
 
-    signUp: async (email, password, fullName) => {
+    signUp: async (email, password, fullName, phone) => {
         set({ loading: true, error: null });
         try {
+            const metadata = { ...(fullName ? { full_name: fullName } : {}), ...(phone ? { delivery_phone: phone } : {}) };
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
                     emailRedirectTo: Linking.createURL('confirm-email', { scheme: 'chaddelivery' }),
-                    ...(fullName ? { data: { full_name: fullName } } : {}),
+                    ...(Object.keys(metadata).length ? { data: metadata } : {}),
                 },
             });
             if (error) {
