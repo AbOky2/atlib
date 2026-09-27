@@ -3,8 +3,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { PRIVACY_POLICY } = require('../.test-build/lib/legal');
+// Le générateur charge .env avant de lire legal.ts : il doit passer en premier,
+// sinon l'éditeur et le contact sont lus vides et la page « dérive ».
 const { render } = require('../scripts/build-legal.cjs');
+const { PRIVACY_POLICY } = require('../.test-build/lib/legal');
 
 test('la politique de confidentialité couvre ce que les stores exigent', () => {
     const text = PRIVACY_POLICY.map((s) => `${s.title} ${s.paragraphs.join(' ')} ${(s.bullets ?? []).join(' ')}`).join(' ');
