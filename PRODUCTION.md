@@ -140,3 +140,13 @@ Le 27 septembre 2026 : `expo prebuild --platform ios --clean` génère `UIApplic
 `EXExpoAppSceneDelegate`, `pod install` puis `xcodebuild` (Xcode 27, SDK iOS 27) réussissent, l'app s'installe et
 s'ouvre sur le simulateur iOS 27 avec la session et le catalogue, sans rapport de crash. Ce qui bloquait le
 SDK 56 sur Xcode 27 est résolu par le SDK lui-même. Les builds EAS restent à faire avec un CLI à jour.
+
+## Mise à jour du 2 octobre 2026 — dashboard restaurant en ligne
+
+- **Espace restaurant** : https://naakul-dashboard.vercel.app (Vercel, projet `naakul-dashboard`, dépôt
+  `chad-delivery-dashboard`, déploiement par `npx vercel@latest deploy --prod`). Sans lui, aucune commande ne peut
+  être acceptée : c'est l'outil que chaque restaurant partenaire ouvre pendant ses heures de service.
+- **Accès d'un restaurant** : compte e-mail + mot de passe créé dans Supabase Auth, rattaché au restaurant par
+  `supabase_test_users.sql` dans le SQL Editor (voir le README du dashboard).
+- iOS : build 3 en revue App Store, identifiants de démonstration renseignés pour TestFlight et la soumission.
+  Android : build 1.0.0 (3) déposé sur Google Play, en revue.
